@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#3D3B3F">
+  <title>РОЛТХОЛЛ — Аренда залов</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── HERO ── */
+    .hero {
+      padding: 28px 16px 24px;
+      min-height: 35vw;
+      background: linear-gradient(160deg, var(--surface-2) 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-logo { margin-bottom: 20px; }
+    .hero-logo img { height: 32px; }
+    .hero h1 { font-size: 1.6rem; line-height: 1.4; margin-bottom: 8px; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { font-size: .875rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+
+    /* user's hero classes — preserved */
+    .div-hero-number, .div-hero-price, .div-hero-time, .div-hero-min-price {
+      justify-content: center; padding: 8px;
+      display: inline-flex; flex-wrap: wrap;
+    }
+    .hero-hero-stats {
+      display: flex; gap: 20px; padding: 16px 0;
+      border-top: 1px solid var(--border);
+    }
+    .bottom-hero-block {
+      position: relative;
+      bottom: -12.5em;
+    }
+    .hero-stat-num   { font-family: var(--font-brand); font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+    .hero-stat-label { font-size: .68rem; color: var(--text-dim); margin-top: 1px; }
+
+    /* add padding to hero to contain the -20em shift */
+    .hero { padding-bottom: 15em;min-height: 45vw !important;}
+
+    /* ── QUICK INFO ── */
+    .quick-info-row {
+      display: ruby; max-width: 95%; overflow-x: hidden;
+    }
+    .quick-info-row::-webkit-scrollbar { display: none; }
+    .quick-chip {
+      flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 100px; padding: 6px 12px;
+      font-size: .72rem; color: var(--text-muted); font-weight: 500;margin: .2em;
+    }
+    .quick-chip span:first-child { font-size: .85rem; }
+
+    /* ── HALLS LIST ── */
+    .halls-col { display: flex; flex-direction: column; gap: 12px; padding: 0 16px 8px; }
+
+    /* ── AVAILABILITY ── */
+    .avail-row  { display: flex; gap: 5px; margin-top: 10px; }
+    .avail-dot  { flex: 1; height: 4px; border-radius: 2px; }
+    .avail-dot.free   { background: var(--success); }
+    .avail-dot.busy   { background: var(--danger); }
+    .avail-dot.partly { background: var(--warning); }
+    .avail-label { font-size: .68rem; color: var(--text-dim); margin-top: 4px; }
+
+    .hall-amenities { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .amenity { font-size: .68rem; color: var(--text-dim); padding: 2px 7px; border-radius: 4px; background: var(--surface-2); }
+
+    /* ── PRICE HIGHLIGHT ── */
+    .price-highlight {
+      background: rgba(55,111,255,.08); border: 1px solid var(--border-accent);
+      border-radius: 8px; padding: 8px 12px; margin-top: 10px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .price-highlight-label { font-size: .72rem; color: var(--text-dim); }
+    .price-highlight-val   { font-family: var(--font-brand); font-size: .875rem; font-weight: 700; color: var(--accent); }
+
+    /* ── TABS (Залы | Тарифы) ── */
+    .main-tabs {
+      display: flex; background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+    }
+    .main-tab-btn {
+      flex: 1; padding: 13px 0; text-align: center;
+      font-size: .82rem; font-weight: 700;
+      color: var(--text-dim); border: none; background: none;
+      border-bottom: 2px solid transparent;
+      transition: all .18s; cursor: pointer;
+      font-family: var(--font-brand);
+    }
+    .main-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── CAROUSEL ── */
+    .carousel-wrap { position: relative; overflow: hidden; }
+    .carousel-track {
+      display: flex; transition: transform .3s cubic-bezier(.25,.46,.45,.94);
+      will-change: transform;
+    }
+    .carousel-track img {
+      flex-shrink: 0; width: 100%; aspect-ratio: 16/9;
+      object-fit: cover; display: block;
+    }
+    .carousel-prev, .carousel-next {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,.55); border: none; color: #fff; font-size: .9rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 10; transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .carousel-prev:hover, .carousel-next:hover { background: rgba(0,0,0,.75); }
+    .carousel-prev { left: 8px; }
+    .carousel-next { right: 8px; }
+    .carousel-dots {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 5px; z-index: 10;
+    }
+    .cdot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,.4); transition: all .2s; cursor: pointer;
+    }
+    .cdot.active { background: #fff; width: 18px; border-radius: 3px; }
+
+    /* ── HALL CARD hidden ── */
+    .hall-card-wrap { transition: opacity .2s, transform .2s; }
+    .hall-card-wrap.hidden { display: none; }
+
+    /* ── DESKTOP RESPONSIVE ── */
+    @media (min-width: 768px) {
+      .app-shell { max-width: 100%; }
+      .bottom-nav { max-width: 100%; position: fixed; left: 0; right: 0; transform: none; }
+      .hero { padding-bottom: 22em; }
+      .hero h1 { font-size: 2.2rem; }
+      .hero p  { font-size: 1rem; max-width: 560px; }
+      .halls-col {
+        display: grid; grid-template-columns: repeat(2, 1fr);
+        gap: 20px; padding: 0 24px 12px;
+      }
+      .quick-info-row { padding: 16px 24px; }
+      .section-header { padding: 20px 24px 12px; }
+      .main-tabs { padding: 0 24px; }
+      .tabs-scroll { padding: 0 24px; }
+      .tab-panel { padding: 0; }
+    }
+    @media (min-width: 1200px) {
+      .app-shell { max-width: 1320px; margin: 0 auto; }
+      .halls-col { grid-template-columns: repeat(3, 1fr); padding: 0 32px 12px; }
+      .hero { padding: 48px 32px 22em; }
+      .hero h1 { font-size: 2.8rem; }
+      .quick-info-row { padding: 16px 32px; }
+      .section-header { padding: 24px 32px 14px; }
+      .main-tabs { padding: 0 32px; }
+      .tabs-scroll { padding: 0 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- DESKTOP NAV (hidden on mobile via CSS) -->
+<nav class="d-nav">
+  <div class="d-nav-inner">
+    <a href="index.html" class="d-nav-logo"><img src="logo.svg" alt="РОЛТХОЛЛ"></a>
+    <div class="d-nav-links">
+      <a href="index.html"    class="d-nav-link active">Главная</a>
+      <a href="calendar.html" class="d-nav-link">Расписание</a>
+      <a href="tariffs.html"  class="d-nav-link">Тарифы</a>
+      <a href="profile.html"  class="d-nav-link">Кабинет</a>
+    </div>
+    <div class="d-nav-actions">
+      <a href="profile.html" class="btn btn-ghost btn-sm">Войти</a>
+      <a href="profile.html" class="btn btn-primary btn-sm">Кабинет</a>
+    </div>
+  </div>
+</nav>
+
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <header class="app-header" style="background: var(--surface-3);">
+    <img src="logo.svg" class="logo-img" alt="РОЛТХОЛЛ" style="height:10px;">
+    <div style="flex:1;"></div>
+    <a href="profile.html" class="header-action" title="Личный кабинет">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </a>
+  </header>
+
+  <div class="page-content">
+
+    <!-- HERO (user's layout preserved) -->
+    <div class="hero">
+      <h1><span style="font-size: 42px;color:#fff">РОЛТИХОЛЛ</span><br> - место <span>для танев</span><br>созданное с душой</h1>
+      <p>Танцы, репетиции, мероприятия, мастер-классы. Забронируй онлайн за 2 минуты.</p>
+      <!-- QUICK INFO -->
+    <div class="quick-info-row">
+      <div class="quick-chip"><span>📍</span> ул. Зиповская, 70. «РОЛТИХОЛЛ»</div>
+      <div class="quick-chip"><span>🕐</span> 09:00 – 23:00</div>
+      <div class="quick-chip"><span>💳</span> Онлайн-оплата</div>
+      <div class="quick-chip"><span>🅿️</span> Парковка</div>
+    </div>
+      <div class="bottom-hero-block">
+        <div class="hero-hero-stats">
+          <div class="div-hero-number">
+            <div class="hero-stat-num">4</div>
+            <div class="hero-stat-label">зала</div>
+          </div>
+          <div class="div-hero-price">
+            <div class="hero-stat-num">600₽</div>
+            <div class="hero-stat-label">от / час</div>
+          </div>
+          <div class="div-hero-time">
+            <div class="hero-stat-num">1 час</div>
+            <div class="hero-stat-label">мин бронь</div>
+          </div>
+          <div class="div-hero-min-price">
+            <div class="hero-stat-num">50%</div>
+            <div class="hero-stat-label">предоплата</div>
+          </div>
+        </div>
+        <a href="calendar.html" class="btn btn-primary btn-full btn-xl">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          Выбрать дату и зал
+        </a>
+        
+      </div>
+    </div>
+
+    <!-- MAIN TABS -->
+    <div class="main-tabs">
+      <button class="main-tab-btn active" onclick="switchTab('halls', this)">Залы</button>
+      <!-- <a href="tariffs.html" class="main-tab-btn" style="display:flex; align-items:center; justify-content:center; text-decoration:none;">Тарифы</a> -->
+    </div>
+
+    <!-- ════ TAB: ЗАЛЫ ════ -->
+    <div id="tab-halls" class="tab-panel active">
+
+      <!-- FILTERS -->
+      <div style="padding: 12px 0 6px;">
+        <div class="tabs-scroll" id="filterChips">
+          <button class="chip active" data-filter="all"  onclick="filterHalls(this)">Все залы</button>
+          <button class="chip"        data-filter="8"    onclick="filterHalls(this)">До 10 чел</button>
+          <button class="chip"        data-filter="30"   onclick="filterHalls(this)">До 30 чел</button>
+          <button class="chip"        data-filter="80"   onclick="filterHalls(this)">30–80 чел</button>
+          <button class="chip"        data-filter="free" onclick="filterHalls(this)">Свободны сейчас</button>
+        </div>
+      </div>
+
+      <!-- HALLS -->
+      <div class="section-header" style="padding-top:8px;">
+        <h2 class="section-title">Залы</h2>
+        <a href="calendar.html" class="section-link">Расписание →</a>
+      </div>
+
+      <div class="halls-col" id="hallsList">
+
+        <!-- ЗАЛ А -->
+        <div class="hall-card-wrap" data-cap="80" data-status="free">
+          <a href="calendar.html?hall=a" style="text-decoration:none; color:inherit; display:block;">
+            <div class="hall-card">
+              <div class="hall-photo-overlay relative">
+                <!-- CAROUSEL A -->
+                <div class="carousel-wrap" id="car-a">
+                  <div class="carousel-track" id="track-a">
+                    <img src="upploads/image 1.png" alt="Зал А">
+                    <img src="upploads/image 3.png" alt="Зал А">
+                    <img src="upploads/image 2.png" alt="Зал А">
+                  </div>
+                  <button class="carousel-prev" onclick="carPrev(event,'a')">‹</button>
+                  <button class="carousel-next" onclick="carNext(event,'a')">›</button>
+                  <div class="carousel-dots" id="dots-a">
+                    <div class="cdot active" onclick="carGo(event,'a',0)"></div>
+                    <div class="cdot" onclick="carGo(event,'a',1)"></div>
+                    <div class="cdot" onclick="carGo(event,'a',2)"></div>
+                  </div>
+                  <div class="hall-photo-badges">
+                    <div class="photo-count">🖼 3 фото</div>
+                    <span class="badge badge-success"><span class="status-dot dot-success"></span> Свободен</span>
+                  </div>
+                  <div class="hall-photo-info">
+                    <div class="hall-name-overlay">Зал А</div>
+                    <div class="hall-area">160 м² · до 80 человек</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hall-card-body">
+                <div class="hall-amenities">
+                  <span class="amenity">Зеркала</span>
+                  <span class="amenity">Звук</span>
+                  <span class="amenity">Сцена</span>
+                  <span class="amenity">Раздевалки</span>
+                  <span class="amenity">Проектор</span>
+                </div>
+                <div class="price-highlight">
+                  <div>
+                    <div class="price-highlight-label">от (Пн–Пт, 8+ ч)</div>
+                    <div class="price-highlight-val">600 ₽/час</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="price-highlight-label">стандарт</div>
+                    <div style="font-size:.78rem; font-weight:600; color:var(--text-muted);">1 000 ₽/час</div>
+                  </div>
+                </div>
+                <div class="avail-row">
+                  <div class="avail-dot free"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot free"></div><div class="avail-dot busy"></div>
+                  <div class="avail-dot busy"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot partly"></div>
+                </div>
+                <div class="avail-label">Пн Вт Ср Чт Пт Сб Вс — занятость на неделе</div>
+                <div class="mt-12"><div class="btn btn-primary btn-full">Забронировать</div></div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- ЗАЛ Б -->
+        <div class="hall-card-wrap" data-cap="30" data-status="busy">
+          <a href="calendar.html?hall=b" style="text-decoration:none; color:inherit; display:block;">
+            <div class="hall-card">
+              <div class="hall-photo-overlay relative">
+                <div class="carousel-wrap" id="car-b">
+                  <div class="carousel-track" id="track-b">
+                    <img src="upploads/image 3.png" alt="Зал Б">
+                    <img src="upploads/image 1.png" alt="Зал Б">
+                    <img src="upploads/image 4.png" alt="Зал Б">
+                  </div>
+                  <button class="carousel-prev" onclick="carPrev(event,'b')">‹</button>
+                  <button class="carousel-next" onclick="carNext(event,'b')">›</button>
+                  <div class="carousel-dots" id="dots-b">
+                    <div class="cdot active" onclick="carGo(event,'b',0)"></div>
+                    <div class="cdot" onclick="carGo(event,'b',1)"></div>
+                    <div class="cdot" onclick="carGo(event,'b',2)"></div>
+                  </div>
+                  <div class="hall-photo-badges">
+                    <div class="photo-count">🖼 3 фото</div>
+                    <span class="badge badge-warning">Занят до 17:00</span>
+                  </div>
+                  <div class="hall-photo-info">
+                    <div class="hall-name-overlay">Зал Б</div>
+                    <div class="hall-area">65 м² · до 30 человек</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hall-card-body">
+                <div class="hall-amenities">
+                  <span class="amenity">Зеркала</span>
+                  <span class="amenity">Звук</span>
+                  <span class="amenity">Колонны</span>
+                  <span class="amenity">Свет</span>
+                </div>
+                <div class="price-highlight">
+                  <div>
+                    <div class="price-highlight-label">от (Пн–Пт, 8+ ч)</div>
+                    <div class="price-highlight-val">600 ₽/час</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="price-highlight-label">стандарт</div>
+                    <div style="font-size:.78rem; font-weight:600; color:var(--text-muted);">1 000 ₽/час</div>
+                  </div>
+                </div>
+                <div class="avail-row">
+                  <div class="avail-dot free"></div><div class="avail-dot busy"></div>
+                  <div class="avail-dot partly"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot busy"></div><div class="avail-dot busy"></div>
+                  <div class="avail-dot partly"></div>
+                </div>
+                <div class="avail-label">Пн Вт Ср Чт Пт Сб Вс</div>
+                <div class="mt-12"><div class="btn btn-ghost btn-full">Смотреть расписание</div></div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- ЗАЛ В -->
+        <div class="hall-card-wrap" data-cap="25" data-status="free">
+          <a href="calendar.html?hall=c" style="text-decoration:none; color:inherit; display:block;">
+            <div class="hall-card">
+              <div class="hall-photo-overlay relative">
+                <div class="carousel-wrap" id="car-c">
+                  <div class="carousel-track" id="track-c">
+                    <img src="upploads/image 2.png" alt="Зал В">
+                    <img src="upploads/image 4.png" alt="Зал В">
+                    <img src="upploads/image 3.png" alt="Зал В">
+                  </div>
+                  <button class="carousel-prev" onclick="carPrev(event,'c')">‹</button>
+                  <button class="carousel-next" onclick="carNext(event,'c')">›</button>
+                  <div class="carousel-dots" id="dots-c">
+                    <div class="cdot active" onclick="carGo(event,'c',0)"></div>
+                    <div class="cdot" onclick="carGo(event,'c',1)"></div>
+                    <div class="cdot" onclick="carGo(event,'c',2)"></div>
+                  </div>
+                  <div class="hall-photo-badges">
+                    <div class="photo-count">🖼 3 фото</div>
+                    <span class="badge badge-success"><span class="status-dot dot-success"></span> Свободен</span>
+                  </div>
+                  <div class="hall-photo-info">
+                    <div class="hall-name-overlay">Зал В</div>
+                    <div class="hall-area">60 м² · до 25 человек</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hall-card-body">
+                <div class="hall-amenities">
+                  <span class="amenity">Маты</span>
+                  <span class="amenity">Звук</span>
+                  <span class="amenity">Арт-стена</span>
+                  <span class="amenity">Wi-Fi</span>
+                </div>
+                <div class="price-highlight">
+                  <div>
+                    <div class="price-highlight-label">от (Пн–Пт, 8+ ч)</div>
+                    <div class="price-highlight-val">600 ₽/час</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="price-highlight-label">стандарт</div>
+                    <div style="font-size:.78rem; font-weight:600; color:var(--text-muted);">1 000 ₽/час</div>
+                  </div>
+                </div>
+                <div class="avail-row">
+                  <div class="avail-dot free"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot free"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot partly"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot free"></div>
+                </div>
+                <div class="avail-label">Пн Вт Ср Чт Пт Сб Вс</div>
+                <div class="mt-12"><div class="btn btn-primary btn-full">Забронировать</div></div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- ЗАЛ Г -->
+        <div class="hall-card-wrap" data-cap="8" data-status="free">
+          <a href="calendar.html?hall=d" style="text-decoration:none; color:inherit; display:block;">
+            <div class="hall-card">
+              <div class="hall-photo-overlay relative">
+                <div class="carousel-wrap" id="car-d">
+                  <div class="carousel-track" id="track-d">
+                    <img src="upploads/image 4.png" alt="Зал Г">
+                    <img src="upploads/image 2.png" alt="Зал Г">
+                    <img src="upploads/image 1.png" alt="Зал Г">
+                  </div>
+                  <button class="carousel-prev" onclick="carPrev(event,'d')">‹</button>
+                  <button class="carousel-next" onclick="carNext(event,'d')">›</button>
+                  <div class="carousel-dots" id="dots-d">
+                    <div class="cdot active" onclick="carGo(event,'d',0)"></div>
+                    <div class="cdot" onclick="carGo(event,'d',1)"></div>
+                    <div class="cdot" onclick="carGo(event,'d',2)"></div>
+                  </div>
+                  <div class="hall-photo-badges">
+                    <div class="photo-count">🖼 3 фото</div>
+                    <span class="badge badge-success"><span class="status-dot dot-success"></span> Свободен</span>
+                  </div>
+                  <div class="hall-photo-info">
+                    <div class="hall-name-overlay">Зал Г</div>
+                    <div class="hall-area">15 м² · до 8 человек</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hall-card-body">
+                <div class="hall-amenities">
+                  <span class="amenity">Свет</span>
+                  <span class="amenity">Wi-Fi</span>
+                  <span class="amenity">Доска</span>
+                </div>
+                <div class="price-highlight">
+                  <div>
+                    <div class="price-highlight-label">от (Пн–Пт, 8+ ч)</div>
+                    <div class="price-highlight-val">600 ₽/час</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="price-highlight-label">стандарт</div>
+                    <div style="font-size:.78rem; font-weight:600; color:var(--text-muted);">1 000 ₽/час</div>
+                  </div>
+                </div>
+                <div class="avail-row">
+                  <div class="avail-dot free"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot free"></div><div class="avail-dot partly"></div>
+                  <div class="avail-dot free"></div><div class="avail-dot free"></div>
+                  <div class="avail-dot free"></div>
+                </div>
+                <div class="avail-label">Пн Вт Ср Чт Пт Сб Вс</div>
+                <div class="mt-12"><div class="btn btn-primary btn-full">Забронировать</div></div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+      </div><!-- /halls-col -->
+
+      <!-- EMPTY STATE -->
+      <div id="noResults" style="display:none; text-align:center; padding:40px 16px; color:var(--text-dim);">
+        <div style="font-size:2.5rem; margin-bottom:12px;">🏛</div>
+        <div style="font-weight:600; margin-bottom:6px;">Нет подходящих залов</div>
+        <div style="font-size:.82rem;">Попробуйте изменить фильтры</div>
+      </div>
+
+      <div style="height:16px;"></div>
+    </div><!-- /tab-halls -->
+
+  </div><!-- /page-content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" onclick="location='index.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Главная
+    </button>
+    <button class="nav-tab" onclick="location='calendar.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Расписание
+    </button>
+    <button class="nav-tab" onclick="location='tariffs.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Тарифы
+    </button>
+    <button class="nav-tab" onclick="location='profile.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Кабинет
+    </button>
+  </nav>
+
+</div><!-- /app-shell -->
+
+<script>
+/* ════ TABS ════ */
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ════ CAROUSEL ════ */
+const carState = {};
+
+function carInit(id) {
+  if (!carState[id]) carState[id] = { idx: 0 };
+}
+
+function carGo(e, id, idx) {
+  e.preventDefault();
+  e.stopPropagation();
+  carInit(id);
+  const track = document.getElementById('track-' + id);
+  const dots  = document.getElementById('dots-' + id);
+  const total = track.children.length;
+  carState[id].idx = (idx + total) % total;
+  track.style.transform = `translateX(-${carState[id].idx * 100}%)`;
+  Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === carState[id].idx));
+}
+
+function carPrev(e, id) {
+  carInit(id);
+  carGo(e, id, carState[id].idx - 1);
+}
+function carNext(e, id) {
+  carInit(id);
+  carGo(e, id, carState[id].idx + 1);
+}
+
+// Touch swipe support for carousels
+document.querySelectorAll('.carousel-wrap').forEach(wrap => {
+  let tx = 0;
+  const id = wrap.id.replace('car-','');
+  wrap.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+  wrap.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 40) {
+      carInit(id);
+      dx < 0 ? carNext({preventDefault:()=>{},stopPropagation:()=>{}}, id)
+              : carPrev({preventDefault:()=>{},stopPropagation:()=>{}}, id);
+    }
+  }, {passive:true});
+});
+
+/* ════ FILTER CHIPS ════ */
+function filterHalls(btn) {
+  // Activate chip
+  document.querySelectorAll('#filterChips .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+
+  const filter = btn.dataset.filter;
+  const cards  = document.querySelectorAll('#hallsList .hall-card-wrap');
+  let visible  = 0;
+
+  cards.forEach(card => {
+    const cap    = parseInt(card.dataset.cap);
+    const status = card.dataset.status;
+
+    let show = false;
+    if (filter === 'all')  show = true;
+    else if (filter === '8')  show = cap <= 10;
+    else if (filter === '30') show = cap <= 30;
+    else if (filter === '80') show = cap > 30 && cap <= 80;
+    else if (filter === 'free') show = status === 'free';
+
+    card.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+/* ════ PRICE CALCULATOR ════ */
+const TIERS_WD = [
+  { minH:1, maxH:3, rph:1000 },
+  { minH:4, maxH:7, rph:800  },
+  { minH:8, maxH:null, rph:600 },
+];
+const TIERS_WE = [
+  { minH:1, maxH:3, rph:1200 },
+  { minH:4, maxH:7, rph:1000 },
+  { minH:8, maxH:null, rph:800  },
+];
+
+function calcPrice() {
+  const isWE  = document.getElementById('calcDay').value === 'we';
+  const hours = parseInt(document.getElementById('calcHours').value);
+  const tiers = isWE ? TIERS_WE : TIERS_WD;
+  let rph = tiers[0].rph;
+  for (const t of tiers) {
+    if (hours >= t.minH && (t.maxH === null || hours <= t.maxH)) { rph = t.rph; break; }
+  }
+  const total  = rph * hours;
+  const prepay = Math.round(total / 2);
+  document.getElementById('calcRph').textContent    = `${rph.toLocaleString('ru')} ₽/ч`;
+  document.getElementById('calcTotal').textContent  = `${total.toLocaleString('ru')} ₽`;
+  document.getElementById('calcPrepay').textContent = `${prepay.toLocaleString('ru')} ₽`;
+}
+
+calcPrice(); // init
+</script>
+</body>
+</html>

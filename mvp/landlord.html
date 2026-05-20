@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#3D3B3F">
+  <title>Арендодатель — РОЛТХОЛЛ</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── STATS 2×2 GRID ── */
+    .ll-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; }
+    .ll-stat-card {
+      background: var(--surface); border-radius: var(--r-lg);
+      border: 1px solid var(--border); padding: 14px 12px;
+    }
+    .ll-stat-icon { font-size: 1.1rem; margin-bottom: 8px; }
+    .ll-stat-val  { font-family: var(--font-brand); font-size: 1.2rem; font-weight: 800; }
+    .ll-stat-lbl  { font-size: .68rem; color: var(--text-muted); margin-top: 2px; }
+    .ll-stat-chg  { font-size: .65rem; margin-top: 5px; }
+    .ll-stat-chg.up   { color: var(--success); }
+    .ll-stat-chg.down { color: var(--danger); }
+
+    /* ── OCCUPANCY BARS ── */
+    .occ-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .occ-lbl  { font-size: .75rem; color: var(--text-muted); width: 40px; flex-shrink: 0; }
+    .occ-track { flex: 1; height: 7px; background: rgba(255,255,255,.06); border-radius: 4px; overflow: hidden; }
+    .occ-fill  { height: 100%; border-radius: 4px; background: var(--accent-grad); }
+    .occ-pct   { font-size: .68rem; font-weight: 700; color: var(--text-muted); width: 30px; text-align: right; }
+
+    /* ── DATE STRIP ── */
+    .date-strip {
+      display: flex; gap: 6px; overflow-x: auto;
+      padding: 12px 16px; scrollbar-width: none;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .date-strip::-webkit-scrollbar { display: none; }
+    .ds-chip {
+      flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
+      padding: 6px 10px; border-radius: 10px; cursor: pointer;
+      border: 1.5px solid transparent; min-width: 44px; transition: all .18s;
+    }
+    .ds-chip:hover { background: rgba(255,255,255,.05); }
+    .ds-chip.today  { border-color: var(--border); }
+    .ds-chip.active { background: var(--accent-grad); box-shadow: var(--shadow-accent); }
+    .ds-day  { font-size: .6rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; }
+    .ds-num  { font-family: var(--font-brand); font-size: .95rem; font-weight: 800; margin-top: 1px; }
+    .ds-chip.active .ds-day { color: rgba(255,255,255,.7); }
+    .ds-chip.active .ds-num { color: #fff; }
+    .ds-chip.today  .ds-day { color: var(--accent); }
+    .ds-chip.today  .ds-num { color: var(--accent); }
+    .ds-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--warning); margin-top: 3px; }
+    .ds-chip.active .ds-dot { background: rgba(255,255,255,.6); }
+    .ds-nav-btn {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-muted); display: flex; align-items: center;
+      justify-content: center; font-size: .9rem; cursor: pointer;
+      align-self: center; transition: background .15s;
+    }
+
+    /* ── BOOKING ITEM ── */
+    .booking-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      transition: background .14s; cursor: pointer;
+    }
+    .booking-item:last-child { border-bottom: none; }
+    .booking-item:active { background: rgba(255,255,255,.03); }
+    .bi-time {
+      flex-shrink: 0; width: 52px; text-align: center;
+      background: var(--surface-2); border-radius: 8px; padding: 5px 4px;
+    }
+    .bi-time-start { font-family: var(--font-brand); font-size: .78rem; font-weight: 700; }
+    .bi-time-end   { font-size: .6rem; color: var(--text-dim); margin-top: 1px; }
+    .bi-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .bi-body { flex: 1; min-width: 0; }
+    .bi-name { font-size: .85rem; font-weight: 600; }
+    .bi-meta { font-size: .7rem; color: var(--text-muted); margin-top: 2px; }
+    .bi-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .bi-amount { font-family: var(--font-brand); font-size: .8rem; font-weight: 700; color: var(--accent); }
+
+    /* ── HALL CARD (compact, horizontal) ── */
+    .ll-hall-card {
+      display: flex; gap: 0; background: var(--surface);
+      border-radius: var(--r-lg); border: 1px solid var(--border); overflow: hidden;
+      margin-bottom: 10px; cursor: pointer; transition: box-shadow .18s;
+    }
+    .ll-hall-card:active { box-shadow: var(--shadow); }
+    .ll-hall-thumb {
+      width: 100px; flex-shrink: 0; object-fit: cover;
+      display: block;
+    }
+    .ll-hall-body { flex: 1; padding: 10px 12px; min-width: 0; }
+    .ll-hall-name { font-family: var(--font-brand); font-size: .85rem; font-weight: 700; }
+    .ll-hall-meta { font-size: .7rem; color: var(--text-muted); margin-top: 3px; }
+    .ll-hall-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+    .ll-hall-tag  { font-size: .63rem; padding: 2px 6px; border-radius: 4px; background: var(--surface-2); color: var(--text-dim); }
+    .ll-hall-footer {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-top: 1px solid var(--border); background: var(--surface-2);
+    }
+    .status-pill {
+      display: flex; align-items: center; gap: 4px;
+      font-size: .68rem; font-weight: 700; padding: 3px 8px;
+      border-radius: 100px; cursor: pointer; border: none;
+      transition: all .18s;
+    }
+    .status-pill.on  { background: var(--success-bg); color: var(--success); }
+    .status-pill.off { background: rgba(255,255,255,.06); color: var(--text-dim); }
+    .status-pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    /* ── CHART PLACEHOLDER ── */
+    .mini-chart {
+      height: 80px; border-radius: var(--r); overflow: hidden;
+      display: flex; align-items: flex-end; gap: 3px; padding: 0 4px;
+      background: rgba(55,111,255,.04);
+    }
+    .mini-bar { flex: 1; border-radius: 3px 3px 0 0; background: var(--accent-grad); opacity: .75; transition: opacity .15s; }
+    .mini-bar:hover { opacity: 1; }
+
+    /* ── QUICK ACTIONS ── */
+    .quick-action {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background .14s;
+    }
+    .quick-action:last-child { border-bottom: none; }
+    .quick-action:active { background: rgba(255,255,255,.03); }
+    .qa-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: .95rem;
+    }
+    .qa-body { flex: 1; }
+    .qa-label { font-size: .875rem; font-weight: 600; }
+    .qa-sub   { font-size: .72rem; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-dim); }
+    .empty-icon  { font-size: 2.5rem; margin-bottom: 10px; }
+    .empty-title { font-size: .9rem; font-weight: 600; color: var(--text-muted); }
+    .empty-sub   { font-size: .78rem; margin-top: 4px; line-height: 1.5; }
+
+    /* ── DESKTOP ENHANCEMENT ── */
+    @media (min-width: 1024px) {
+      .ll-desktop-wrap { display: flex !important; min-height: 100vh; }
+      .ll-desktop-side { display: flex !important; }
+      .app-shell { box-shadow: none !important; }
+    }
+    .ll-desktop-side {
+      display: none; width: 240px; flex-shrink: 0;
+      background: var(--surface-2); border-right: 1px solid var(--border);
+      flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .ll-desktop-side-logo { padding: 18px 18px 14px; border-bottom: 1px solid var(--border); }
+    .ll-desktop-side-logo img { height: 22px; }
+    .ll-desktop-side-logo .sub { font-size: .6rem; color: var(--text-dim); margin-top: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .ll-side-nav { padding: 10px 10px; flex: 1; }
+    .ll-side-nav-label { padding: 12px 8px 4px; font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); }
+    .ll-side-nav a {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-radius: 9px; margin-bottom: 2px; color: var(--text-muted);
+      font-size: .82rem; font-weight: 500; transition: all .15s;
+    }
+    .ll-side-nav a svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .ll-side-nav a:hover  { background: rgba(255,255,255,.05); color: var(--text); }
+    .ll-side-nav a.active { background: rgba(55,111,255,.12); color: var(--accent); }
+    .ll-side-footer { padding: 12px 14px; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<!-- DESKTOP NAV -->
+<nav class="d-nav">
+  <div class="d-nav-inner">
+    <a href="index.html" class="d-nav-logo"><img src="logo.svg" alt="РОЛТХОЛЛ"></a>
+    <div class="d-nav-links">
+      <a href="index.html"    class="d-nav-link">Залы</a>
+      <a href="calendar.html" class="d-nav-link">Расписание</a>
+      <a href="landlord.html" class="d-nav-link active">Панель арендодателя</a>
+      <a href="tariffs.html"  class="d-nav-link">Тарифы</a>
+    </div>
+    <div class="d-nav-actions">
+      <a href="profile.html" class="btn btn-ghost btn-sm">Профиль</a>
+    </div>
+  </div>
+</nav>
+
+<div class="ll-desktop-wrap" style="display:block;">
+
+  <!-- Desktop sidebar (hidden on mobile) -->
+  <aside class="ll-desktop-side">
+    <div class="ll-desktop-side-logo">
+      <img src="logo.svg" alt="РОЛТХОЛЛ">
+      <div class="sub">Арендодатель</div>
+    </div>
+    <nav class="ll-side-nav">
+      <div class="ll-side-nav-label">Обзор</div>
+      <a href="#" class="active" onclick="switchTab('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Аналитика
+      </a>
+      <a href="#" onclick="switchTab('bookings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Брони
+      </a>
+      <div class="ll-side-nav-label">Залы</div>
+      <a href="#" onclick="switchTab('halls',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Мои залы
+      </a>
+      <div class="ll-side-nav-label">Настройки</div>
+      <a href="tariffs.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Тарифы
+      </a>
+      <a href="#" onclick="switchTab('settings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Контакты
+      </a>
+    </nav>
+    <div class="ll-side-footer">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="avatar" style="width:32px; height:32px; font-size:.75rem; background:linear-gradient(135deg,#F39C12,#E67E22);">АИ</div>
+        <div>
+          <div style="font-size:.8rem; font-weight:600;">Артём И.</div>
+          <div style="font-size:.65rem; color:var(--accent);">Арендодатель</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile / Main content -->
+  <div class="app-shell" style="flex:1;">
+    <header class="app-header">
+      <img src="logo.svg" style="height:10px;" alt="РОЛТХОЛЛ">
+      <div class="app-header-title" id="pageTitle">Дашборд</div>
+      <button class="header-action" onclick="switchTab('settings',null)">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </header>
+
+    <div class="page-content" id="mainContent">
+
+      <!-- ══════════ TAB: ДАШБОРД ══════════ -->
+      <div id="tab-dashboard" class="ll-tab">
+
+        <!-- STATS 2×2 -->
+        <div class="ll-stats">
+          <div class="ll-stat-card">
+            <div class="ll-stat-icon">💰</div>
+            <div class="ll-stat-val">142 400 ₽</div>
+            <div class="ll-stat-lbl">Выручка / май</div>
+            <div class="ll-stat-chg up">↑ +18%</div>
+          </div>
+          <div class="ll-stat-card">
+            <div class="ll-stat-icon">📅</div>
+            <div class="ll-stat-val">38</div>
+            <div class="ll-stat-lbl">Броней в мае</div>
+            <div class="ll-stat-chg up">↑ +8</div>
+          </div>
+          <div class="ll-stat-card">
+            <div class="ll-stat-icon">📊</div>
+            <div class="ll-stat-val">72%</div>
+            <div class="ll-stat-lbl">Загрузка залов</div>
+            <div class="ll-stat-chg up">↑ +11%</div>
+          </div>
+          <div class="ll-stat-card">
+            <div class="ll-stat-icon">👥</div>
+            <div class="ll-stat-val">24</div>
+            <div class="ll-stat-lbl">Клиентов</div>
+            <div class="ll-stat-chg up">↑ +5</div>
+          </div>
+        </div>
+
+        <!-- REVENUE MINI CHART -->
+        <div style="padding: 0 16px 16px;">
+          <div class="card" style="padding:14px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <div style="font-family:var(--font-brand); font-size:.8rem; font-weight:700;">Выручка · неделя</div>
+              <span style="font-size:.72rem; color:var(--text-dim);">7–13 мая</span>
+            </div>
+            <div class="mini-chart">
+              <div class="mini-bar" style="height:45%;"></div>
+              <div class="mini-bar" style="height:60%;"></div>
+              <div class="mini-bar" style="height:35%;"></div>
+              <div class="mini-bar" style="height:80%;"></div>
+              <div class="mini-bar" style="height:100%;"></div>
+              <div class="mini-bar" style="height:70%;"></div>
+              <div class="mini-bar" style="height:55%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:.6rem; color:var(--text-dim);">
+              <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- OCCUPANCY -->
+        <div style="padding: 0 16px 16px;">
+          <div class="card" style="padding:14px;">
+            <div style="font-family:var(--font-brand); font-size:.8rem; font-weight:700; margin-bottom:12px;">Загрузка залов · май</div>
+            <div class="occ-row">
+              <div class="occ-lbl">Зал А</div>
+              <div class="occ-track"><div class="occ-fill" style="width:85%;"></div></div>
+              <div class="occ-pct">85%</div>
+            </div>
+            <div class="occ-row">
+              <div class="occ-lbl">Зал Б</div>
+              <div class="occ-track"><div class="occ-fill" style="width:63%;"></div></div>
+              <div class="occ-pct">63%</div>
+            </div>
+            <div class="occ-row">
+              <div class="occ-lbl">Зал В</div>
+              <div class="occ-track"><div class="occ-fill" style="width:71%;"></div></div>
+              <div class="occ-pct">71%</div>
+            </div>
+            <div class="occ-row">
+              <div class="occ-lbl">Зал Г</div>
+              <div class="occ-track"><div class="occ-fill" style="width:40%;"></div></div>
+              <div class="occ-pct">40%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="section-header"><h2 class="section-title">Быстрые действия</h2></div>
+        <div style="background:var(--surface); border-radius:var(--r-lg); border:1px solid var(--border); margin:0 16px 16px; overflow:hidden;">
+          <div class="quick-action" onclick="switchTab('bookings',null)">
+            <div class="qa-icon" style="background:rgba(55,111,255,.12);">📅</div>
+            <div class="qa-body">
+              <div class="qa-label">Посмотреть брони</div>
+              <div class="qa-sub">Список на сегодня и будущие даты</div>
+            </div>
+            <span class="badge badge-warning">3</span>
+            <span style="color:var(--text-dim); font-size:.8rem;">›</span>
+          </div>
+          <div class="quick-action" onclick="openAddHall()">
+            <div class="qa-icon" style="background:rgba(46,204,113,.1);">➕</div>
+            <div class="qa-body">
+              <div class="qa-label">Добавить зал</div>
+              <div class="qa-sub">Создать новый зал для аренды</div>
+            </div>
+            <span style="color:var(--text-dim); font-size:.8rem;">›</span>
+          </div>
+          <div class="quick-action" onclick="location='tariffs.html'">
+            <div class="qa-icon" style="background:rgba(243,156,18,.1);">💲</div>
+            <div class="qa-body">
+              <div class="qa-label">Изменить тарифы</div>
+              <div class="qa-sub">Редактировать ценовые правила</div>
+            </div>
+            <span style="color:var(--text-dim); font-size:.8rem;">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ TAB: БРОНИ ══════════ -->
+      <div id="tab-bookings" class="ll-tab" style="display:none;">
+
+        <!-- DATE NAVIGATION -->
+        <div style="display:flex; align-items:center; gap:8px; padding:10px 16px; background:var(--surface-2); border-bottom:1px solid var(--border);">
+          <button class="ds-nav-btn" onclick="shiftDates(-7)">‹</button>
+          <div class="date-strip" id="bookingDateStrip" style="padding:0; border:none; background:none; flex:1;"></div>
+          <button class="ds-nav-btn" onclick="shiftDates(7)">›</button>
+        </div>
+
+        <!-- SELECTED DATE HEADER -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:var(--surface-2); border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-family:var(--font-brand); font-size:.875rem; font-weight:700;" id="selectedDateLabel">Вт, 13 мая</div>
+            <div style="font-size:.72rem; color:var(--text-dim);" id="bookingsCountLabel">4 бронирования</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <span class="badge badge-success" id="statConfirmed">3 подтв.</span>
+            <span class="badge badge-warning" id="statPending">1 ожид.</span>
+          </div>
+        </div>
+
+        <!-- BOOKINGS LIST for selected date -->
+        <div id="bookingsList">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- EMPTY STATE (shown when no bookings) -->
+        <div id="bookingsEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">Броней нет</div>
+          <div class="empty-sub">На выбранную дату нет бронирований</div>
+        </div>
+      </div>
+
+      <!-- ══════════ TAB: ЗАЛЫ ══════════ -->
+      <div id="tab-halls" class="ll-tab" style="display:none;">
+
+        <div style="padding:12px 16px 4px; display:flex; align-items:center; justify-content:space-between;">
+          <h2 class="section-title" style="padding:0;">Мои залы</h2>
+          <button onclick="openAddHall()" class="btn btn-primary btn-sm">+ Добавить</button>
+        </div>
+
+        <div style="padding:0 16px 16px;">
+
+          <!-- HALL A -->
+          <div class="ll-hall-card" onclick="openEditHall('a')">
+            <img src="upploads/image 1.png" alt="Зал А" class="ll-hall-thumb">
+            <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+              <div class="ll-hall-body">
+                <div class="ll-hall-name">Зал А</div>
+                <div class="ll-hall-meta">160 м² · до 80 чел</div>
+                <div class="ll-hall-tags">
+                  <span class="ll-hall-tag">Зеркала</span>
+                  <span class="ll-hall-tag">Звук</span>
+                  <span class="ll-hall-tag">Сцена</span>
+                </div>
+              </div>
+              <div class="ll-hall-footer">
+                <button class="status-pill on" onclick="event.stopPropagation(); toggleStatus(this)">
+                  <span class="status-pill-dot"></span> Активен
+                </button>
+                <div style="margin-left:auto; display:flex; gap:6px;">
+                  <button class="btn btn-ghost btn-sm" style="padding:5px 10px; font-size:.72rem;" onclick="event.stopPropagation(); openBlockDates('a')">🚫 Блок</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HALL B -->
+          <div class="ll-hall-card" onclick="openEditHall('b')">
+            <img src="upploads/image 3.png" alt="Зал Б" class="ll-hall-thumb">
+            <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+              <div class="ll-hall-body">
+                <div class="ll-hall-name">Зал Б</div>
+                <div class="ll-hall-meta">65 м² · до 30 чел</div>
+                <div class="ll-hall-tags">
+                  <span class="ll-hall-tag">Зеркала</span>
+                  <span class="ll-hall-tag">Свет</span>
+                </div>
+              </div>
+              <div class="ll-hall-footer">
+                <button class="status-pill on" onclick="event.stopPropagation(); toggleStatus(this)">
+                  <span class="status-pill-dot"></span> Активен
+                </button>
+                <div style="margin-left:auto;">
+                  <button class="btn btn-ghost btn-sm" style="padding:5px 10px; font-size:.72rem;" onclick="event.stopPropagation(); openBlockDates('b')">🚫 Блок</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HALL C -->
+          <div class="ll-hall-card" onclick="openEditHall('c')">
+            <img src="upploads/image 2.png" alt="Зал В" class="ll-hall-thumb">
+            <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+              <div class="ll-hall-body">
+                <div class="ll-hall-name">Зал В</div>
+                <div class="ll-hall-meta">60 м² · до 25 чел</div>
+                <div class="ll-hall-tags">
+                  <span class="ll-hall-tag">Маты</span>
+                  <span class="ll-hall-tag">Wi-Fi</span>
+                </div>
+              </div>
+              <div class="ll-hall-footer">
+                <button class="status-pill on" onclick="event.stopPropagation(); toggleStatus(this)">
+                  <span class="status-pill-dot"></span> Активен
+                </button>
+                <div style="margin-left:auto;">
+                  <button class="btn btn-ghost btn-sm" style="padding:5px 10px; font-size:.72rem;" onclick="event.stopPropagation(); openBlockDates('c')">🚫 Блок</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HALL D -->
+          <div class="ll-hall-card" onclick="openEditHall('d')">
+            <img src="upploads/image 4.png" alt="Зал Г" class="ll-hall-thumb">
+            <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+              <div class="ll-hall-body">
+                <div class="ll-hall-name">Зал Г</div>
+                <div class="ll-hall-meta">15 м² · до 8 чел</div>
+                <div class="ll-hall-tags">
+                  <span class="ll-hall-tag">Доска</span>
+                  <span class="ll-hall-tag">Wi-Fi</span>
+                </div>
+              </div>
+              <div class="ll-hall-footer">
+                <button class="status-pill off" onclick="event.stopPropagation(); toggleStatus(this)">
+                  <span class="status-pill-dot"></span> Отключён
+                </button>
+                <div style="margin-left:auto;">
+                  <button class="btn btn-ghost btn-sm" style="padding:5px 10px; font-size:.72rem;" onclick="event.stopPropagation();">🚫 Блок</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══════════ TAB: ЕЩЁ ══════════ -->
+      <div id="tab-settings" class="ll-tab" style="display:none;">
+
+        <div class="section-header"><h2 class="section-title">Настройки</h2></div>
+
+        <div style="background:var(--surface); border-radius:var(--r-lg); border:1px solid var(--border); margin:0 16px 12px; overflow:hidden;">
+          <div class="quick-action" onclick="location='tariffs.html'">
+            <div class="qa-icon" style="background:rgba(243,156,18,.1);">💲</div>
+            <div class="qa-body">
+              <div class="qa-label">Тарифы</div>
+              <div class="qa-sub">Пн–Пт и Сб–Вс ценовые правила</div>
+            </div>
+            <span style="color:var(--text-dim); font-size:.8rem;">›</span>
+          </div>
+          <div class="quick-action">
+            <div class="qa-icon" style="background:rgba(46,204,113,.1);">🤖</div>
+            <div class="qa-body">
+              <div class="qa-label">Telegram-бот</div>
+              <div class="qa-sub">@RoltHallBot · подключён ✅</div>
+            </div>
+            <span style="color:var(--text-dim); font-size:.8rem;">›</span>
+          </div>
+          <div class="quick-action">
+            <div class="qa-icon" style="background:rgba(155,89,182,.1);">🔔</div>
+            <div class="qa-body">
+              <div class="qa-label">Уведомления</div>
+              <div class="qa-sub">Настройка каналов и событий</div>
+            </div>
+            <span style="color:var(--text-dim); font-size:.8rem;">›</span>
+          </div>
+        </div>
+
+        <div class="section-header"><h2 class="section-title">Мой профиль</h2></div>
+        <div style="background:var(--surface); border-radius:var(--r-lg); border:1px solid var(--border); margin:0 16px 12px; overflow:hidden;">
+          <div style="padding:16px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border);">
+            <div class="avatar" style="width:48px; height:48px; font-size:1.1rem; background:linear-gradient(135deg,#F39C12,#E67E22);">АИ</div>
+            <div>
+              <div style="font-family:var(--font-brand); font-weight:700;">Артём Иванченко</div>
+              <div style="font-size:.72rem; color:var(--accent); margin-top:2px;">Арендодатель</div>
+            </div>
+          </div>
+          <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+            <div class="form-group">
+              <label class="form-label">Телефон</label>
+              <input type="tel" class="input" value="+7 (904) 994-39-54">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="input" value="artem@rolthall.ru">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Telegram</label>
+              <input type="text" class="input" value="@artem_rolthall">
+            </div>
+            <button class="btn btn-primary btn-full mt-8">Сохранить</button>
+          </div>
+        </div>
+
+        <div style="padding:0 16px 16px;">
+          <button class="btn btn-danger-soft btn-full" style="font-size:.85rem;">
+            Выйти из аккаунта
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-tab active" id="btn-dashboard" onclick="switchTab('dashboard', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Аналитика
+      </button>
+      <button class="nav-tab" id="btn-bookings" onclick="switchTab('bookings', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Брони
+      </button>
+      <button class="nav-tab" id="btn-halls" onclick="switchTab('halls', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Залы
+      </button>
+      <button class="nav-tab" id="btn-settings" onclick="switchTab('settings', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Ещё
+      </button>
+    </nav>
+
+  </div><!-- /app-shell -->
+</div><!-- /ll-desktop-wrap -->
+
+<!-- ══ MODAL: ADD / EDIT HALL ══ -->
+<div id="hallModal" class="modal-overlay" style="display:none; align-items:flex-end; padding:0;">
+  <div class="modal" style="border-radius:var(--r-xl) var(--r-xl) 0 0; max-width:480px; margin:0 auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="hallModalTitle">Добавить зал</div>
+      <button class="modal-close" onclick="document.getElementById('hallModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Название <span style="color:var(--danger);">*</span></label>
+        <input type="text" class="input" placeholder="Зал А" value="Зал А">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Площадь м²</label>
+          <input type="number" class="input" value="160">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Вместимость</label>
+          <input type="number" class="input" value="80">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <textarea class="input" style="min-height:72px;">Танцевальный зал с зеркалами, сценой и звуком.</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Удобства (через запятую)</label>
+        <input type="text" class="input" value="Зеркала, Звук, Сцена, Раздевалки">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Статус</label>
+        <select class="input"><option>Активен</option><option>Отключён</option></select>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button onclick="document.getElementById('hallModal').style.display='none'" class="btn btn-ghost" style="flex:1;">Отмена</button>
+        <button onclick="document.getElementById('hallModal').style.display='none'" class="btn btn-primary" style="flex:2;">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+const MONTH = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const DAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+// Mock bookings per day (key = YYYY-MM-DD)
+const MOCK_BOOKINGS = {
+  '2026-05-13': [
+    { start:'09:00', end:'11:00', client:'Иванов Иван',   hall:'А', hours:2, amount:2000, status:'confirmed' },
+    { start:'11:00', end:'15:00', client:'Петрова Мария', hall:'В', hours:4, amount:3200, status:'confirmed' },
+    { start:'14:00', end:'18:00', client:'Сидоров С.',    hall:'Б', hours:4, amount:3200, status:'pending' },
+    { start:'19:00', end:'23:00', client:'Козлова Анна',  hall:'А', hours:4, amount:3200, status:'hold' },
+  ],
+  '2026-05-14': [
+    { start:'10:00', end:'14:00', client:'Миронова Е.',   hall:'А', hours:4, amount:3200, status:'confirmed' },
+    { start:'15:00', end:'17:00', client:'Горбунов П.',   hall:'В', hours:2, amount:2000, status:'confirmed' },
+  ],
+  '2026-05-15': [
+    { start:'12:00', end:'20:00', client:'Корпоратив LLC', hall:'А', hours:8, amount:4800, status:'confirmed' },
+  ],
+  '2026-05-16': [],
+  '2026-05-17': [
+    { start:'09:00', end:'15:00', client:'Цой Наталья',   hall:'Б', hours:6, amount:6000, status:'confirmed' },
+    { start:'16:00', end:'20:00', client:'Власов Д.',     hall:'В', hours:4, amount:4800, status:'pending' },
+  ],
+};
+
+const STATUS_META = {
+  confirmed: { label: 'Подтверждена', cls: 'badge-success', dot: '#2ECC71' },
+  pending:   { label: 'Ожидает оплаты', cls: 'badge-warning', dot: '#F39C12' },
+  hold:      { label: 'Hold',           cls: 'badge-accent',  dot: '#376FFF' },
+  cancelled: { label: 'Отменена',       cls: 'badge-danger',  dot: '#E74C3C' },
+};
+
+let dateOffset = 0;   // week offset
+let selDateIdx = 1;   // today = idx 1 in strip (strip starts from yesterday)
+
+/* ── TAB SWITCHING ── */
+const TAB_TITLES = {
+  dashboard: 'Аналитика',
+  bookings:  'Брони',
+  halls:     'Мои залы',
+  settings:  'Настройки',
+};
+
+function switchTab(id, triggerEl) {
+  document.querySelectorAll('.ll-tab').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-' + id).style.display = 'block';
+  document.getElementById('pageTitle').textContent = TAB_TITLES[id] || '';
+
+  // Update bottom nav
+  document.querySelectorAll('.bottom-nav .nav-tab').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + id);
+  if (btn) btn.classList.add('active');
+
+  // Update desktop side nav
+  document.querySelectorAll('.ll-side-nav a').forEach(a => a.classList.remove('active'));
+  if (triggerEl) triggerEl.classList.add('active');
+
+  if (id === 'bookings') renderBookingStrip();
+}
+
+/* ── DATE STRIP ── */
+function getStripDates() {
+  const base = new Date('2026-05-13'); // today
+  base.setDate(base.getDate() + dateOffset * 7 - 1);
+  const out = [];
+  for (let i = 0; i < 14; i++) { // show 2 weeks
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    out.push(d);
+  }
+  return out;
+}
+
+function formatDateKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function renderBookingStrip() {
+  const strip = document.getElementById('bookingDateStrip');
+  const today = new Date('2026-05-13');
+  today.setHours(0,0,0,0);
+  const days = getStripDates();
+
+  strip.innerHTML = days.map((d, i) => {
+    const key = formatDateKey(d);
+    const bookings = MOCK_BOOKINGS[key] || [];
+    const isToday = d.getTime() === today.getTime();
+    const isSel   = i === selDateIdx;
+    let cls = 'ds-chip' + (isToday ? ' today' : '') + (isSel ? ' active' : '');
+    const hasDot = bookings.length > 0;
+    return `<div class="${cls}" onclick="selectDate(${i})">
+  <div class="ds-day">${DAYS_SHORT[d.getDay()]}</div>
+  <div class="ds-num">${d.getDate()}</div>
+  ${hasDot && !isSel ? '<div class="ds-dot"></div>' : ''}
+  ${hasDot && isSel  ? '<div class="ds-dot"></div>' : ''}
+</div>`;
+  }).join('');
+
+  renderBookingsList();
+}
+
+function selectDate(idx) {
+  selDateIdx = idx;
+  renderBookingStrip();
+}
+
+function shiftDates(dir) {
+  dateOffset += dir > 0 ? 1 : -1;
+  selDateIdx = dir > 0 ? 0 : 13;
+  renderBookingStrip();
+}
+
+function renderBookingsList() {
+  const days = getStripDates();
+  const d    = days[selDateIdx];
+  const key  = formatDateKey(d);
+  const list = MOCK_BOOKINGS[key] || [];
+
+  const dayName = DAYS_SHORT[d.getDay()];
+  const label = `${dayName}, ${d.getDate()} ${MONTH[d.getMonth()]}`;
+  document.getElementById('selectedDateLabel').textContent = label;
+
+  const confirmed = list.filter(b => b.status === 'confirmed').length;
+  const pending   = list.filter(b => b.status === 'pending' || b.status === 'hold').length;
+  document.getElementById('bookingsCountLabel').textContent = list.length ? `${list.length} ${pl(list.length)}` : 'Нет бронирований';
+  document.getElementById('statConfirmed').textContent = confirmed + ' подтв.';
+  document.getElementById('statPending').textContent   = pending   + ' ожид.';
+  document.getElementById('statConfirmed').style.display = confirmed > 0 ? '' : 'none';
+  document.getElementById('statPending').style.display   = pending   > 0 ? '' : 'none';
+
+  const container = document.getElementById('bookingsList');
+  const emptyEl   = document.getElementById('bookingsEmpty');
+
+  if (list.length === 0) {
+    container.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  const colors = { 'А': '#376FFF', 'Б': '#27AE60', 'В': '#9B59B6', 'Г': '#F39C12' };
+
+  container.innerHTML = `<div style="background:var(--surface); border-radius:var(--r-lg); border:1px solid var(--border); margin:12px 16px; overflow:hidden;">` +
+    list.map(b => {
+      const meta = STATUS_META[b.status] || STATUS_META.confirmed;
+      return `<div class="booking-item">
+  <div class="bi-time">
+    <div class="bi-time-start">${b.start}</div>
+    <div class="bi-time-end">${b.end}</div>
+  </div>
+  <div class="bi-dot" style="background:${colors[b.hall] || '#376FFF'};"></div>
+  <div class="bi-body">
+    <div class="bi-name">${b.client}</div>
+    <div class="bi-meta">Зал ${b.hall} · ${b.hours} ч</div>
+  </div>
+  <div class="bi-right">
+    <span class="badge ${meta.cls}" style="font-size:.6rem;">${meta.label}</span>
+    <div class="bi-amount">${b.amount.toLocaleString('ru')} ₽</div>
+  </div>
+</div>`;
+    }).join('') + `</div>`;
+}
+
+function pl(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'бронирование';
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return 'бронирования';
+  return 'бронирований';
+}
+
+/* ── HALL ACTIONS ── */
+function toggleStatus(btn) {
+  const isOn = btn.classList.contains('on');
+  btn.classList.toggle('on',  !isOn);
+  btn.classList.toggle('off',  isOn);
+  btn.innerHTML = `<span class="status-pill-dot"></span> ${isOn ? 'Отключён' : 'Активен'}`;
+}
+function openAddHall() {
+  document.getElementById('hallModalTitle').textContent = 'Добавить зал';
+  document.getElementById('hallModal').style.display = 'flex';
+}
+function openEditHall(id) {
+  document.getElementById('hallModalTitle').textContent = 'Редактировать Зал ' + id.toUpperCase();
+  document.getElementById('hallModal').style.display = 'flex';
+}
+function openBlockDates(id) {
+  alert('Блокировка дат для Зала ' + id.toUpperCase() + ' — откроет календарь выбора недоступных дат');
+}
+
+/* ── DESKTOP LAYOUT ── */
+function applyDesktop() {
+  const isDesktop = window.innerWidth >= 1024;
+  const wrap = document.querySelector('.ll-desktop-wrap');
+  const side  = document.querySelector('.ll-desktop-side');
+  if (wrap) wrap.style.display = isDesktop ? 'flex' : 'block';
+  if (side) side.style.display = isDesktop ? 'flex' : 'none';
+}
+applyDesktop();
+window.addEventListener('resize', applyDesktop);
+
+/* ── INIT ── */
+renderBookingStrip();
+</script>
+</body>
+</html>

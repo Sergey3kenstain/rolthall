@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#252328">
+  <title>Админ-панель — РОЛТХОЛЛ</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ADMIN IS FULL WIDTH — NO APP-SHELL */
+    body { background: var(--surface-3); max-width: none; }
+
+    .admin-shell { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .admin-sidebar {
+      width: 220px; flex-shrink: 0; background: var(--surface-2);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .admin-logo { padding: 18px 16px; border-bottom: 1px solid var(--border); }
+    .admin-logo img { height: 22px; display: block; }
+    .admin-logo-sub { font-size: .65rem; color: var(--text-dim); margin-top: 4px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+
+    .admin-nav { padding: 10px 10px; flex: 1; }
+    .admin-nav-section { padding: 14px 8px 4px; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); }
+    .admin-nav a {
+      display: flex; align-items: center; gap: 9px; padding: 9px 10px;
+      border-radius: 9px; margin-bottom: 1px; color: var(--text-muted);
+      font-size: .82rem; font-weight: 500; transition: all .15s;
+    }
+    .admin-nav a svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .admin-nav a:hover { background: rgba(255,255,255,.05); color: var(--text); }
+    .admin-nav a.active { background: rgba(55,111,255,.12); color: var(--accent); }
+    .admin-nav .nav-badge {
+      margin-left: auto; background: var(--accent); color: #fff;
+      border-radius: 100px; font-size: .6rem; font-weight: 700; padding: 1px 6px;
+    }
+    .admin-nav .nav-badge.orange { background: var(--warning); }
+
+    .admin-footer { padding: 14px 14px; border-top: 1px solid var(--border); }
+    .admin-user { display: flex; align-items: center; gap: 9px; }
+    .admin-user-name { font-size: .8rem; font-weight: 600; }
+    .admin-user-role { font-size: .68rem; color: var(--text-dim); margin-top: 1px; }
+
+    /* MAIN */
+    .admin-main { flex: 1; overflow-x: hidden; min-width: 0; }
+    .admin-topbar {
+      display: flex; align-items: center; gap: 12px; padding: 14px 24px;
+      background: var(--surface-2); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .admin-topbar-title { font-family: var(--font-brand); font-size: .95rem; font-weight: 700; }
+    .topbar-search {
+      flex: 1; max-width: 320px; position: relative;
+    }
+    .topbar-search input {
+      width: 100%; padding: 8px 12px 8px 36px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: .82rem; outline: none;
+    }
+    .topbar-search input:focus { border-color: var(--accent); }
+    .topbar-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: .85rem; }
+    .admin-content { padding: 24px; }
+
+    /* CRM CARD MODAL */
+    .crm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; }
+    .crm-field { }
+    .crm-field-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); margin-bottom: 4px; }
+    .crm-field-val { font-size: .875rem; font-weight: 600; }
+    .crm-field-val.muted { color: var(--text-muted); font-weight: 400; }
+
+    /* FILTERS BAR */
+    .filters-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .filter-select {
+      padding: 7px 12px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 9px; color: var(--text); font-size: .8rem; outline: none; cursor: pointer;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+    .date-range { display: flex; gap: 6px; align-items: center; }
+    .date-range input { padding: 7px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-size: .8rem; outline: none; width: 130px; }
+
+    /* LOG TABLE */
+    .log-action { font-size: .75rem; padding: 3px 8px; border-radius: 5px; font-weight: 600; }
+    .la-create  { background: var(--success-bg); color: var(--success); }
+    .la-cancel  { background: var(--danger-bg); color: var(--danger); }
+    .la-pay     { background: rgba(55,111,255,.12); color: var(--accent); }
+    .la-edit    { background: var(--warning-bg); color: var(--warning); }
+    .la-block   { background: rgba(155,89,182,.12); color: #9B59B6; }
+
+    /* HEATMAP */
+    .heatmap { display: grid; grid-template-columns: 60px repeat(7,1fr); gap: 2px; }
+    .hm-header { text-align: center; font-size: .65rem; font-weight: 700; color: var(--text-dim); padding: 4px; text-transform: uppercase; }
+    .hm-time   { font-size: .68rem; color: var(--text-dim); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+    .hm-cell   { border-radius: 3px; height: 24px; transition: transform .1s; cursor: pointer; }
+    .hm-cell:hover { transform: scale(1.05); }
+    .hm-0  { background: rgba(255,255,255,.03); }
+    .hm-1  { background: rgba(55,111,255,.15); }
+    .hm-2  { background: rgba(55,111,255,.3); }
+    .hm-3  { background: rgba(55,111,255,.5); }
+    .hm-4  { background: rgba(55,111,255,.7); }
+    .hm-5  { background: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <img src="logo.svg" alt="РОЛТХОЛЛ">
+      <div class="admin-logo-sub">Панель управления</div>
+    </div>
+
+    <nav class="admin-nav">
+
+      <div class="admin-nav-section">Обзор</div>
+      <a href="#" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Дашборд
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Расписание
+      </a>
+
+      <div class="admin-nav-section">Брони</div>
+      <a href="#bookings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+        Все брони
+        <span class="nav-badge orange">3</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Ожидают оплаты
+        <span class="nav-badge">2</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Новая бронь
+      </a>
+
+      <div class="admin-nav-section">CRM</div>
+      <a href="#crm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Клиенты
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Чёрный список
+      </a>
+
+      <div class="admin-nav-section">Настройки</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Залы
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Тарифы
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Логи действий
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Роли и доступы
+      </a>
+    </nav>
+
+    <div class="admin-footer">
+      <div class="admin-user">
+        <div class="avatar" style="background:linear-gradient(135deg,#9B59B6,#6C3483);">АД</div>
+        <div>
+          <div class="admin-user-name">Сергей К.</div>
+          <div class="admin-user-role">Администратор</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="admin-topbar-title">Дашборд</div>
+      <div class="topbar-search">
+        <span class="topbar-search-icon">🔍</span>
+        <input placeholder="Поиск бронирований, клиентов...">
+      </div>
+      <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+        <button class="btn btn-outline-accent btn-sm">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Новая бронь
+        </button>
+        <div class="avatar" style="width:34px; height:34px; font-size:.8rem; cursor:pointer;">АД</div>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- STATS -->
+      <div class="stats-grid" style="margin-bottom:24px;">
+        <div class="stat-card card">
+          <div class="stat-icon blue">📅</div>
+          <div class="stat-value">24</div>
+          <div class="stat-label">Броней в мае</div>
+          <div class="stat-change up">↑ +6 к прошлому месяцу</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon green">💰</div>
+          <div class="stat-value">87 200 ₽</div>
+          <div class="stat-label">Выручка / май</div>
+          <div class="stat-change up">↑ +12%</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon orange">⏳</div>
+          <div class="stat-value">3</div>
+          <div class="stat-label">Ожидают подтверждения</div>
+          <div class="stat-change down">● Нужно обработать</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-icon purple">📊</div>
+          <div class="stat-value">68%</div>
+          <div class="stat-label">Загрузка залов</div>
+          <div class="stat-change up">↑ +8% к нед. назад</div>
+        </div>
+      </div>
+
+      <!-- GRID: BOOKINGS + HEATMAP -->
+      <div style="display:grid; grid-template-columns:1fr 380px; gap:20px; margin-bottom:24px; align-items:start;">
+
+        <!-- BOOKINGS TABLE -->
+        <div id="bookings" class="card" style="overflow:hidden;">
+          <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+            <h3 style="font-family:var(--font-brand); font-size:.875rem;">Брони</h3>
+            <div style="display:flex; gap:8px;">
+              <select class="filter-select" style="padding:5px 10px; font-size:.75rem;">
+                <option>Все статусы</option>
+                <option>Подтверждена</option>
+                <option>Ожидает оплаты</option>
+                <option>Hold</option>
+                <option>Отменена</option>
+              </select>
+              <select class="filter-select" style="padding:5px 10px; font-size:.75rem;">
+                <option>Все залы</option>
+                <option>Зал А</option>
+                <option>Зал Б</option>
+                <option>Зал В</option>
+                <option>Зал Г</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Клиент</th>
+                  <th>Зал</th>
+                  <th>Дата / Время</th>
+                  <th>Формат</th>
+                  <th>Сумма</th>
+                  <th>Статус</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="cursor:pointer;" onclick="document.getElementById('crmModal').style.display='flex'">
+                  <td class="dim">#1042</td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <div class="avatar" style="width:28px; height:28px; font-size:.65rem;">ИИ</div>
+                      <div>
+                        <div style="font-weight:600; font-size:.82rem;">Иванов Иван</div>
+                        <div style="font-size:.68rem; color:var(--text-dim);">@ivan</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-accent">Зал А</span></td>
+                  <td><div style="font-size:.82rem;">14.05 · 11:00–15:00</div><div style="font-size:.68rem; color:var(--text-dim);">4 ч</div></td>
+                  <td><span class="badge badge-gray">мероприятие</span></td>
+                  <td><div style="font-weight:700; font-size:.82rem;">3 200 ₽</div><div style="font-size:.68rem; color:var(--success);">предоп. 1 600</div></td>
+                  <td><span class="badge badge-success">Подтверждена</span></td>
+                  <td><button class="btn btn-ghost btn-sm" style="padding:4px 10px; font-size:.72rem;">CRM</button></td>
+                </tr>
+                <tr style="cursor:pointer;">
+                  <td class="dim">#1041</td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <div class="avatar" style="width:28px; height:28px; font-size:.65rem; background:linear-gradient(135deg,#27AE60,#1E8449);">ПМ</div>
+                      <div>
+                        <div style="font-weight:600; font-size:.82rem;">Петрова Мария</div>
+                        <div style="font-size:.68rem; color:var(--text-dim);">@mary_p</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-accent">Зал В</span></td>
+                  <td><div style="font-size:.82rem;">16.05 · 09:00–11:00</div><div style="font-size:.68rem; color:var(--text-dim);">2 ч</div></td>
+                  <td><span class="badge badge-gray">разовая</span></td>
+                  <td><div style="font-weight:700; font-size:.82rem;">2 000 ₽</div></td>
+                  <td><span class="badge badge-warning">Ожидает оплаты</span></td>
+                  <td><button class="btn btn-ghost btn-sm" style="padding:4px 10px; font-size:.72rem;">CRM</button></td>
+                </tr>
+                <tr>
+                  <td class="dim">#1040</td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <div class="avatar" style="width:28px; height:28px; font-size:.65rem; background:linear-gradient(135deg,#E74C3C,#922B21);">СС</div>
+                      <div>
+                        <div style="font-weight:600; font-size:.82rem;">Сидоров Сергей</div>
+                        <div style="font-size:.68rem; color:var(--text-dim);">@sergey_s</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-accent">Зал Б</span></td>
+                  <td><div style="font-size:.82rem;">03.05 · 14:00–20:00</div><div style="font-size:.68rem; color:var(--text-dim);">6 ч</div></td>
+                  <td><span class="badge badge-gray">мероприятие</span></td>
+                  <td><div style="font-weight:700; font-size:.82rem;">6 000 ₽</div><div style="font-size:.68rem; color:var(--success);">оплачено</div></td>
+                  <td><span class="badge badge-gray">Завершена</span></td>
+                  <td><button class="btn btn-ghost btn-sm" style="padding:4px 10px; font-size:.72rem;">CRM</button></td>
+                </tr>
+                <tr>
+                  <td class="dim">#1039</td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <div class="avatar" style="width:28px; height:28px; font-size:.65rem; background:linear-gradient(135deg,#F39C12,#B7770D);">КА</div>
+                      <div>
+                        <div style="font-weight:600; font-size:.82rem;">Козлова Анна</div>
+                        <div style="font-size:.68rem; color:var(--text-dim);">@anna_k</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-accent">Зал А</span></td>
+                  <td><div style="font-size:.82rem;">20.05 · 18:00–22:00</div><div style="font-size:.68rem; color:var(--text-dim);">4 ч</div></td>
+                  <td><span class="badge badge-gray">мероприятие</span></td>
+                  <td><div style="font-weight:700; font-size:.82rem;">3 200 ₽</div></td>
+                  <td><span class="badge badge-accent">Hold</span></td>
+                  <td><button class="btn btn-ghost btn-sm" style="padding:4px 10px; font-size:.72rem;">CRM</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- HEATMAP -->
+        <div class="card" style="overflow:hidden; padding:0;">
+          <div style="padding:14px 16px; border-bottom:1px solid var(--border);">
+            <h3 style="font-family:var(--font-brand); font-size:.875rem; margin-bottom:2px;">Популярность слотов</h3>
+            <div style="font-size:.72rem; color:var(--text-dim);">Текущая неделя · все залы</div>
+          </div>
+          <div style="padding:12px 16px 16px;">
+            <div class="heatmap">
+              <div class="hm-header"></div>
+              <div class="hm-header">Пн</div>
+              <div class="hm-header">Вт</div>
+              <div class="hm-header">Ср</div>
+              <div class="hm-header">Чт</div>
+              <div class="hm-header">Пт</div>
+              <div class="hm-header" style="color:var(--warning);">Сб</div>
+              <div class="hm-header" style="color:var(--warning);">Вс</div>
+
+              <div class="hm-time">09:00</div>
+              <div class="hm-cell hm-1"></div><div class="hm-cell hm-0"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-4"></div><div class="hm-cell hm-2"></div>
+
+              <div class="hm-time">10:00</div>
+              <div class="hm-cell hm-2"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-4"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-3"></div>
+
+              <div class="hm-time">11:00</div>
+              <div class="hm-cell hm-3"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-4"></div>
+
+              <div class="hm-time">12:00</div>
+              <div class="hm-cell hm-4"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-4"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div>
+
+              <div class="hm-time">13:00</div>
+              <div class="hm-cell hm-3"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-4"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div>
+
+              <div class="hm-time">14:00</div>
+              <div class="hm-cell hm-2"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-5"></div><div class="hm-cell hm-5"></div>
+
+              <div class="hm-time">15:00</div>
+              <div class="hm-cell hm-1"></div><div class="hm-cell hm-0"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-4"></div><div class="hm-cell hm-4"></div>
+
+              <div class="hm-time">16:00</div>
+              <div class="hm-cell hm-0"></div><div class="hm-cell hm-0"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-0"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-3"></div>
+
+              <div class="hm-time">17:00</div>
+              <div class="hm-cell hm-0"></div><div class="hm-cell hm-0"></div><div class="hm-cell hm-0"></div><div class="hm-cell hm-0"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-2"></div>
+
+              <div class="hm-time">18:00</div>
+              <div class="hm-cell hm-1"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-3"></div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:4px; margin-top:12px; font-size:.65rem; color:var(--text-dim);">
+              <span>Низкая</span>
+              <div class="hm-cell hm-0" style="width:14px; height:14px; border-radius:2px;"></div>
+              <div class="hm-cell hm-1" style="width:14px; height:14px; border-radius:2px;"></div>
+              <div class="hm-cell hm-2" style="width:14px; height:14px; border-radius:2px;"></div>
+              <div class="hm-cell hm-3" style="width:14px; height:14px; border-radius:2px;"></div>
+              <div class="hm-cell hm-4" style="width:14px; height:14px; border-radius:2px;"></div>
+              <div class="hm-cell hm-5" style="width:14px; height:14px; border-radius:2px;"></div>
+              <span>Высокая</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION LOGS -->
+      <div id="logs" class="card" style="overflow:hidden;">
+        <div style="padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+          <h3 style="font-family:var(--font-brand); font-size:.875rem;">Лог действий</h3>
+          <span style="font-size:.72rem; color:var(--text-dim);">Immutable · только чтение</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Время</th>
+                <th>Пользователь</th>
+                <th>Роль</th>
+                <th>Действие</th>
+                <th>Объект</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="dim" style="white-space:nowrap;">13.05 14:32</td>
+                <td style="font-size:.82rem; font-weight:600;">Иванов Иван</td>
+                <td><span class="badge badge-gray">client</span></td>
+                <td><span class="log-action la-create">booking.create</span></td>
+                <td class="dim">#1042</td>
+                <td class="dim" style="font-size:.72rem;">95.57.XX.XX</td>
+              </tr>
+              <tr>
+                <td class="dim" style="white-space:nowrap;">13.05 14:47</td>
+                <td style="font-size:.82rem; font-weight:600;">Иванов Иван</td>
+                <td><span class="badge badge-gray">client</span></td>
+                <td><span class="log-action la-pay">booking.pay</span></td>
+                <td class="dim">#1042</td>
+                <td class="dim" style="font-size:.72rem;">95.57.XX.XX</td>
+              </tr>
+              <tr>
+                <td class="dim" style="white-space:nowrap;">13.05 15:10</td>
+                <td style="font-size:.82rem; font-weight:600;">Сергей К. (admin)</td>
+                <td><span class="badge badge-accent">admin</span></td>
+                <td><span class="log-action la-edit">booking.confirm</span></td>
+                <td class="dim">#1042</td>
+                <td class="dim" style="font-size:.72rem;">31.15.XX.XX</td>
+              </tr>
+              <tr>
+                <td class="dim" style="white-space:nowrap;">12.05 11:20</td>
+                <td style="font-size:.82rem; font-weight:600;">Сергей К. (admin)</td>
+                <td><span class="badge badge-accent">admin</span></td>
+                <td><span class="log-action la-block">client.blacklist</span></td>
+                <td class="dim">client#88</td>
+                <td class="dim" style="font-size:.72rem;">31.15.XX.XX</td>
+              </tr>
+              <tr>
+                <td class="dim" style="white-space:nowrap;">12.05 09:05</td>
+                <td style="font-size:.82rem; font-weight:600;">Петрова Мария</td>
+                <td><span class="badge badge-gray">client</span></td>
+                <td><span class="log-action la-cancel">booking.cancel</span></td>
+                <td class="dim">#1038</td>
+                <td class="dim" style="font-size:.72rem;">87.23.XX.XX</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /admin-content -->
+  </main><!-- /admin-main -->
+</div><!-- /admin-shell -->
+
+<!-- MOBILE BOTTOM NAV (скрыт на десктопе через @media) -->
+<nav class="bottom-nav" style="max-width:none;">
+  <button class="nav-tab active" onclick="location='admin.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Аналитика
+  </button>
+  <button class="nav-tab" onclick="location='landlord.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    Залы
+  </button>
+  <button class="nav-tab" onclick="document.querySelector('#bookings')?.scrollIntoView({behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+    Брони
+  </button>
+  <button class="nav-tab" onclick="document.querySelector('#logs')?.scrollIntoView({behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Ещё
+  </button>
+</nav>
+
+<!-- CRM CARD MODAL -->
+<div id="crmModal" class="modal-overlay" style="display:none; align-items:center; padding:24px;">
+  <div class="modal" style="border-radius:var(--r-xl); max-width:640px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">CRM-карточка клиента</div>
+        <div style="font-size:.72rem; color:var(--text-dim); margin-top:2px;">Бронь #1042</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('crmModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- CLIENT INFO -->
+      <div style="display:flex; align-items:center; gap:14px; padding:0 0 16px; border-bottom:1px solid var(--border);">
+        <div class="avatar avatar-lg">ИИ</div>
+        <div>
+          <div style="font-family:var(--font-brand); font-size:1rem; font-weight:700;">Иванов Иван Иванович</div>
+          <div style="font-size:.78rem; color:var(--text-muted); margin-top:4px; display:flex; gap:12px; flex-wrap:wrap;">
+            <span>📞 +7 (900) 000-00-00</span>
+            <span>✉️ ivan@example.com</span>
+            <span>💬 @ivan_ivanov</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:8px; align-items:center;">
+            <span class="badge badge-success">Клиент</span>
+            <span class="badge badge-gray">3 брони</span>
+            <span class="badge badge-accent">12 400 ₽ всего</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKING DETAILS GRID -->
+      <div style="margin-top:16px;">
+        <div style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); margin-bottom:10px;">Детали бронирования</div>
+        <div class="crm-grid">
+          <div class="crm-field">
+            <div class="crm-field-label">Зал</div>
+            <div class="crm-field-val">Зал А (160 м²)</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">Формат</div>
+            <div class="crm-field-val">🎪 Мероприятие</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">Дата</div>
+            <div class="crm-field-val">Ср, 14 мая 2026</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">Время</div>
+            <div class="crm-field-val">11:00 – 15:00 (4 ч)</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">Тариф</div>
+            <div class="crm-field-val">800 ₽/ч (4–6 ч, Пн–Пт)</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">Статус</div>
+            <div class="crm-field-val"><span class="badge badge-success">Подтверждена</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENT -->
+      <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+        <div style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); margin-bottom:10px;">Оплата</div>
+        <div class="crm-grid">
+          <div class="crm-field">
+            <div class="crm-field-label">Полная сумма</div>
+            <div class="crm-field-val">3 200 ₽</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">Предоплата (50%)</div>
+            <div class="crm-field-val" style="color:var(--success);">1 600 ₽ ✅</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">ИД транзакции CP</div>
+            <div class="crm-field-val" style="font-family:monospace; font-size:.82rem;">3481344670</div>
+          </div>
+          <div class="crm-field">
+            <div class="crm-field-label">Дата оплаты</div>
+            <div class="crm-field-val">13.05.2026 14:47</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TELEGRAM PREVIEW -->
+      <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+        <div style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); margin-bottom:8px;">Telegram-уведомление</div>
+        <div class="tg-preview">
+          <div class="tg-preview-head">
+            <div class="tg-avatar">🤖</div>
+            <div><div class="tg-name">@RoltHallBot → Администратор</div><div class="tg-sub">Отправлено 13.05.2026 14:48</div></div>
+          </div>
+          <div class="tg-body">
+            <div>🏠 <strong>Новая бронь — RoltHall</strong></div>
+            <div class="tg-hr"></div>
+            <div>👤 <strong>ФИО:</strong> Иванов Иван Иванович</div>
+            <div>📋 <strong>Формат:</strong> Мероприятие</div>
+            <div>📅 <strong>Дата, время:</strong> 14.05.2026, 11:00–15:00</div>
+            <div>🏛 <strong>Зал:</strong> Зал А (160 м²)</div>
+            <div>📞 <strong>Телефон:</strong> +7 (900) 000-00-00</div>
+            <div>💬 <strong>Телеграм:</strong> @ivan_ivanov</div>
+            <div class="tg-hr"></div>
+            <div>✅ <strong>Положение принято:</strong> Да</div>
+            <div>💰 <strong>Оплачено:</strong> 1 600 RUB</div>
+            <div>🔑 <strong>ИД транзакции CP:</strong> 3481344670</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN NOTES + ACTIONS -->
+      <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+        <div class="form-group">
+          <label class="form-label">Заметка администратора</label>
+          <textarea class="input" placeholder="Внутренние заметки (не видны клиенту)..." style="min-height:64px;"></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        <button class="btn btn-primary">Подтвердить бронь</button>
+        <button class="btn btn-ghost">Override / Перенос</button>
+        <button class="btn btn-danger-soft" style="margin-left:auto;">Отменить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

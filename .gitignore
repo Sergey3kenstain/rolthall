@@ -1,0 +1,44 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VS Code / IDE
+.vscode/
+*.code-workspace
+.claude/
+
+# Laravel backend
+backend/vendor/
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/storage/logs/*.log
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/
+backend/node_modules/
+
+# Next.js frontend
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Uploads / media
+backend/storage/app/public/uploads/
+
+# Composer
+backend/composer.lock
+
+# npm / yarn
+frontend/package-lock.json
+frontend/yarn.lock
