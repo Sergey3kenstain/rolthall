@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    'telegram' => [
+        'bot_token'    => env('TELEGRAM_BOT_TOKEN'),
+        'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID'),
+    ],
+
+    'tbank' => [
+        'terminal_key' => env('TBANK_TERMINAL_KEY'),
+        'secret_key'   => env('TBANK_SECRET_KEY'),
+        'test_mode'    => env('TBANK_TEST_MODE', true),
+        'api_url'      => env('TBANK_TEST_MODE', true)
+            ? 'https://rest-api-test.tbank.ru/v2/'
+            : 'https://securepay.tinkoff.ru/v2/',
+    ],
+
 ];
