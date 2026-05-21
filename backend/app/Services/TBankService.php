@@ -92,15 +92,22 @@ class TBankService
     private function request(string $method, array $data): array
     {
         try {
-            $response = Http::timeout(15)
-                ->post($this->apiUrl . $method, $data)
-                ->json();
+            $httpResponse = Http::timeout(15)
+                ->post($this->apiUrl . $method, $data);
 
-            if (!isset($response['Success']) || !$response['Success']) {
+            $response = $httpResponse->json() ?? [];
+
+            if (empty($response)) {
+                $body = $httpResponse->body();
+                Log::warning("TBank {$method} empty response", ['status' => $httpResponse->status(), 'body' => $body]);
+                return ['ok' => false, 'error' => "Empty response (HTTP {$httpResponse->status()}): {$body}"];
+            }
+
+            if (empty($response['Success'])) {
                 Log::warning("TBank {$method} failed", $response);
                 return [
                     'ok'    => false,
-                    'error' => $response['Message'] ?? 'Unknown error',
+                    'error' => $response['Message'] ?? ($response['Details'] ?? 'Unknown error'),
                     'raw'   => $response,
                 ];
             }
