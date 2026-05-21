@@ -1699,9 +1699,6 @@
     <a href="#pricing">Цены</a>
     <a href="#rules">Правила</a>
     <a href="#contacts">Контакты</a>
-    <a href="/cttp_opd.html">Согласие на обработку персональных данных</a>
-    <a href="/user_agreement.html">Пользовательское соглашение</a>
-    <a href="/privacy_policy.html">Политика конфиденциальности персональных данных</a>
   </div>
 </footer>
 
@@ -1797,7 +1794,7 @@
     };
 
     // Если THREAD_ID не указан — убираем поле
-    if (!TELEGRAM_THREAD_ID || TELEGRAM_THREAD_ID === '25') {
+    if (!TELEGRAM_THREAD_ID || TELEGRAM_THREAD_ID === 'ВСТАВЬ_ID_ВЕТКИ') {
       delete payload.message_thread_id;
     }
 
