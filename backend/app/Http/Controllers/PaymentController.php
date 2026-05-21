@@ -97,11 +97,25 @@ class PaymentController extends Controller
     public function test(): JsonResponse
     {
         $result = $this->tbank->init([
-            'amount'      => 100 * 100,  // 100 рублей в копейках
+            'amount'      => 100 * 100,
             'order_id'    => 'test-' . time(),
             'description' => 'Тестовый платёж RoltHall',
         ]);
 
         return response()->json($result);
+    }
+
+    /**
+     * Debug — показываем что отправляем в T-Bank (без реального запроса)
+     * GET /api/payment/debug
+     */
+    public function debug(): JsonResponse
+    {
+        return response()->json([
+            'terminal_key' => config('services.tbank.terminal_key'),
+            'api_url'      => config('services.tbank.api_url'),
+            'test_mode'    => config('services.tbank.test_mode'),
+            'secret_set'   => !empty(config('services.tbank.secret_key')),
+        ]);
     }
 }

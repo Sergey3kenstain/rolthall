@@ -19,6 +19,7 @@ Route::post('/payment/init',           [PaymentController::class, 'init']);
 Route::post('/payment/webhook',        [PaymentController::class, 'webhook']);
 Route::get('/payment/status/{id}',     [PaymentController::class, 'status']);
 Route::get('/payment/test',            [PaymentController::class, 'test']);
+Route::get('/payment/debug',           [PaymentController::class, 'debug']);
 
 // ── Telegram Bot ──────────────────────────────────────────────────────
 Route::post('/telegram/webhook',      [TelegramController::class, 'webhook']);
