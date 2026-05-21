@@ -121,9 +121,9 @@ class PaymentController extends Controller
     public function test(): JsonResponse
     {
         $result = $this->tbank->init([
-            'amount'      => 100 * 100,
+            'amount'      => 50 * 100,  // 50 рублей
             'order_id'    => 'test-' . time(),
-            'description' => 'Тестовый платёж RoltHall',
+            'description' => 'Тестовый платёж RoltHall 50₽',
         ]);
 
         return response()->json($result);
