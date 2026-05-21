@@ -16,6 +16,50 @@
 
 ---
 
+## Статус на май 2026
+
+### ✅ Сделано
+| Задача | Статус |
+|---|---|
+| MVP HTML-прототипы (6 страниц + стили) | ✅ Готово |
+| Laravel 13 + Sanctum + Spatie Roles + Telegram SDK | ✅ Готово |
+| Деплой на Beget Great (MySQL 5.7, PHP 8.3) | ✅ Готово |
+| Git автодеплой через bare repo + post-receive hook | ✅ Готово |
+| 11 миграций БД (halls, bookings, pricing_rules, clients, logs...) | ✅ Готово |
+| Telegram Bot webhook + NotificationService | ✅ Готово |
+| Уведомления в группу с темой (thread_id) | ✅ Готово |
+| Лендинг hall.roltworld.com (для T-Bank) | ✅ Готово |
+| Форма лендинга → /api/landing/booking → Telegram | ✅ Готово |
+| T-Bank интеграция: TBankService + PaymentController | ✅ Готово |
+| Тестовый платёж T-Bank проходит | ✅ Готово |
+| Страницы /booking/success и /booking/fail | ✅ Готово |
+
+### 🔄 В процессе
+- T-Bank договор (ждём активации production-терминала)
+
+### ⏳ Следующий приоритет
+1. **Hall модель + сидер** — добавить Залы А/Б/В/Г в БД с тарифами
+2. **Halls API** — GET /api/halls, GET /api/halls/{id}/pricing, GET /api/halls/{id}/availability
+3. **Booking flow** — hold → pending_payment → paid → confirmed (без фронта, только API)
+4. **T-Bank webhook** — обновлять статус брони при оплате + уведомление в Telegram
+5. **Frontend** — подключить Next.js или собрать статику из MVP-прототипов
+
+---
+
+## Адаптации под реальный хостинг
+
+Исходный план предполагал VPS, но работаем на **Beget Great (shared)**:
+
+| Было в плане | Реальное решение |
+|---|---|
+| PostgreSQL 16 | MySQL 5.7 (strict=false, defaultStringLength=191) |
+| Redis TTL для hold | DB-очередь + Scheduler каждую минуту |
+| Supervisor + воркеры | CronTab → php artisan schedule:run |
+| Next.js сервер | Пока лендинг на PHP, Next.js — позже |
+| Redis сессии | DB/file сессии |
+
+---
+
 ## Почему именно такая последовательность
 
 Проект строится по принципу **«работающий слой за слоем»**:  
