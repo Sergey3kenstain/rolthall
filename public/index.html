@@ -1018,6 +1018,34 @@
   .form-input::placeholder, .form-textarea::placeholder {
     color: rgba(217,217,217,0.25);
   }
+
+  /* ── Validation error state ── */
+  .form-input.error, .form-select.error, .form-textarea.error {
+    border-color: #e05252 !important;
+    background: rgba(224,82,82,0.06) !important;
+  }
+  .field-error {
+    display: none;
+    font-size: 10px;
+    color: #e05252;
+    margin-top: 5px;
+    letter-spacing: 0.05em;
+  }
+  .field-error.show { display: block; }
+
+  /* ── Date & Time picker icons — white 16px ── */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(2);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover,
+  input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
   .form-select option {
     background: var(--charcoal-deep);
     color: var(--accent);
@@ -1596,16 +1624,18 @@
           <div class="form-group">
             <label class="form-label">Ваше имя *</label>
             <input class="form-input" type="text" id="f-name" placeholder="Иван Иванов" required>
+            <span class="field-error" id="err-name">Заполните поле</span>
           </div>
           <div class="form-group">
             <label class="form-label">Телефон *</label>
-            <input class="form-input" type="tel" id="f-phone" placeholder="+7 (___) ___-__-__" required>
+            <input class="form-input" type="tel" id="f-phone" placeholder="+7 (___) ___-__-__" required maxlength="18">
+            <span class="field-error" id="err-phone">Введите номер телефона</span>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Тип аренды *</label>
           <select class="form-select" id="f-type">
-            <option value="">Выберите формат...</option>
+            <option value="" disabled selected>Выберите формат...</option>
             <option value="Будни — тренировки (3 500 ₽/час)">Будни — тренировки (3 500 ₽/час)</option>
             <option value="Выходные — тренировки (5 000 ₽/час)">Выходные — тренировки (5 000 ₽/час)</option>
             <option value="Будни — мероприятие до 30 чел. (10 000 ₽/час)">Будни — мероприятие до 30 чел. (10 000 ₽/час)</option>
@@ -1614,15 +1644,18 @@
             <option value="День мероприятия со светом и звуком (150 000 ₽)">День мероприятия со светом и звуком (150 000 ₽)</option>
             <option value="Более 30 человек — индивидуальный расчёт">Более 30 человек — индивидуальный расчёт</option>
           </select>
+          <span class="field-error" id="err-type">Выберите тип аренды</span>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Дата *</label>
             <input class="form-input" type="date" id="f-date" required>
+            <span class="field-error" id="err-date">Выберите дату</span>
           </div>
           <div class="form-group">
             <label class="form-label">Время начала *</label>
             <input class="form-input" type="time" id="f-time" required>
+            <span class="field-error" id="err-time">Укажите время</span>
           </div>
         </div>
         <div class="form-group">
@@ -1750,6 +1783,45 @@
   const dateInput = document.getElementById('f-date');
   if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
 
+  // ── Phone mask +7 (xxx) xxx-xx-xx ──
+  const phoneInput = document.getElementById('f-phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function(e) {
+      let v = this.value.replace(/\D/g, '');
+      if (v.startsWith('8')) v = '7' + v.slice(1);
+      if (!v.startsWith('7')) v = '7' + v;
+      v = v.slice(0, 11);
+      let out = '+7';
+      if (v.length > 1) out += ' (' + v.slice(1, 4);
+      if (v.length >= 4) out += ') ' + v.slice(4, 7);
+      if (v.length >= 7) out += '-' + v.slice(7, 9);
+      if (v.length >= 9) out += '-' + v.slice(9, 11);
+      this.value = out;
+    });
+    phoneInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && this.value === '+7') {
+        e.preventDefault();
+      }
+    });
+    phoneInput.addEventListener('focus', function() {
+      if (!this.value) this.value = '+7 ';
+    });
+  }
+
+  // ── Field validation helpers ──
+  function setError(fieldId, errId, show) {
+    const field = document.getElementById(fieldId);
+    const err   = document.getElementById(errId);
+    if (!field || !err) return;
+    field.classList.toggle('error', show);
+    err.classList.toggle('show', show);
+  }
+
+  function clearErrors() {
+    [['f-name','err-name'],['f-phone','err-phone'],['f-type','err-type'],
+     ['f-date','err-date'],['f-time','err-time']].forEach(([f,e]) => setError(f,e,false));
+  }
+
   // ── Send booking via backend API ──
   async function sendBooking() {
     const name     = document.getElementById('f-name').value.trim();
@@ -1760,10 +1832,14 @@
     const duration = document.getElementById('f-duration').value.trim();
     const comment  = document.getElementById('f-comment').value.trim();
 
-    if (!name || !phone || !type || !date || !time) {
-      alert('Пожалуйста, заполните все обязательные поля (*)');
-      return;
-    }
+    clearErrors();
+    let valid = true;
+    if (!name)                         { setError('f-name','err-name',true);   valid = false; }
+    if (!phone || phone.length < 18)   { setError('f-phone','err-phone',true); valid = false; }
+    if (!type)                         { setError('f-type','err-type',true);   valid = false; }
+    if (!date)                         { setError('f-date','err-date',true);   valid = false; }
+    if (!time)                         { setError('f-time','err-time',true);   valid = false; }
+    if (!valid) return;
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
