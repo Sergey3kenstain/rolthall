@@ -49,7 +49,9 @@ class TelegramController extends Controller
             ),
             str_starts_with($text, '/mychat') => $this->sendMessage(
                 $chatId,
-                "Ваш Chat ID: <code>{$chatId}</code>"
+                "Chat ID: <code>{$chatId}</code>\n" .
+                "Thread ID: <code>" . ($message['message_thread_id'] ?? 'нет (личный чат)') . "</code>",
+                $message['message_thread_id'] ?? null
             ),
             default => null,
         };
@@ -58,14 +60,20 @@ class TelegramController extends Controller
     /**
      * Отправляем сообщение в Telegram
      */
-    public function sendMessage(int|string $chatId, string $text): void
+    public function sendMessage(int|string $chatId, string $text, ?int $threadId = null): void
     {
         try {
-            $this->telegram->sendMessage([
+            $params = [
                 'chat_id'    => $chatId,
                 'text'       => $text,
                 'parse_mode' => 'HTML',
-            ]);
+            ];
+
+            if ($threadId) {
+                $params['message_thread_id'] = $threadId;
+            }
+
+            $this->telegram->sendMessage($params);
         } catch (\Throwable $e) {
             Log::error('Telegram send error', ['error' => $e->getMessage()]);
         }
