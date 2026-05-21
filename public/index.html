@@ -1711,12 +1711,6 @@
      ВСТАВЬ СВОИ ДАННЫЕ НИЖЕ:
      ══════════════════════════════════════════ -->
 <script>
-  // ╔══════════════════════════════════════╗
-  // ║   НАСТРОЙКИ TELEGRAM БОТА           ║
-  // ╠══════════════════════════════════════╣
-  const TELEGRAM_BOT_TOKEN = '859680919:AAF3Ew6bFmKP2GHRpCyXPnwGEzfrxKop-4U';
-  const TELEGRAM_CHAT_ID   = '-1003950744843';
-  const TELEGRAM_THREAD_ID = '25';
 
   // ── NAV scroll ──
   window.addEventListener('scroll', () => {
@@ -1756,7 +1750,7 @@
   const dateInput = document.getElementById('f-date');
   if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
 
-  // ── Send booking to Telegram ──
+  // ── Send booking via backend API ──
   async function sendBooking() {
     const name     = document.getElementById('f-name').value.trim();
     const phone    = document.getElementById('f-phone').value.trim();
@@ -1775,44 +1769,18 @@
     btn.disabled = true;
     btn.textContent = 'Отправляем...';
 
-    const dateFormatted = date ? new Date(date).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
-
-    const text = [
-      '🎯 <b>Новая заявка на бронирование ROLTHALL</b>',
-      '',
-      `👤 <b>Имя:</b> ${name}`,
-      `📞 <b>Телефон:</b> ${phone}`,
-      `🏷 <b>Тип аренды:</b> ${type}`,
-      `📅 <b>Дата:</b> ${dateFormatted}`,
-      `🕐 <b>Время:</b> ${time}`,
-      duration ? `⏱ <b>Длительность:</b> ${duration}` : '',
-      comment  ? `💬 <b>Комментарий:</b> ${comment}` : '',
-    ].filter(Boolean).join('\n');
-
-    const payload = {
-      chat_id: TELEGRAM_CHAT_ID,
-      text,
-      parse_mode: 'HTML',
-      message_thread_id: TELEGRAM_THREAD_ID,
-    };
-
-    // Если THREAD_ID не указан — убираем поле
-    if (!TELEGRAM_THREAD_ID || TELEGRAM_THREAD_ID === '25') {
-      delete payload.message_thread_id;
-    }
-
     try {
-      const res = await fetch(`https://api.telegram.org/bot859680919:AAF3Ew6bFmKP2GHRpCyXPnwGEzfrxKop-4U/sendMessage`, {
+      const res = await fetch('/api/landing/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ name, phone, type, date, time, duration, comment }),
       });
       const data = await res.json();
       if (data.ok) {
         document.getElementById('bookingForm').style.display = 'none';
         document.getElementById('formSuccess').classList.add('show');
       } else {
-        throw new Error(data.description || 'Ошибка Telegram API');
+        throw new Error(data.error || 'Ошибка сервера');
       }
     } catch (err) {
       console.error(err);

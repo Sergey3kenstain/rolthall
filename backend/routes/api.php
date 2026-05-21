@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -8,6 +9,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// ── Landing ───────────────────────────────────────────────────────────
+Route::post('/landing/booking', [LandingController::class, 'booking']);
 
 // ── Telegram Bot ──────────────────────────────────────────────────────
 Route::post('/telegram/webhook',      [TelegramController::class, 'webhook']);

@@ -90,6 +90,14 @@ class NotificationService
     }
 
     /**
+     * Отправляем произвольный текст администратору
+     */
+    public function sendRaw(string $text): void
+    {
+        $this->sendToAdmin($text);
+    }
+
+    /**
      * Тестовое сообщение для проверки настройки
      */
     public function sendTestMessage(): void
