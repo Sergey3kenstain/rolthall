@@ -77,13 +77,14 @@ class TelegramController extends Controller
      */
     public function setWebhook(): JsonResponse
     {
-        $url    = config('app.url') . '/api/telegram/webhook';
-        $result = $this->telegram->setWebhook(['url' => $url]);
+        $url = config('app.url') . '/api/telegram/webhook';
 
-        return response()->json([
-            'url'    => $url,
-            'result' => $result,
-        ]);
+        try {
+            $result = $this->telegram->setWebhook(['url' => $url]);
+            return response()->json(['ok' => true, 'url' => $url, 'result' => $result]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 200);
+        }
     }
 
     /**
