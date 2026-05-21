@@ -125,12 +125,20 @@ class TBankService
      */
     private function generateToken(array $data): string
     {
-        // Убираем массивы (Receipt, DATA и т.д.) — они не участвуют в токене
-        $filtered = array_filter($data, fn($v) => !is_array($v));
+        // Убираем массивы и null
+        $filtered = array_filter($data, fn($v) => !is_array($v) && $v !== null);
         $filtered['Password'] = $this->secretKey;
 
         ksort($filtered);
 
-        return hash('sha256', implode('', array_values($filtered)));
+        // Конвертируем каждое значение в строку по правилам T-Bank:
+        // bool true → "true", bool false → "false", остальное — обычная строка
+        $values = array_map(function ($v) {
+            if ($v === true)  return 'true';
+            if ($v === false) return 'false';
+            return (string) $v;
+        }, array_values($filtered));
+
+        return hash('sha256', implode('', $values));
     }
 }
