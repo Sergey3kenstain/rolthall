@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROLTHALL — Профессиональное танцевальное пространство</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     TELEGRAM CONFIG — ВСТАВЬ СВОИ ДАННЫЕ ЗДЕСЬ
+     ============================================ */
+  /* Смотри JS-блок внизу страницы */
+
+  :root {
+    --charcoal: #2E2B35;
+    --charcoal-deep: #1e1c24;
+    --charcoal-mid: #26232e;
+    --light: #D9D9D9;
+    --accent: #ffffff;
+    --accent-dim: rgba(255,255,255,0.08);
+    --accent-border: rgba(255,255,255,0.12);
+    --font: 'Unbounded', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--charcoal);
+    color: var(--light);
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--charcoal-deep); }
+  ::-webkit-scrollbar-thumb { background: rgba(217,217,217,0.3); border-radius: 2px; }
+
+  /* ══════════════════════════════════════════
+     NAV
+  ══════════════════════════════════════════ */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.4s, backdrop-filter 0.4s, padding 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(30, 28, 36, 0.92);
+    backdrop-filter: blur(20px);
+    padding: 14px 48px;
+    border-bottom: 1px solid var(--accent-border);
+  }
+
+  .nav-logo svg {
+    height: 16px;
+    width: auto;
+    display: block;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--light);
+    text-decoration: none;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .nav-links a:hover { opacity: 1; }
+
+  .nav-cta {
+    font-family: var(--font);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    background: var(--accent);
+    border: none;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  /* Burger */
+  .burger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .burger span {
+    display: block;
+    width: 24px;
+    height: 1.5px;
+    background: var(--light);
+    transition: all 0.3s;
+  }
+  .burger.open span:nth-child(1) { transform: rotate(45deg) translate(4.5px, 4.5px); }
+  .burger.open span:nth-child(2) { opacity: 0; }
+  .burger.open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px, -4.5px); }
+
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--charcoal-deep);
+    z-index: 99;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--light);
+    text-decoration: none;
+    opacity: 0.7;
+  }
+  .mobile-menu a:hover { opacity: 1; }
+
+  /* ══════════════════════════════════════════
+     HERO
+  ══════════════════════════════════════════ */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 48px 80px;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--charcoal-deep);
+    overflow: hidden;
+  }
+  /* Placeholder for video/photo — replace src with actual media */
+  .hero-bg video,
+  .hero-bg img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+  }
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(30,28,36,0.2) 0%,
+      rgba(30,28,36,0.1) 40%,
+      rgba(30,28,36,0.85) 80%,
+      var(--charcoal-deep) 100%
+    );
+  }
+
+  /* Geometric decor */
+  .hero-decor {
+    position: absolute;
+    top: 15%;
+    right: 48px;
+    width: 260px;
+    height: 260px;
+    border: 1px solid rgba(217,217,217,0.08);
+    transform: rotate(15deg);
+    animation: rotateSlow 25s linear infinite;
+  }
+  .hero-decor-2 {
+    position: absolute;
+    top: 20%;
+    right: 80px;
+    width: 180px;
+    height: 180px;
+    border: 1px solid rgba(217,217,217,0.05);
+    transform: rotate(-10deg);
+    animation: rotateSlow 18s linear infinite reverse;
+  }
+  @keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Vertical text */
+  .hero-vertical {
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    transform-origin: right center;
+    font-size: 8px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    white-space: nowrap;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+  }
+
+  .hero-tag {
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.5);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: rgba(217,217,217,0.4);
+  }
+
+  .hero-title {
+    font-size: clamp(56px, 8vw, 112px);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    margin-bottom: 32px;
+    opacity: 0;
+    transform: translateY(40px);
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  }
+
+  .hero-desc {
+    font-size: clamp(13px, 1.5vw, 16px);
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(217,217,217,0.7);
+    max-width: 480px;
+    margin-bottom: 48px;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+  }
+
+  .btn-primary {
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    background: var(--accent);
+    border: none;
+    padding: 18px 40px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+
+  .btn-secondary {
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--light);
+    background: transparent;
+    border: 1px solid rgba(217,217,217,0.3);
+    padding: 18px 40px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color 0.2s, color 0.2s, transform 0.2s;
+  }
+  .btn-secondary:hover {
+    border-color: var(--light);
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  /* Stats bar */
+  .hero-stats {
+    position: absolute;
+    bottom: 80px;
+    right: 140px;
+    display: flex;
+    gap: 48px;
+    z-index: 2;
+    opacity: 0;
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
+  }
+  .stat-item { text-align: right; }
+  .stat-num {
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .stat-label {
+    font-size: 8px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.4);
+    margin-top: 6px;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scroll hint */
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 2;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.2s forwards;
+  }
+  .scroll-hint span {
+    font-size: 7px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+  }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(217,217,217,0.4), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.1); }
+  }
+
+  /* ══════════════════════════════════════════
+     SECTION BASE
+  ══════════════════════════════════════════ */
+  section { padding: 120px 48px; }
+
+  .section-label {
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.4);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-label::before {
+    content: '';
+    width: 30px;
+    height: 1px;
+    background: rgba(217,217,217,0.3);
+  }
+
+  .section-title {
+    font-size: clamp(36px, 5vw, 72px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ══════════════════════════════════════════
+     ABOUT / FEATURES
+  ══════════════════════════════════════════ */
+  #about {
+    background: var(--charcoal-mid);
+    position: relative;
+    overflow: hidden;
+  }
+  #about::before {
+    content: '346';
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 280px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.025);
+    letter-spacing: -0.05em;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    margin-top: 64px;
+  }
+
+  .about-features {
+    display: grid;
+    gap: 0;
+  }
+
+  .feature-item {
+    padding: 28px 0;
+    border-bottom: 1px solid var(--accent-border);
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 24px;
+    align-items: start;
+    transition: background 0.2s;
+  }
+  .feature-item:first-child { border-top: 1px solid var(--accent-border); }
+
+  .feature-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(217,217,217,0.25);
+    letter-spacing: 0.1em;
+    padding-top: 2px;
+  }
+
+  .feature-body {}
+  .feature-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .feature-text {
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: rgba(217,217,217,0.55);
+  }
+
+  .about-visual {
+    position: relative;
+  }
+  .about-big-num {
+    font-size: clamp(100px, 14vw, 200px);
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    display: block;
+  }
+  .about-big-unit {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 300;
+    color: rgba(217,217,217,0.4);
+    letter-spacing: -0.02em;
+    display: block;
+    margin-top: -16px;
+  }
+  .about-big-desc {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    margin-top: 24px;
+    max-width: 280px;
+    line-height: 1.8;
+  }
+
+  /* ══════════════════════════════════════════
+     PRICING
+  ══════════════════════════════════════════ */
+  #pricing {
+    background: var(--charcoal-deep);
+  }
+
+  .pricing-intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: end;
+    margin-bottom: 80px;
+  }
+  .pricing-intro-text {
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.9;
+    color: rgba(217,217,217,0.5);
+    max-width: 420px;
+  }
+
+  .pricing-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 40px;
+  }
+  .tab-btn {
+    font-family: var(--font);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.4);
+    background: transparent;
+    border: 1px solid rgba(217,217,217,0.15);
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--charcoal);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .tab-btn:hover:not(.active) {
+    border-color: rgba(217,217,217,0.4);
+    color: var(--light);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block;overflow: auto; }
+
+  /* Pricing table */
+  .pricing-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .pricing-table thead th {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    text-align: left;
+    padding: 0 24px 20px;
+    border-bottom: 1px solid var(--accent-border);
+  }
+  .pricing-table thead th:last-child { text-align: right; }
+
+  .pricing-table tbody tr {
+    border-bottom: 1px solid rgba(217,217,217,0.06);
+    transition: background 0.2s;
+  }
+  .pricing-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+  .pricing-table tbody td {
+    padding: 22px 24px;
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(217,217,217,0.7);
+  }
+  .pricing-table tbody td:first-child {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 13px;
+  }
+  .pricing-table tbody td:last-child {
+    text-align: right;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 16px;
+  }
+  .price-note {
+    font-size: 8px;
+    color: rgba(217,217,217,0.3);
+    font-weight: 300;
+  }
+
+  /* Event cards */
+  .event-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .event-card {
+    border: 1px solid var(--accent-border);
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .event-card:hover { border-color: rgba(255,255,255,0.3); }
+  .event-card.featured {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .event-card.featured .event-card-price,
+  .event-card.featured .event-card-title,
+  .event-card.featured .event-card-desc,
+  .event-card.featured .event-card-label { color: var(--charcoal); }
+
+  .event-card-label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    margin-bottom: 24px;
+    display: block;
+  }
+  .event-card-price {
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .event-card-currency {
+    font-size: 24px;
+    font-weight: 300;
+    vertical-align: super;
+  }
+  .event-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--light);
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  .event-card-desc {
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: rgba(217,217,217,0.5);
+  }
+
+  /* Booking conditions */
+  .conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--accent-border);
+    margin-top: 48px;
+    border: 1px solid var(--accent-border);
+  }
+  .condition-item {
+    background: var(--charcoal-deep);
+    padding: 28px 24px;
+  }
+  .condition-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  .condition-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .condition-text {
+    font-size: 10px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: rgba(217,217,217,0.5);
+  }
+
+  /* ══════════════════════════════════════════
+     RULES
+  ══════════════════════════════════════════ */
+  #rules {
+    background: var(--charcoal-mid);
+  }
+
+  .rules-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: end;
+    margin-bottom: 64px;
+  }
+  .rules-note {
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.8;
+    color: rgba(217,217,217,0.5);
+    border-left: 2px solid rgba(255,255,255,0.2);
+    padding-left: 20px;
+  }
+
+  .accordion {
+    border-top: 1px solid var(--accent-border);
+  }
+  .accordion-item {
+    border-bottom: 1px solid var(--accent-border);
+  }
+  .accordion-header {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    gap: 24px;
+    text-align: left;
+  }
+  .accordion-header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .accordion-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(217,217,217,0.25);
+    letter-spacing: 0.1em;
+    min-width: 28px;
+  }
+  .accordion-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+  }
+  .accordion-icon {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    flex-shrink: 0;
+    opacity: 0.4;
+    transition: opacity 0.2s, transform 0.3s;
+  }
+  .accordion-icon::before,
+  .accordion-icon::after {
+    content: '';
+    position: absolute;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .accordion-icon::before { width: 14px; height: 1.5px; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  .accordion-icon::after { width: 1.5px; height: 14px; top: 50%; left: 50%; transform: translate(-50%,-50%); transition: transform 0.3s, opacity 0.3s; }
+  .accordion-item.open .accordion-icon { opacity: 1; }
+  .accordion-item.open .accordion-icon::after { transform: translate(-50%,-50%) rotate(90deg); opacity: 0; }
+
+  .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s;
+    padding: 0 0 0 52px;
+  }
+  .accordion-item.open .accordion-body {
+    max-height: 600px;
+    padding: 0 0 24px 52px;
+  }
+  .accordion-body p {
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.9;
+    color: rgba(217,217,217,0.55);
+  }
+
+  /* Banned block */
+  .ban-block {
+    margin-top: 48px;
+    border: 1px solid rgba(255,100,100,0.2);
+    padding: 36px 40px;
+    background: rgba(255,50,50,0.03);
+    position: relative;
+    overflow: hidden;
+  }
+  .ban-block::before {
+    content: '!';
+    position: absolute;
+    right: 24px;
+    top: -10px;
+    font-size: 160px;
+    font-weight: 900;
+    color: rgba(255,80,80,0.05);
+    line-height: 1;
+  }
+  .ban-label {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,120,120,0.7);
+    margin-bottom: 20px;
+  }
+  .ban-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: rgba(255,150,150,0.9);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .ban-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 40px;
+  }
+  .ban-list li {
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(217,217,217,0.55);
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.6;
+  }
+  .ban-list li::before {
+    content: '×';
+    position: absolute;
+    left: 0;
+    color: rgba(255,120,120,0.6);
+    font-weight: 700;
+  }
+
+  /* ══════════════════════════════════════════
+     FAQ
+  ══════════════════════════════════════════ */
+  #faq {
+    background: var(--charcoal-deep);
+  }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    margin-top: 64px;
+    align-items: start;
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .faq-item {
+    border-bottom: 1px solid var(--accent-border);
+    padding: 28px 0;
+  }
+  .faq-item:first-child { border-top: 1px solid var(--accent-border); }
+
+  .faq-q {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 12px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
+  .faq-a {
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.9;
+    color: rgba(217,217,217,0.5);
+  }
+
+  .faq-cta-block {
+    position: sticky;
+    top: 120px;
+    border: 1px solid var(--accent-border);
+    padding: 48px 40px;
+    background: var(--charcoal-mid);
+  }
+  .faq-cta-label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    margin-bottom: 24px;
+  }
+  .faq-cta-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .faq-cta-text {
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: rgba(217,217,217,0.45);
+    margin-bottom: 32px;
+  }
+  .faq-cta-divider {
+    width: 40px;
+    height: 1px;
+    background: rgba(217,217,217,0.2);
+    margin: 24px 0;
+  }
+  .faq-contact {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: rgba(217,217,217,0.4);
+    margin-top: 16px;
+  }
+  .faq-contact a {
+    color: var(--light);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .faq-contact a:hover { color: var(--accent); }
+
+  /* ══════════════════════════════════════════
+     BOOKING FORM + CONTACTS
+  ══════════════════════════════════════════ */
+  #contacts {
+    background: var(--charcoal-mid);
+    padding-bottom: 0;
+  }
+
+  .contacts-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    padding-bottom: 80px;
+  }
+
+  .form-wrap {}
+  .form-title {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .form-subtitle {
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(217,217,217,0.45);
+    margin-bottom: 40px;
+    line-height: 1.7;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-label {
+    display: block;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    margin-bottom: 8px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--accent);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 18px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.07);
+  }
+  .form-input::placeholder, .form-textarea::placeholder {
+    color: rgba(217,217,217,0.25);
+  }
+  .form-select option {
+    background: var(--charcoal-deep);
+    color: var(--accent);
+  }
+  .form-textarea { resize: vertical; min-height: 100px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-policy {
+    font-size: 9px;
+    font-weight: 300;
+    color: rgba(217,217,217,0.3);
+    line-height: 1.7;
+    margin-top: 4px;
+    margin-bottom: 20px;
+  }
+
+  .btn-submit {
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    background: var(--accent);
+    border: none;
+    padding: 20px 48px;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-submit:hover { opacity: 0.9; }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .form-success {
+    display: none;
+    text-align: center;
+    padding: 48px 24px;
+  }
+  .form-success.show { display: block; }
+  .form-success-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .form-success-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .form-success-text {
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(217,217,217,0.5);
+  }
+
+  /* Contact info side */
+  .contact-info {}
+  .contact-info-label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    margin-bottom: 40px;
+  }
+  .contact-address {
+    font-size: clamp(18px, 2.5vw, 32px);
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin-bottom: 48px;
+  }
+
+  .contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--light);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .contact-link:hover { opacity: 1; }
+  .contact-link-icon {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--accent-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+
+  /* Map */
+  .map-wrap {
+    margin-top: 0;
+    height: 400px;
+    overflow: hidden;
+    border-top: 1px solid var(--accent-border);
+  }
+  .map-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    filter: grayscale(1) invert(1) contrast(0.85) brightness(0.9);
+  }
+
+  /* ══════════════════════════════════════════
+     FOOTER
+  ══════════════════════════════════════════ */
+  footer {
+    background: var(--charcoal-deep);
+    padding: 40px 48px;
+    border-top: 1px solid var(--accent-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .footer-logo svg { height: 16px; width: auto; }
+  .footer-copy {
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: rgba(217,217,217,0.25);
+  }
+  .footer-links {
+    display: flex;
+    gap: 32px;
+  }
+  .footer-links a {
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(217,217,217,0.35);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--light); }
+
+  /* ══════════════════════════════════════════
+     MOBILE
+  ══════════════════════════════════════════ */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    nav.scrolled { padding: 12px 24px; }
+    .nav-links, .nav-cta { display: none; }
+    .burger { display: flex; }
+
+    section { padding: 80px 24px; }
+    #hero { padding: 0 24px 64px; }
+
+    .hero-stats { display: none; }
+    .hero-vertical { display: none; }
+    .hero-decor, .hero-decor-2 { display: none; }
+
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .about-visual { order: -1; }
+    .about-big-num { font-size: clamp(80px, 20vw, 140px); }
+
+    .pricing-intro { grid-template-columns: 1fr; gap: 32px; }
+    .event-cards { grid-template-columns: 1fr; }
+    .conditions-grid { grid-template-columns: 1fr; }
+
+    .rules-header { grid-template-columns: 1fr; gap: 32px; }
+    .ban-list { grid-template-columns: 1fr; }
+
+    .faq-grid { grid-template-columns: 1fr; gap: 48px; }
+    .faq-cta-block { position: static; }
+
+    .contacts-top { grid-template-columns: 1fr; gap: 48px; }
+    .form-row { grid-template-columns: 1fr; }
+
+    footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; gap: 16px; }
+    .footer-links { flex-wrap: wrap; gap: 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title { font-size: clamp(44px, 14vw, 72px); }
+    .pricing-tabs { flex-wrap: wrap; }
+    .tab-btn { font-size: 8px; padding: 10px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:16px;width:auto">
+      <g clip-path="url(#clip0_nav)">
+        <path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/>
+        <path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/>
+        <path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/>
+        <path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/>
+        <path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/>
+        <path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/>
+        <path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/>
+        <path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/>
+        <path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/>
+      </g>
+      <defs>
+        <clipPath id="clip0_nav"><rect width="1280" height="71" fill="white"/></clipPath>
+      </defs>
+    </svg>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#about">Пространство</a></li>
+    <li><a href="#pricing">Цены</a></li>
+    <li><a href="#rules">Правила</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contacts">Контакты</a></li>
+  </ul>
+
+  <button class="nav-cta" onclick="document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать</button>
+
+  <div class="burger" id="burger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#about" onclick="toggleMenu()">Пространство</a>
+  <a href="#pricing" onclick="toggleMenu()">Цены</a>
+  <a href="#rules" onclick="toggleMenu()">Правила</a>
+  <a href="#faq" onclick="toggleMenu()">FAQ</a>
+  <a href="#contacts" onclick="toggleMenu()">Контакты</a>
+  <button class="btn-primary" onclick="toggleMenu(); document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать</button>
+</div>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-bg">
+    <!--
+      ВСТАВЬ СЮДА ВИДЕО ИЛИ ФОТО:
+      Для видео:
+        <video autoplay muted loop playsinline>
+          <source src="your-video.mp4" type="video/mp4">
+        </video>
+      Для фото:-->
+        <img src="rolthall.png" alt="ROLTHALL">
+    
+  </div>
+  <div class="hero-decor"></div>
+  <div class="hero-decor-2"></div>
+  <div class="hero-vertical">г. Краснодар — ул. Коммунаров, 278/1 — 346 м²</div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Профессиональное танцевальное пространство в Краснодаре</div>
+    <h1 class="hero-title">346 м²<br>свободы</h1>
+    <p class="hero-desc">Пространство для тренировок, мастер-классов и масштабных ивентов. Профессиональное покрытие, звук и свет — всё, что нужно для вашего танца.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать зал</button>
+      <button class="btn-secondary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Узнать цены</button>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">346</div>
+      <div class="stat-label">кв. метров</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">возможностей</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Прокрутить</span>
+  </div>
+</section>
+
+<!-- ══ ABOUT ══ -->
+<section id="about">
+  <div class="section-label reveal">01 — О пространстве</div>
+  <div class="about-grid">
+    <div>
+      <h2 class="section-title reveal">Зал, который<br>не ограничивает</h2>
+      <div class="about-features" style="margin-top:48px">
+        <div class="feature-item reveal reveal-delay-1">
+          <span class="feature-num">01</span>
+          <div class="feature-body">
+            <div class="feature-title">Масштаб</div>
+            <div class="feature-text">346 квадратных метров профессионального покрытия. Достаточно для большой группы, конкурса или масштабного шоу.</div>
+          </div>
+        </div>
+        <div class="feature-item reveal reveal-delay-2">
+          <span class="feature-num">02</span>
+          <div class="feature-body">
+            <div class="feature-title">Свет и звук</div>
+            <div class="feature-text">Профессиональное звуковое и световое оборудование для мероприятий любого уровня — от занятий до концертов.</div>
+          </div>
+        </div>
+        <div class="feature-item reveal reveal-delay-3">
+          <span class="feature-num">03</span>
+          <div class="feature-body">
+            <div class="feature-title">Комфорт</div>
+            <div class="feature-text">Зона ожидания для гостей, раздевалки, гардеробная. Продуманная инфраструктура для тренеров и учеников.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="about-visual reveal">
+      <span class="about-big-num">346</span>
+      <span class="about-big-unit">м²</span>
+      <p class="about-big-desc">Профессиональное танцевальное пространство в центре Краснодара</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRICING ══ -->
+<section id="pricing">
+  <div class="pricing-intro">
+    <div>
+      <div class="section-label reveal">02 — Цены и форматы</div>
+      <h2 class="section-title reveal">Честные<br>тарифы</h2>
+    </div>
+    <p class="pricing-intro-text reveal">Простая и прозрачная система аренды. Выберите формат — почасовая практика или масштабное мероприятие на весь день.</p>
+  </div>
+
+  <div class="pricing-tabs reveal">
+    <button class="tab-btn active" onclick="switchTab('hourly', this)">Почасовая аренда</button>
+    <button class="tab-btn" onclick="switchTab('event', this)">Мероприятия</button>
+  </div>
+
+  <!-- Tab: Hourly -->
+  <div class="tab-content active" id="tab-hourly">
+    <table class="pricing-table">
+      <thead>
+        <tr>
+          <th>День недели</th>
+          <th>Назначение</th>
+          <th>Стоимость</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Будни</td>
+          <td>Тренировки / Самостоятельная практика</td>
+          <td>3 500 ₽ / час</td>
+        </tr>
+        <tr>
+          <td>Выходные</td>
+          <td>Тренировки / Самостоятельная практика</td>
+          <td>5 000 ₽ / час</td>
+        </tr>
+        <tr>
+          <td>Будни</td>
+          <td>Мероприятия <span class="price-note">*до 30 чел.</span></td>
+          <td>10 000 ₽ / час</td>
+        </tr>
+        <tr>
+          <td>Выходные</td>
+          <td>Мастер-классы <span class="price-note">*до 30 чел.</span></td>
+          <td>15 000 ₽ / час</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:10px;font-weight:300;color:rgba(217,217,217,0.35);margin-top:16px;padding-left:24px;line-height:1.7">
+      * Если на мероприятии планируется более 30 человек, стоимость и условия согласовываются индивидуально.
+    </p>
+  </div>
+
+  <!-- Tab: Events -->
+  <div class="tab-content" id="tab-event">
+    <div class="event-cards">
+      <div class="event-card reveal">
+        <span class="event-card-label">Весь день — базовый</span>
+        <div class="event-card-price"><span class="event-card-currency">₽</span>100 000</div>
+        <div class="event-card-title">День мероприятия</div>
+        <div class="event-card-desc">Аренда зала на весь день без дополнительного оборудования. Предоплата 50% при бронировании.</div>
+      </div>
+      <div class="event-card featured reveal reveal-delay-1">
+        <span class="event-card-label">Весь день — полный</span>
+        <div class="event-card-price"><span class="event-card-currency">₽</span>150 000</div>
+        <div class="event-card-title">День со светом и звуком</div>
+        <div class="event-card-desc">Профессиональный свет, звуковое оборудование, полная поддержка на весь день вашего мероприятия.</div>
+      </div>
+    </div>
+    <p style="font-size:10px;font-weight:300;color:rgba(217,217,217,0.35);margin-top:20px;line-height:1.7">
+      При более 30 участниках — согласовывается индивидуально.
+    </p>
+  </div>
+
+  <!-- Booking conditions -->
+  <div class="conditions-grid reveal" style="margin-top:64px">
+    <div class="condition-item">
+      <svg class="condition-icon" viewBox="0 0 32 32" fill="none">
+        <rect x="4" y="8" width="24" height="20" rx="1" stroke="white" stroke-width="1.5"/>
+        <path d="M4 14h24" stroke="white" stroke-width="1.5"/>
+        <path d="M11 4v8M21 4v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div class="condition-title">Почасовая аренда</div>
+      <div class="condition-text">100% стоимости списывается с карты за каждый час при бронировании.</div>
+    </div>
+    <div class="condition-item">
+      <svg class="condition-icon" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="12" stroke="white" stroke-width="1.5"/>
+        <path d="M16 9v7l4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div class="condition-title">Большие ивенты</div>
+      <div class="condition-text">Предоплата 50% при бронировании. Остаток — по согласованию.</div>
+    </div>
+    <div class="condition-item">
+      <svg class="condition-icon" viewBox="0 0 32 32" fill="none">
+        <path d="M8 16l6 6 10-12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="condition-title">Отмена брони</div>
+      <div class="condition-text">За 24 ч и ранее — возврат 50%. Менее 24 ч до занятия — оплата не возвращается.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ RULES ══ -->
+<section id="rules">
+  <div class="rules-header">
+    <div>
+      <div class="section-label reveal">03 — Правила</div>
+      <h2 class="section-title reveal">Правила<br>пространства</h2>
+    </div>
+    <p class="rules-note reveal">Соглашаясь с бронированием, вы автоматически подтверждаете согласие с правилами пространства. Администратор вправе прекратить занятие без возврата средств при их нарушении.</p>
+  </div>
+
+  <div class="accordion reveal">
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left">
+          <span class="accordion-num">01</span>
+          <span class="accordion-title">Время и доступ</span>
+        </div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body">
+        <p>Время аренды включает настройку оборудования и уборку за собой. Опоздание не продлевает время аренды, а ранний уход не возвращает деньги. Гости ждут в зоне ожидания — посторонним в зале находиться нельзя.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left">
+          <span class="accordion-num">02</span>
+          <span class="accordion-title">Обувь и чистота</span>
+        </div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body">
+        <p>Только чистая сменная обувь для танцев — переобуваться строго в зале. Никаких набоек, металла или чёрной подошвы, оставляющей следы. Еда запрещена, из напитков — только вода в закрытой бутылке. На зеркала не опираться. Дети до 14 лет — только с тренером или родителем.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left">
+          <span class="accordion-num">03</span>
+          <span class="accordion-title">Завершение занятия</span>
+        </div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body">
+        <p>Зал сдаётся в чистоте — мусор в корзину. Оставленные вещи на вашей ответственности. Если после вас остаются крошки, пролитая вода или въевшиеся следы — удерживается 3 000 ₽ за химчистку.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left">
+          <span class="accordion-num">04</span>
+          <span class="accordion-title">Имущество</span>
+        </div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body">
+        <p>Поломки техники, зеркал или пола восстанавливаются за счёт арендатора. Проверяйте зал до начала занятия и сообщайте о любых повреждениях.</p>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left">
+          <span class="accordion-num">05</span>
+          <span class="accordion-title">Безопасность</span>
+        </div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body">
+        <p>Ответственность за здоровье учеников несёт тренер. Огнетушители по периметру, аптечка у администратора. При ЧС — прекращаем работу и следуем к выходу.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ban-block reveal">
+    <div class="ban-label">Категорически запрещено — штраф: бан и выселение без возврата</div>
+    <div class="ban-title">Нарушение = немедленное прекращение аренды без возврата средств</div>
+    <ul class="ban-list">
+      <li>Курение и вейпы (только на улице)</li>
+      <li>Алкоголь и любые вещества</li>
+      <li>Шум и агрессивное поведение вне зала</li>
+      <li>Вечеринки без предварительного согласования</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section id="faq">
+  <div class="section-label reveal">04 — Частые вопросы</div>
+  <div class="faq-grid">
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <div class="faq-q">Что делать, если мы закончили тренировку на 15 минут раньше?</div>
+        <div class="faq-a">Предупредите администратора. Помните: оплата за неиспользованное время не возвращается.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-1">
+        <div class="faq-q">Можно ли прийти в уличных кроссовках, если они чистые?</div>
+        <div class="faq-a">Нет. Уличную обувь необходимо оставить на входе. Танцевальная обувь надевается исключительно в самом зале.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-2">
+        <div class="faq-q">Могут ли родители подождать ребёнка в зале?</div>
+        <div class="faq-a">Нет. Для этого оборудована комфортная зона ожидания. В зале могут находиться только тренирующиеся.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-3">
+        <div class="faq-q">Можно ли провести вечеринку или день рождения?</div>
+        <div class="faq-a">По умолчанию зал сдаётся только под танцы и тренировки. Вечеринки и дни рождения — только при предварительном согласовании с администратором.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-4">
+        <div class="faq-q">Как происходит оплата и бронирование?</div>
+        <div class="faq-a">Выберите дату и время, заполните форму — мы свяжемся с вами для подтверждения. При почасовой аренде — 100% предоплата. При аренде на день — 50% предоплата.</div>
+      </div>
+    </div>
+
+    <div class="faq-cta-block reveal">
+      <div class="faq-cta-label">Готовы начать?</div>
+      <div class="faq-cta-title">Забронируйте зал уже сегодня</div>
+      <div class="faq-cta-text">Оставьте заявку — мы свяжемся с вами и подберём удобное время.</div>
+      <button class="btn-primary" style="width:100%" onclick="document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Перейти к бронированию</button>
+      <div class="faq-cta-divider"></div>
+      <div class="faq-contact">
+        Или напишите напрямую:<br>
+        <a href="https://t.me/iam5491">Telegram</a> &nbsp;·&nbsp;
+        <a href="tel:+79885211714">+7 988 521-17-14</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACTS ══ -->
+<section id="contacts">
+  <div class="contacts-top">
+    <div class="form-wrap">
+      <div class="section-label reveal">05 — Бронирование</div>
+      <div class="form-title reveal">Оставьте заявку</div>
+      <div class="form-subtitle reveal">Выберите дату и время — мы свяжемся с вами для подтверждения и оплаты.</div>
+
+      <div id="bookingForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Ваше имя *</label>
+            <input class="form-input" type="text" id="f-name" placeholder="Иван Иванов" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Телефон *</label>
+            <input class="form-input" type="tel" id="f-phone" placeholder="+7 (___) ___-__-__" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Тип аренды *</label>
+          <select class="form-select" id="f-type">
+            <option value="">Выберите формат...</option>
+            <option value="Будни — тренировки (3 500 ₽/час)">Будни — тренировки (3 500 ₽/час)</option>
+            <option value="Выходные — тренировки (5 000 ₽/час)">Выходные — тренировки (5 000 ₽/час)</option>
+            <option value="Будни — мероприятие до 30 чел. (10 000 ₽/час)">Будни — мероприятие до 30 чел. (10 000 ₽/час)</option>
+            <option value="Выходные — мастер-класс до 30 чел. (15 000 ₽/час)">Выходные — мастер-класс до 30 чел. (15 000 ₽/час)</option>
+            <option value="День мероприятия — базовый (100 000 ₽)">День мероприятия — базовый (100 000 ₽)</option>
+            <option value="День мероприятия со светом и звуком (150 000 ₽)">День мероприятия со светом и звуком (150 000 ₽)</option>
+            <option value="Более 30 человек — индивидуальный расчёт">Более 30 человек — индивидуальный расчёт</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Дата *</label>
+            <input class="form-input" type="date" id="f-date" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Время начала *</label>
+            <input class="form-input" type="time" id="f-time" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Количество часов / продолжительность</label>
+          <input class="form-input" type="text" id="f-duration" placeholder="Например: 2 часа">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Комментарий</label>
+          <textarea class="form-textarea" id="f-comment" placeholder="Расскажите подробнее о вашем мероприятии..."></textarea>
+        </div>
+        <p class="form-policy">Нажимая «Отправить заявку», вы подтверждаете, что ознакомлены и согласны с правилами пространства ROLTHALL.</p>
+        <button class="btn-submit" id="submitBtn" onclick="sendBooking()">Отправить заявку</button>
+      </div>
+
+      <div class="form-success" id="formSuccess">
+        <span class="form-success-icon">✓</span>
+        <div class="form-success-title">Заявка отправлена!</div>
+        <div class="form-success-text">Мы получили вашу заявку и свяжемся с вами в ближайшее время для подтверждения бронирования.</div>
+      </div>
+    </div>
+
+    <div class="contact-info reveal">
+      <div class="contact-info-label">Контакты</div>
+      <div class="contact-address">г. Краснодар,<br>ул. Коммунаров, 278/1</div>
+
+      <div class="contact-links">
+        <a href="tel:+&9885211714" class="contact-link">
+          <div class="contact-link-icon">📞</div>+7 988 521-17-14</a>
+        <a href="https://t.me/iam5491" class="contact-link" target="_blank">
+          <div class="contact-link-icon">✈</div>
+          Telegram
+        </a>
+      </div>
+
+      <div style="font-size:8px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:rgba(217,217,217,0.3);margin-bottom:16px">Режим работы</div>
+      <div style="font-size:12px;font-weight:400;color:rgba(217,217,217,0.6);line-height:2">
+        Будни: по записи<br>
+        Выходные: по записи<br>
+        Бронирование — онлайн
+      </div>
+    </div>
+  </div>
+
+<!--
+   MAP 
+  <div class="map-wrap">
+    <div style="position:relative;overflow:hidden;"><a href="https://yandex.ru/maps/35/krasnodar/?utm_medium=mapframe&utm_source=maps" style="color:#eee;font-size:12px;position:absolute;top:0px;">Краснодар</a><a href="https://yandex.ru/maps/35/krasnodar/house/ulitsa_kommunarov_278_1/Z0EYfw9lQU0BQFpvfXx0c3xlZQ==/?ll=38.985887%2C45.052060&utm_medium=mapframe&utm_source=maps&z=17" style="color:#eee;font-size:12px;position:absolute;top:14px;">Улица Коммунаров, 278/1 на карте Краснодара — Яндекс Карты</a>
+        <iframe src="https://yandex.ru/map-widget/v1/?ll=38.985887%2C45.052060&mode=whatshere&whatshere%5Bpoint%5D=38.985886%2C45.052061&whatshere%5Bzoom%5D=17&z=17" width="560" height="400" frameborder="1" allowfullscreen="true" style="position:relative;"></iframe></div>
+  </div>
+-->
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-logo">
+    <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:20px;width:auto;opacity:0.4">
+      <g clip-path="url(#clip0_footer)">
+        <path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/>
+        <path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/>
+        <path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/>
+        <path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/>
+        <path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/>
+        <path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/>
+        <path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/>
+        <path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/>
+        <path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/>
+      </g>
+      <defs><clipPath id="clip0_footer"><rect width="1280" height="71" fill="white"/></clipPath></defs>
+    </svg>
+  </div>
+  <div class="footer-copy">© 2025 ROLTHALL. Все права защищены.</div>
+  <div class="footer-links">
+    <a href="#about">Пространство</a>
+    <a href="#pricing">Цены</a>
+    <a href="#rules">Правила</a>
+    <a href="#contacts">Контакты</a>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════
+     TELEGRAM BOT CONFIG
+     ══════════════════════════════════════════
+     ВСТАВЬ СВОИ ДАННЫЕ НИЖЕ:
+     ══════════════════════════════════════════ -->
+<script>
+  // ╔══════════════════════════════════════╗
+  // ║   НАСТРОЙКИ TELEGRAM БОТА           ║
+  // ╠══════════════════════════════════════╣
+  const TELEGRAM_BOT_TOKEN = '859680919:AAF3Ew6bFmKP2GHRpCyXPnwGEzfrxKop-4U';
+  const TELEGRAM_CHAT_ID   = '-1003950744843';
+  const TELEGRAM_THREAD_ID = '25';
+
+  // ── NAV scroll ──
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // ── Mobile menu ──
+  function toggleMenu() {
+    document.getElementById('burger').classList.toggle('open');
+    document.getElementById('mobileMenu').classList.toggle('open');
+    document.body.style.overflow = document.getElementById('mobileMenu').classList.contains('open') ? 'hidden' : '';
+  }
+
+  // ── Scroll reveal ──
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ── Tabs ──
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── Accordion ──
+  function toggleAccordion(btn) {
+    const item = btn.closest('.accordion-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.accordion-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // ── Set min date on date input ──
+  const dateInput = document.getElementById('f-date');
+  if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+
+  // ── Send booking to Telegram ──
+  async function sendBooking() {
+    const name     = document.getElementById('f-name').value.trim();
+    const phone    = document.getElementById('f-phone').value.trim();
+    const type     = document.getElementById('f-type').value;
+    const date     = document.getElementById('f-date').value;
+    const time     = document.getElementById('f-time').value;
+    const duration = document.getElementById('f-duration').value.trim();
+    const comment  = document.getElementById('f-comment').value.trim();
+
+    if (!name || !phone || !type || !date || !time) {
+      alert('Пожалуйста, заполните все обязательные поля (*)');
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Отправляем...';
+
+    const dateFormatted = date ? new Date(date).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+
+    const text = [
+      '🎯 <b>Новая заявка на бронирование ROLTHALL</b>',
+      '',
+      `👤 <b>Имя:</b> ${name}`,
+      `📞 <b>Телефон:</b> ${phone}`,
+      `🏷 <b>Тип аренды:</b> ${type}`,
+      `📅 <b>Дата:</b> ${dateFormatted}`,
+      `🕐 <b>Время:</b> ${time}`,
+      duration ? `⏱ <b>Длительность:</b> ${duration}` : '',
+      comment  ? `💬 <b>Комментарий:</b> ${comment}` : '',
+    ].filter(Boolean).join('\n');
+
+    const payload = {
+      chat_id: TELEGRAM_CHAT_ID,
+      text,
+      parse_mode: 'HTML',
+      message_thread_id: TELEGRAM_THREAD_ID,
+    };
+
+    // Если THREAD_ID не указан — убираем поле
+    if (!TELEGRAM_THREAD_ID || TELEGRAM_THREAD_ID === 'ВСТАВЬ_ID_ВЕТКИ') {
+      delete payload.message_thread_id;
+    }
+
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('bookingForm').style.display = 'none';
+        document.getElementById('formSuccess').classList.add('show');
+      } else {
+        throw new Error(data.description || 'Ошибка Telegram API');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Произошла ошибка при отправке. Попробуйте написать нам напрямую в Telegram или WhatsApp.');
+      btn.disabled = false;
+      btn.textContent = 'Отправить заявку';
+    }
+  }
+</script>
+</body>
+</html>
