@@ -1249,133 +1249,6 @@
     .pricing-tabs { flex-wrap: wrap; }
     .tab-btn { font-size: 8px; padding: 10px 16px; }
   }
-
-  /* ── ADDITIONS ───────────────────────────────── */
-
-  /* Пульсирующий статус */
-  .status-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
-    border-radius: 100px; padding: 6px 14px;
-    font-size: 8px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
-    color: rgba(217,217,217,.7); margin-bottom: 24px;
-  }
-  .status-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: #2ECC71;
-    box-shadow: 0 0 0 0 rgba(46,204,113,.4);
-    animation: statusPulse 2.2s ease-in-out infinite;
-    flex-shrink: 0;
-  }
-  @keyframes statusPulse {
-    0%   { box-shadow: 0 0 0 0 rgba(46,204,113,.45); }
-    65%  { box-shadow: 0 0 0 9px rgba(46,204,113,0); }
-    100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
-  }
-
-  /* Быстрый выбор даты */
-  .quick-dates { margin-bottom: 20px; }
-  .quick-dates-label {
-    font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
-    color: rgba(217,217,217,.35); margin-bottom: 10px;
-  }
-  .quick-dates-row {
-    display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
-  }
-  .quick-dates-row::-webkit-scrollbar { display: none; }
-  .qd-chip {
-    flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
-    padding: 8px 14px; border: 1px solid rgba(255,255,255,.1); border-radius: 4px;
-    background: rgba(255,255,255,.04); cursor: pointer; min-width: 52px;
-    transition: border-color .2s, background .2s, transform .15s;
-    font-family: var(--font);
-  }
-  .qd-chip:hover { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.08); }
-  .qd-chip.selected { border-color: var(--accent); background: var(--accent); transform: translateY(-2px); }
-  .qd-chip.selected .qd-day, .qd-chip.selected .qd-num { color: var(--charcoal); }
-  .qd-chip.today { border-color: rgba(255,255,255,.25); }
-  .qd-day { font-size: 7px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.4); }
-  .qd-num { font-size: 16px; font-weight: 800; color: var(--accent); margin-top: 2px; letter-spacing: -.02em; }
-
-  /* Калькулятор в секции тарифов */
-  .calc-block {
-    margin-top: 32px; border-top: 1px solid rgba(255,255,255,.08);
-    padding-top: 28px;
-  }
-  .calc-block-label {
-    font-size: 8px; font-weight: 600; letter-spacing: .25em; text-transform: uppercase;
-    color: rgba(217,217,217,.35); margin-bottom: 16px;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .calc-block-label::before { content: ''; width: 24px; height: 1px; background: rgba(217,217,217,.2); }
-  .calc-type-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-  .calc-type-btn {
-    font-family: var(--font); font-size: 8px; font-weight: 600; letter-spacing: .12em;
-    text-transform: uppercase; color: rgba(217,217,217,.45);
-    background: transparent; border: 1px solid rgba(255,255,255,.1); border-radius: 2px;
-    padding: 9px 16px; cursor: pointer; transition: all .2s;
-  }
-  .calc-type-btn:hover { border-color: rgba(255,255,255,.3); color: var(--light); }
-  .calc-type-btn.on { background: var(--accent); border-color: var(--accent); color: var(--charcoal); }
-  .calc-hours-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-  .calc-h-btn {
-    font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .05em;
-    color: rgba(217,217,217,.5); background: rgba(255,255,255,.04);
-    border: 1px solid rgba(255,255,255,.08); border-radius: 2px;
-    padding: 10px 16px; cursor: pointer; transition: all .2s;
-  }
-  .calc-h-btn:hover { border-color: rgba(255,255,255,.25); color: var(--light); }
-  .calc-h-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,.06); }
-  .calc-result-row {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    padding-top: 16px; border-top: 1px solid rgba(255,255,255,.06);
-  }
-  .calc-total-val {
-    font-size: clamp(28px, 6vw, 48px); font-weight: 900; letter-spacing: -.03em; color: var(--accent);
-    line-height: 1; transition: all .3s;
-  }
-  .calc-total-lbl { font-size: 8px; color: rgba(217,217,217,.3); margin-top: 4px; }
-  .calc-prepay-val { font-size: 12px; font-weight: 700; color: rgba(217,217,217,.5); }
-  .calc-prepay-lbl { font-size: 8px; color: rgba(217,217,217,.25); margin-top: 2px; text-align: right; }
-  .calc-result-row .calc-cta {
-    font-family: var(--font); font-size: 9px; font-weight: 700; letter-spacing: .15em;
-    text-transform: uppercase; color: var(--charcoal); background: var(--accent);
-    border: none; padding: 14px 24px; cursor: pointer;
-    transition: opacity .2s, transform .2s;
-  }
-  .calc-result-row .calc-cta:hover { opacity: .85; transform: translateY(-1px); }
-
-  /* Bottom nav */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-    height: calc(56px + env(safe-area-inset-bottom,0px));
-    padding-bottom: env(safe-area-inset-bottom,0px);
-    background: rgba(30,28,36,.95);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255,255,255,.07);
-    display: flex;
-  }
-  .bnav-tab {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 5px; background: none; border: none; cursor: pointer;
-    color: rgba(217,217,217,.35); font-family: var(--font); font-size: 6px;
-    font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-    padding: 8px 2px; position: relative;
-    transition: color .2s; -webkit-tap-highlight-color: transparent;
-  }
-  .bnav-tab:hover { color: rgba(217,217,217,.65); }
-  .bnav-tab.active { color: var(--accent); }
-  .bnav-tab.active::after {
-    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    height: 2px; background: var(--accent); border-radius: 0 0 2px 2px;
-    animation: bnav-line .3s cubic-bezier(.16,1,.3,1) forwards;
-  }
-  @keyframes bnav-line { from { width: 0; } to { width: 22px; } }
-  .bnav-tab svg { width: 20px; height: 20px; transition: transform .25s cubic-bezier(.16,1,.3,1); }
-  .bnav-tab:active svg { transform: scale(.82); }
-  .bnav-tab.active svg { filter: drop-shadow(0 0 5px rgba(255,255,255,.25)); }
-
-  /* Отступ для bottom nav */
-  footer { margin-bottom: calc(56px + env(safe-area-inset-bottom,0px)); }
 </style>
 </head>
 <body>
@@ -1444,13 +1317,12 @@
   <div class="hero-vertical">г. Краснодар — ул. Коммунаров, 278/1 — 346 м²</div>
 
   <div class="hero-content">
-    <div class="status-badge"><span class="status-dot"></span> Зал свободен · сегодня</div>
     <div class="hero-tag">Профессиональное танцевальное пространство в Краснодаре</div>
     <h1 class="hero-title">346 м²<br>свободы</h1>
     <p class="hero-desc">Пространство для тренировок, мастер-классов и масштабных ивентов. Профессиональное покрытие, звук и свет — всё, что нужно для вашего танца.</p>
     <div class="hero-actions">
-      <button class="btn-primary" onclick="tap('medium'); document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать зал</button>
-      <button class="btn-secondary" onclick="tap(); document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Узнать цены</button>
+      <button class="btn-primary" onclick="document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать зал</button>
+      <button class="btn-secondary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Узнать цены</button>
     </div>
   </div>
 
@@ -1560,36 +1432,6 @@
     <p style="font-size:10px;font-weight:300;color:rgba(217,217,217,0.35);margin-top:16px;padding-left:24px;line-height:1.7">
       * Если на мероприятии планируется более 30 человек, стоимость и условия согласовываются индивидуально.
     </p>
-
-    <!-- Калькулятор -->
-    <div class="calc-block">
-      <div class="calc-block-label">Калькулятор стоимости</div>
-      <div class="calc-type-row">
-        <button class="calc-type-btn on" onclick="setCalcType(this,3500)">Будни</button>
-        <button class="calc-type-btn" onclick="setCalcType(this,5000)">Выходные</button>
-        <button class="calc-type-btn" onclick="setCalcType(this,10000)">Мероприятие</button>
-      </div>
-      <div class="calc-hours-row">
-        <button class="calc-h-btn" onclick="setCalcH(this,1)">1 ч</button>
-        <button class="calc-h-btn" onclick="setCalcH(this,2)">2 ч</button>
-        <button class="calc-h-btn" onclick="setCalcH(this,3)">3 ч</button>
-        <button class="calc-h-btn" onclick="setCalcH(this,4)">4 ч</button>
-        <button class="calc-h-btn" onclick="setCalcH(this,6)">6 ч</button>
-        <button class="calc-h-btn" onclick="setCalcH(this,8)">8 ч</button>
-        <button class="calc-h-btn" onclick="setCalcH(this,10)">10 ч</button>
-      </div>
-      <div class="calc-result-row">
-        <div>
-          <div class="calc-total-val" id="calcTotalVal">—</div>
-          <div class="calc-total-lbl" id="calcTotalLbl">выберите тип и часы</div>
-        </div>
-        <div style="text-align:right">
-          <div class="calc-prepay-val" id="calcPrepayVal"></div>
-          <div class="calc-prepay-lbl" id="calcPrepayLbl"></div>
-          <button class="calc-cta" style="margin-top:10px;display:block" onclick="tap(); document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать →</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Tab: Events -->
@@ -1824,14 +1666,8 @@
           <label class="form-label">Комментарий</label>
           <textarea class="form-textarea" id="f-comment" placeholder="Расскажите подробнее о вашем мероприятии..."></textarea>
         </div>
-        <!-- Быстрый выбор даты -->
-        <div class="quick-dates">
-          <div class="quick-dates-label">Ближайшие даты</div>
-          <div class="quick-dates-row" id="quickDatesRow"></div>
-        </div>
-
         <p class="form-policy">Нажимая «Отправить заявку», вы подтверждаете, что ознакомлены и согласны с правилами пространства ROLTHALL.</p>
-        <button class="btn-submit" id="submitBtn" onclick="tap(); sendBooking()">Отправить заявку</button>
+        <button class="btn-submit" id="submitBtn" onclick="sendBooking()">Отправить заявку</button>
       </div>
 
       <div class="form-success" id="formSuccess">
@@ -1908,84 +1744,6 @@
      ВСТАВЬ СВОИ ДАННЫЕ НИЖЕ:
      ══════════════════════════════════════════ -->
 <script>
-
-  // ── Telegram WebApp ──
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.ready(); tg.expand(); }
-  function tap(type = 'light') {
-    tg?.HapticFeedback?.impactOccurred(type);
-  }
-
-  // ── Quick dates ──
-  (function buildDates() {
-    const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-    const row = document.getElementById('quickDatesRow');
-    if (!row) return;
-    const today = new Date(); today.setHours(0,0,0,0);
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(today); d.setDate(today.getDate() + i);
-      const btn = document.createElement('button');
-      btn.className = 'qd-chip' + (i === 0 ? ' today' : '');
-      btn.innerHTML = `<span class="qd-day">${DAYS[d.getDay()]}</span><span class="qd-num">${d.getDate()}</span>`;
-      btn.onclick = () => {
-        tap();
-        document.querySelectorAll('.qd-chip').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        // Подставляем дату в поле формы
-        const dateInput = document.getElementById('f-date');
-        if (dateInput) {
-          const iso = d.toISOString().split('T')[0];
-          dateInput.value = iso;
-        }
-      };
-      row.appendChild(btn);
-    }
-  })();
-
-  // ── Pricing calculator ──
-  let calcPrice = 3500, calcHours = null;
-
-  function setCalcType(btn, price) {
-    tap();
-    document.querySelectorAll('.calc-type-btn').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    calcPrice = price;
-    updateCalc();
-  }
-
-  function setCalcH(btn, h) {
-    tap();
-    document.querySelectorAll('.calc-h-btn').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    calcHours = h;
-    updateCalc();
-  }
-
-  function updateCalc() {
-    if (!calcHours) return;
-    const total = calcPrice * calcHours;
-    const prepay = Math.round(total * 0.5);
-    document.getElementById('calcTotalVal').textContent = total.toLocaleString('ru') + ' ₽';
-    document.getElementById('calcTotalLbl').textContent = calcHours + ' ' + plural(calcHours) + ' · ' + calcPrice.toLocaleString('ru') + ' ₽/ч';
-    document.getElementById('calcPrepayVal').textContent = prepay.toLocaleString('ru') + ' ₽';
-    document.getElementById('calcPrepayLbl').textContent = 'предоплата 50%';
-  }
-
-  function plural(n) {
-    if (n === 1) return 'час'; if (n < 5) return 'часа'; return 'часов';
-  }
-
-  // ── Bottom nav scroll tracking ──
-  window.addEventListener('scroll', () => {
-    const tabs = document.querySelectorAll('.bnav-tab');
-    const sections = ['hero','pricing','contacts','faq'];
-    let current = 0;
-    sections.forEach((id, i) => {
-      const el = document.getElementById(id);
-      if (el && window.scrollY >= el.offsetTop - 120) current = i;
-    });
-    tabs.forEach((t, i) => t.classList.toggle('active', i === current));
-  }, {passive: true});
 
   // ── NAV scroll ──
   window.addEventListener('scroll', () => {
@@ -2108,36 +1866,5 @@
     }
   }
 </script>
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <button class="bnav-tab active" onclick="tap(); window.scrollTo({top:0,behavior:'smooth'})">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-      <polyline points="9 22 9 12 15 12 15 22"/>
-    </svg>
-    Главная
-  </button>
-  <button class="bnav-tab" onclick="tap(); document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-    </svg>
-    Тарифы
-  </button>
-  <button class="bnav-tab" onclick="tap(); document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="3" y="4" width="18" height="18" rx="2"/>
-      <path d="M16 2v4M8 2v4M3 10h18"/>
-    </svg>
-    Забронировать
-  </button>
-  <button class="bnav-tab" onclick="tap(); document.getElementById('faq').scrollIntoView({behavior:'smooth'})">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="12" r="10"/>
-      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-    </svg>
-    FAQ
-  </button>
-</nav>
-
 </body>
 </html>
