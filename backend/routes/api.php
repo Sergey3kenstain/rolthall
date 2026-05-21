@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HallController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TelegramController;
@@ -10,6 +11,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// ── Halls ─────────────────────────────────────────────────────────────
+Route::get('/halls',                        [HallController::class, 'index']);
+Route::get('/halls/{hall}',                 [HallController::class, 'show']);
+Route::get('/halls/{hall}/pricing',         [HallController::class, 'pricing']);
+Route::get('/halls/{hall}/availability',    [HallController::class, 'availability']);
 
 // ── Landing ───────────────────────────────────────────────────────────
 Route::post('/landing/booking', [LandingController::class, 'booking']);
