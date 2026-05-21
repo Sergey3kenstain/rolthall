@@ -17,7 +17,7 @@ class HallController extends Controller
     {
         $halls = Hall::active()->with('pricingRules')->get();
 
-        return response()->json($halls->map(fn(Hall $h) => $this->formatHall($h)));
+        return response()->json($halls->map(fn(Hall $h) => $this->formatHall($h)), 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -30,7 +30,7 @@ class HallController extends Controller
             return response()->json(['error' => 'Зал недоступен'], 404);
         }
 
-        return response()->json($this->formatHall($hall->load('pricingRules')));
+        return response()->json($this->formatHall($hall->load('pricingRules')), 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -53,7 +53,7 @@ class HallController extends Controller
                 'price_per_hour' => $r->price_per_hour,
                 'range_label'    => $r->getRangeLabel(),
             ]),
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -91,7 +91,7 @@ class HallController extends Controller
             'hall_id' => $hall->id,
             'date'    => $date,
             'slots'   => $slots,
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     // ── Private ───────────────────────────────────────────────────────────
