@@ -45,9 +45,7 @@ return [
         'terminal_key' => env('TBANK_TERMINAL_KEY'),
         'secret_key'   => env('TBANK_SECRET_KEY'),
         'test_mode'    => env('TBANK_TEST_MODE', true),
-        'api_url'      => env('TBANK_TEST_MODE', true)
-            ? 'https://rest-api-test.tinkoff.ru/v2/'
-            : 'https://securepay.tinkoff.ru/v2/',
+        'api_url'      => 'https://securepay.tinkoff.ru/v2/',
     ],
 
 ];
