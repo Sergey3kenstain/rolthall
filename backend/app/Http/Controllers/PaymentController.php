@@ -54,10 +54,10 @@ class PaymentController extends Controller
     public function webhook(Request $request): \Illuminate\Http\Response
     {
         $payload = $request->all();
-        Log::error('TBank webhook', ['status' => $payload['Status'] ?? '?', 'order' => $payload['OrderId'] ?? '?']);
+        Log::info('TBank webhook', ['status' => $payload['Status'] ?? '?', 'order' => $payload['OrderId'] ?? '?']);
 
         if (!$this->tbank->verifyWebhook($payload)) {
-            Log::error('TBank webhook: invalid token');
+            Log::warning('TBank webhook: invalid token');
             return response('FAIL', 400);
         }
 
@@ -67,7 +67,7 @@ class PaymentController extends Controller
         $amount    = ($payload['Amount']   ?? 0) / 100;
 
         if ($status === 'CONFIRMED') {
-            Log::error("TBank CONFIRMED: {$orderId}");
+            Log::info("TBank CONFIRMED: {$orderId}");
 
             // Находим бронь по order_id формата "booking-{id}"
             $bookingId = str_replace('booking-', '', $orderId);
