@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Services\BookingService;
 use App\Services\NotificationService;
 use App\Services\TBankService;
 use Illuminate\Http\JsonResponse;
@@ -11,8 +13,9 @@ use Illuminate\Support\Facades\Log;
 class PaymentController extends Controller
 {
     public function __construct(
-        private TBankService $tbank,
+        private TBankService       $tbank,
         private NotificationService $notify,
+        private BookingService     $bookings,
     ) {}
 
     /**
@@ -68,13 +71,34 @@ class PaymentController extends Controller
         if ($status === 'CONFIRMED') {
             Log::info("Payment confirmed: {$orderId}, {$paymentId}, {$amount}₽");
 
-            // Уведомляем администратора
-            $this->notify->sendRaw(
-                "💰 <b>Оплата получена</b>\n\n"
-                . "📋 Заказ: <code>{$orderId}</code>\n"
-                . "🔑 ID транзакции: <code>{$paymentId}</code>\n"
-                . "💵 Сумма: {$amount} ₽"
-            );
+            // Находим бронь по order_id формата "booking-{id}"
+            $bookingId = str_replace('booking-', '', $orderId);
+            $booking   = Booking::with(['hall', 'client'])->find($bookingId);
+
+            if ($booking) {
+                $this->bookings->confirmPayment($booking, $paymentId);
+
+                // Уведомление администратору
+                $this->notify->notifyAdminNewBooking([
+                    'client_name'    => $booking->client->name,
+                    'date'           => $booking->getDateFormatted(),
+                    'time_start'     => substr($booking->time_start, 0, 5),
+                    'time_end'       => substr($booking->time_end, 0, 5),
+                    'hall_name'      => $booking->hall->name,
+                    'phone'          => $booking->client->phone,
+                    'telegram'       => $booking->client->telegram_username ?? '—',
+                    'prepayment'     => $booking->prepayment_amount,
+                    'transaction_id' => $paymentId,
+                ]);
+            } else {
+                // Тестовый платёж без реальной брони
+                $this->notify->sendRaw(
+                    "💰 <b>Оплата получена</b>\n"
+                    . "📋 Заказ: <code>{$orderId}</code>\n"
+                    . "🔑 <code>{$paymentId}</code>\n"
+                    . "💵 {$amount} ₽"
+                );
+            }
         }
 
         return response('OK', 200);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HallController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PaymentController;
@@ -20,6 +21,11 @@ Route::get('/halls/{hall}/availability',    [HallController::class, 'availabilit
 
 // ── Landing ───────────────────────────────────────────────────────────
 Route::post('/landing/booking', [LandingController::class, 'booking']);
+
+// ── Bookings ──────────────────────────────────────────────────────────
+Route::post('/bookings/hold',          [BookingController::class, 'hold']);
+Route::get('/bookings/{booking}/status',[BookingController::class, 'status']);
+Route::post('/bookings/{booking}/cancel',[BookingController::class, 'cancel']);
 
 // ── Payment (T-Bank) ──────────────────────────────────────────────────
 Route::post('/payment/init',           [PaymentController::class, 'init']);
