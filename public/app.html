@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1E1C24">
+  <title>ROLTHALL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ══════════════════════════════════════
+       TOKENS
+    ══════════════════════════════════════ */
+    :root {
+      --bg:          #1E1C24;
+      --bg-card:     #26232E;
+      --bg-raised:   #2E2B35;
+      --accent:      #FFFFFF;
+      --accent-dim:  rgba(255,255,255,0.55);
+      --accent-mute: rgba(255,255,255,0.12);
+      --blue:        #376FFF;
+      --blue-grad:   linear-gradient(135deg,#376FFF 0%,#5B8FFF 100%);
+      --border:      rgba(255,255,255,0.08);
+      --font:        'Unbounded', sans-serif;
+      --r:           14px;
+      --r-lg:        20px;
+      --header-h:    56px;
+      --nav-h:       64px;
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ══════════════════════════════════════
+       RESET
+    ══════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--accent);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    /* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: calc(var(--header-h) + var(--safe-top));
+      padding-top: var(--safe-top);
+      background: rgba(30,28,36,.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding-left: 20px; padding-right: 20px;
+      transition: background .3s;
+    }
+    .header-logo {
+      display: flex; align-items: center; flex: 1;
+    }
+    .header-logo svg { height: 14px; width: auto; }
+    .header-action {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--accent-mute); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background .2s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .header-action:hover  { background: rgba(255,255,255,.18); }
+    .header-action:active { transform: scale(.92); }
+    .header-action svg { width: 18px; height: 18px; opacity: .7; }
+
+    /* ══════════════════════════════════════
+       SCROLL CONTENT
+    ══════════════════════════════════════ */
+    .content {
+      padding-top: calc(var(--header-h) + var(--safe-top) + 16px);
+      padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 24px);
+      min-height: 100dvh;
+    }
+
+    /* ══════════════════════════════════════
+       SECTION HEADER
+    ══════════════════════════════════════ */
+    .section-hd {
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding: 20px 20px 12px;
+    }
+    .section-title {
+      font-size: .65rem; font-weight: 700; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--accent-dim);
+    }
+    .section-link {
+      font-size: .6rem; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--blue);
+      transition: opacity .2s;
+    }
+    .section-link:hover { opacity: .7; }
+
+    /* ══════════════════════════════════════
+       HALL CARD
+    ══════════════════════════════════════ */
+    .hall-card {
+      margin: 0 16px 24px;
+      background: var(--bg-card);
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .25s cubic-bezier(.16,1,.3,1),
+                  box-shadow .25s cubic-bezier(.16,1,.3,1),
+                  border-color .25s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hall-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.1);
+      border-color: rgba(255,255,255,.16);
+    }
+    .hall-card:active { transform: scale(.98); }
+
+    /* Carousel */
+    .carousel { position: relative; overflow: hidden; }
+    .carousel-track {
+      display: flex;
+      transition: transform .4s cubic-bezier(.25,.46,.45,.94);
+      will-change: transform;
+    }
+    .carousel-track img {
+      flex-shrink: 0; width: 100%;
+      aspect-ratio: 16/9; object-fit: cover; display: block;
+    }
+    .carousel-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(30,28,36,.9) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .carousel-badges {
+      position: absolute; top: 12px; left: 12px; right: 12px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .carousel-info {
+      position: absolute; bottom: 14px; left: 16px; right: 16px;
+    }
+    .hall-name {
+      font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em;
+      color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.5);
+      animation: fadeUp .6s cubic-bezier(.16,1,.3,1) both;
+    }
+    .hall-meta {
+      font-size: .68rem; font-weight: 400; color: rgba(255,255,255,.65);
+      margin-top: 3px; letter-spacing: .04em;
+    }
+    .carousel-dots {
+      position: absolute; bottom: 12px; right: 14px;
+      display: flex; gap: 4px; align-items: center;
+    }
+    .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,.35); cursor: pointer;
+      transition: all .2s; border: none;
+    }
+    .dot.active { background: #fff; width: 16px; border-radius: 3px; }
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #fff; font-size: .9rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .2s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .carousel:hover .carousel-btn { opacity: 1; }
+    .carousel-btn:active { transform: translateY(-50%) scale(.9); }
+    .carousel-btn.prev { left: 10px; }
+    .carousel-btn.next { right: 10px; }
+
+    /* Hall body */
+    .hall-body { padding: 16px; }
+    .hall-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .tag {
+      font-size: .6rem; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--accent-dim);
+      background: var(--accent-mute); border-radius: 100px;
+      padding: 4px 10px; border: 1px solid var(--border);
+      transition: background .2s, color .2s;
+    }
+    .tag:hover { background: rgba(255,255,255,.16); color: #fff; }
+
+    .hall-pricing {
+      display: flex; gap: 0;
+      border: 1px solid var(--border); border-radius: var(--r);
+      overflow: hidden; margin-bottom: 14px;
+    }
+    .price-tier {
+      flex: 1; padding: 10px 8px; text-align: center;
+      border-right: 1px solid var(--border);
+      transition: background .2s;
+    }
+    .price-tier:last-child { border-right: none; }
+    .price-tier:hover { background: var(--accent-mute); }
+    .price-day { font-size: .55rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-dim); margin-bottom: 4px; }
+    .price-val { font-size: .875rem; font-weight: 800; color: var(--accent); }
+    .price-unit { font-size: .55rem; color: var(--accent-dim); margin-top: 1px; }
+
+    /* CTA */
+    .btn-book {
+      width: 100%; padding: 16px;
+      background: var(--blue-grad);
+      border: none; border-radius: var(--r); cursor: pointer;
+      font-family: var(--font); font-size: .72rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: #fff;
+      position: relative; overflow: hidden;
+      transition: transform .18s cubic-bezier(.16,1,.3,1),
+                  box-shadow .18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-book::before {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background .2s;
+    }
+    .btn-book:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(55,111,255,.45); }
+    .btn-book:hover::before { background: rgba(255,255,255,.06); }
+    .btn-book:active { transform: scale(.97); box-shadow: none; }
+
+    /* Ripple */
+    .ripple-wrap { position: relative; overflow: hidden; border-radius: var(--r); }
+    @keyframes ripple {
+      to { transform: scale(4); opacity: 0; }
+    }
+    .ripple-el {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,.2);
+      transform: scale(0);
+      animation: ripple .5s ease-out;
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════
+       INFO CHIPS
+    ══════════════════════════════════════ */
+    .chips-row {
+      display: flex; gap: 8px; padding: 0 16px 20px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .chips-row::-webkit-scrollbar { display: none; }
+    .chip {
+      flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 100px; padding: 8px 14px;
+      font-size: .6rem; font-weight: 600; letter-spacing: .06em;
+      color: var(--accent-dim); transition: all .2s;
+      white-space: nowrap;
+    }
+    .chip:hover { border-color: rgba(255,255,255,.2); color: var(--accent); }
+    .chip-icon { font-size: .85rem; }
+
+    /* ══════════════════════════════════════
+       QUICK STATS
+    ══════════════════════════════════════ */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+      padding: 0 16px 24px;
+    }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 14px 12px; text-align: center;
+      transition: transform .2s, border-color .2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.16); }
+    .stat-num {
+      font-size: 1.35rem; font-weight: 900; letter-spacing: -.03em;
+      color: var(--accent); line-height: 1;
+    }
+    .stat-lbl {
+      font-size: .55rem; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--accent-dim); margin-top: 6px;
+    }
+
+    /* ══════════════════════════════════════
+       STATUS BADGE
+    ══════════════════════════════════════ */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 100px;
+      font-size: .58rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .badge-free { background: rgba(46,204,113,.12); color: #2ECC71; }
+    .badge-busy { background: rgba(243,156,18,.12); color: #F39C12; }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+    /* ══════════════════════════════════════
+       BOTTOM NAV
+    ══════════════════════════════════════ */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      height: calc(var(--nav-h) + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(30,28,36,.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+    }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      color: var(--accent-dim); font-family: var(--font);
+      font-size: .5rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; padding: 8px 4px;
+      transition: color .2s; position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-tab:hover { color: rgba(255,255,255,.7); }
+    .nav-tab.active { color: var(--accent); }
+    .nav-tab.active::after {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 24px; height: 2px; background: var(--blue);
+      border-radius: 0 0 2px 2px;
+      animation: tabLine .25s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes tabLine {
+      from { width: 0; opacity: 0; }
+      to   { width: 24px; opacity: 1; }
+    }
+    .nav-tab svg { width: 20px; height: 20px; transition: transform .2s; }
+    .nav-tab:active svg { transform: scale(.85); }
+
+    /* ══════════════════════════════════════
+       ANIMATIONS
+    ══════════════════════════════════════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim-1 { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .05s both; }
+    .anim-2 { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .12s both; }
+    .anim-3 { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .2s both; }
+    .anim-4 { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) .28s both; }
+
+    .reveal {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ══════════════════════════════════════
+       AVAILABILITY BAR
+    ══════════════════════════════════════ */
+    .avail-bar { display: flex; gap: 3px; margin-top: 10px; }
+    .avail-seg { flex: 1; height: 3px; border-radius: 2px; }
+    .avail-seg.free   { background: #2ECC71; }
+    .avail-seg.busy   { background: #E74C3C; }
+    .avail-seg.partly { background: #F39C12; }
+    .avail-days {
+      display: flex; justify-content: space-between;
+      margin-top: 4px;
+    }
+    .avail-day { font-size: .5rem; color: var(--accent-dim); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#h)">
+        <path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/>
+        <path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/>
+        <path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/>
+        <path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/>
+        <path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/>
+        <path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/>
+        <path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/>
+        <path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/>
+        <path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/>
+      </g>
+      <defs><clipPath id="h"><rect width="1280" height="71" fill="white"/></clipPath></defs>
+    </svg>
+  </div>
+  <button class="header-action" onclick="location='profile.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+  </button>
+</header>
+
+<div class="content">
+
+  <!-- CHIPS -->
+  <div class="chips-row anim-1">
+    <div class="chip"><span class="chip-icon">📍</span>г. Краснодар, ул. Коммунаров</div>
+    <div class="chip"><span class="chip-icon">🕐</span>09:00–23:00</div>
+    <div class="chip"><span class="chip-icon">📐</span>346 м²</div>
+    <div class="chip"><span class="chip-icon">💳</span>Онлайн-оплата</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row anim-2">
+    <div class="stat-card">
+      <div class="stat-num">346</div>
+      <div class="stat-lbl">кв. метров</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">3.5K</div>
+      <div class="stat-lbl">от ₽/час</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">50%</div>
+      <div class="stat-lbl">предоплата</div>
+    </div>
+  </div>
+
+  <!-- SECTION HALLS -->
+  <div class="section-hd anim-3">
+    <span class="section-title">01 — Залы</span>
+    <a href="calendar.html" class="section-link">Расписание →</a>
+  </div>
+
+  <!-- HALL CARD -->
+  <div class="hall-card anim-4" id="hallCard">
+    <!-- Carousel -->
+    <div class="carousel" id="car">
+      <div class="carousel-track" id="track">
+        <img src="upploads/image 1.png" alt="Зал А">
+        <img src="upploads/image 3.png" alt="Зал А">
+        <img src="upploads/image 2.png" alt="Зал А">
+        <img src="upploads/image 4.png" alt="Зал А">
+      </div>
+      <div class="carousel-overlay"></div>
+
+      <div class="carousel-badges">
+        <div class="badge badge-free">
+          <span class="badge-dot"></span> Свободен
+        </div>
+        <div style="font-size:.6rem; font-weight:600; letter-spacing:.06em; background:rgba(0,0,0,.45); backdrop-filter:blur(6px); padding:4px 10px; border-radius:100px; color:rgba(255,255,255,.7);">
+          🖼 4 фото
+        </div>
+      </div>
+
+      <div class="carousel-info">
+        <div class="hall-name">Зал А</div>
+        <div class="hall-meta">346 м² · до 80 человек · Краснодар</div>
+      </div>
+
+      <div class="carousel-dots" id="dots">
+        <button class="dot active" onclick="goTo(0)"></button>
+        <button class="dot" onclick="goTo(1)"></button>
+        <button class="dot" onclick="goTo(2)"></button>
+        <button class="dot" onclick="goTo(3)"></button>
+      </div>
+
+      <button class="carousel-btn prev" onclick="prev()">‹</button>
+      <button class="carousel-btn next" onclick="next()">›</button>
+    </div>
+
+    <!-- Body -->
+    <div class="hall-body">
+      <div class="hall-tags">
+        <span class="tag">Зеркала</span>
+        <span class="tag">Профессиональный звук</span>
+        <span class="tag">Сценический свет</span>
+        <span class="tag">Раздевалки</span>
+        <span class="tag">Зона ожидания</span>
+      </div>
+
+      <div class="hall-pricing">
+        <div class="price-tier">
+          <div class="price-day">Будни</div>
+          <div class="price-val">3 500</div>
+          <div class="price-unit">₽ / час</div>
+        </div>
+        <div class="price-tier">
+          <div class="price-day">Выходные</div>
+          <div class="price-val">5 000</div>
+          <div class="price-unit">₽ / час</div>
+        </div>
+        <div class="price-tier">
+          <div class="price-day">Ивент</div>
+          <div class="price-val">от 10K</div>
+          <div class="price-unit">₽ / час</div>
+        </div>
+      </div>
+
+      <div class="avail-bar">
+        <div class="avail-seg free"></div>
+        <div class="avail-seg free"></div>
+        <div class="avail-seg partly"></div>
+        <div class="avail-seg busy"></div>
+        <div class="avail-seg busy"></div>
+        <div class="avail-seg free"></div>
+        <div class="avail-seg partly"></div>
+      </div>
+      <div class="avail-days">
+        <span class="avail-day">Пн</span><span class="avail-day">Вт</span>
+        <span class="avail-day">Ср</span><span class="avail-day">Чт</span>
+        <span class="avail-day">Пт</span><span class="avail-day">Сб</span>
+        <span class="avail-day">Вс</span>
+      </div>
+
+      <div style="height:14px;"></div>
+
+      <div class="ripple-wrap">
+        <button class="btn-book" onclick="bookHall(event)">
+          Выбрать дату и время
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION PRICING -->
+  <div class="section-hd reveal">
+    <span class="section-title">02 — Тарифы</span>
+    <a href="tariffs.html" class="section-link">Подробнее →</a>
+  </div>
+
+  <div style="margin:0 16px 24px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); overflow:hidden;" class="reveal">
+    <div style="display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--border);">
+      <div style="padding:14px 16px; border-right:1px solid var(--border);">
+        <div style="font-size:.55rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-dim); margin-bottom:8px;">Пн – Пт</div>
+        <div style="font-size:.78rem; font-weight:700; color:var(--accent); margin-bottom:4px;">3 500 ₽/ч — тренировки</div>
+        <div style="font-size:.78rem; font-weight:700; color:var(--accent); margin-bottom:4px;">10 000 ₽/ч — мероприятие</div>
+        <div style="font-size:.65rem; color:var(--accent-dim);">до 30 человек</div>
+      </div>
+      <div style="padding:14px 16px;">
+        <div style="font-size:.55rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-dim); margin-bottom:8px;">Сб – Вс</div>
+        <div style="font-size:.78rem; font-weight:700; color:var(--accent); margin-bottom:4px;">5 000 ₽/ч — тренировки</div>
+        <div style="font-size:.78rem; font-weight:700; color:var(--accent); margin-bottom:4px;">15 000 ₽/ч — мастер-класс</div>
+        <div style="font-size:.65rem; color:var(--accent-dim);">до 30 человек</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px; display:flex; align-items:center; gap:8px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
+      <span style="font-size:.62rem; color:var(--accent-dim);">Предоплата 50% · Отмена за 24ч — возврат 50%</span>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-tab active" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Главная
+  </button>
+  <button class="nav-tab" onclick="location='calendar.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <path d="M16 2v4M8 2v4M3 10h18"/>
+    </svg>
+    Расписание
+  </button>
+  <button class="nav-tab" onclick="location='tariffs.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    </svg>
+    Тарифы
+  </button>
+  <button class="nav-tab" onclick="location='profile.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    Кабинет
+  </button>
+</nav>
+
+<script>
+/* ── Telegram WebApp init ──────────────────────────────── */
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  // Подхватываем цвета темы Telegram если они есть
+  const bgColor = tg.themeParams?.bg_color;
+  if (bgColor) document.documentElement.style.setProperty('--bg', bgColor);
+}
+
+/* ── Carousel ──────────────────────────────────────────── */
+let idx = 0;
+const total = 4;
+let startX = 0;
+
+function goTo(i) {
+  idx = (i + total) % total;
+  document.getElementById('track').style.transform = `translateX(-${idx * 100}%)`;
+  document.querySelectorAll('.dot').forEach((d,j) => d.classList.toggle('active', j === idx));
+}
+function next() { goTo(idx + 1); }
+function prev() { goTo(idx - 1); }
+
+// Auto-advance
+setInterval(() => goTo(idx + 1), 4000);
+
+// Touch swipe
+const car = document.getElementById('car');
+car.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+car.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - startX;
+  if (Math.abs(dx) > 40) dx < 0 ? next() : prev();
+}, {passive:true});
+
+/* ── Ripple effect ─────────────────────────────────────── */
+document.querySelectorAll('.ripple-wrap').forEach(wrap => {
+  wrap.addEventListener('click', e => {
+    const r = document.createElement('span');
+    r.className = 'ripple-el';
+    const rect = wrap.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+    wrap.appendChild(r);
+    setTimeout(() => r.remove(), 600);
+  });
+});
+
+/* ── Book button ───────────────────────────────────────── */
+function bookHall(e) {
+  // Небольшая задержка для анимации перед переходом
+  setTimeout(() => location.href = 'calendar.html', 180);
+}
+
+/* ── Nav tabs ──────────────────────────────────────────── */
+function switchTab(btn) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ── Scroll reveal ─────────────────────────────────────── */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
