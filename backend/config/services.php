@@ -36,8 +36,9 @@ return [
     ],
 
     'telegram' => [
-        'bot_token'    => env('TELEGRAM_BOT_TOKEN'),
-        'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID'),
+        'bot_token'      => env('TELEGRAM_BOT_TOKEN'),
+        'admin_chat_id'  => env('TELEGRAM_ADMIN_CHAT_ID'),
+        'admin_thread_id' => env('TELEGRAM_ADMIN_THREAD_ID'),
     ],
 
     'tbank' => [

@@ -13,3 +13,4 @@ Route::get('/user', function (Request $request) {
 Route::post('/telegram/webhook',      [TelegramController::class, 'webhook']);
 Route::get('/telegram/set-webhook',   [TelegramController::class, 'setWebhook']);
 Route::get('/telegram/webhook-info',  [TelegramController::class, 'webhookInfo']);
+Route::get('/telegram/test',          [TelegramController::class, 'test']);

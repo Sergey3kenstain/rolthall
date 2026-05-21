@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -103,5 +104,19 @@ class TelegramController extends Controller
     {
         $info = $this->telegram->getWebhookInfo();
         return response()->json($info);
+    }
+
+    /**
+     * Тест — отправляем сообщение администратору
+     * GET /api/telegram/test
+     */
+    public function test(): JsonResponse
+    {
+        try {
+            (new NotificationService())->sendTestMessage();
+            return response()->json(['ok' => true, 'message' => 'Тестовое сообщение отправлено']);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()]);
+        }
     }
 }
