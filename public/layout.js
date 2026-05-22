@@ -36,14 +36,7 @@
   };
 })();
 
-// Инжектируем CSS футера один раз для всех страниц
-(function(){
-  var s = document.createElement('style');
-  s.textContent = 'footer{background:var(--charcoal-deep,#1e1c24);border-top:1px solid rgba(255,255,255,.12);margin-top:80px}.footer-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;padding:48px}.footer-logo svg{height:12px;width:auto}.footer-tagline{font-size:9px;font-weight:300;color:rgba(217,217,217,.3);margin-top:12px;letter-spacing:.04em}.footer-nav-col,.footer-legal-col{display:flex;flex-direction:column;gap:10px}.footer-nav-col a,.footer-legal-col a{font-size:9px;font-weight:400;color:rgba(217,217,217,.4);text-decoration:none;letter-spacing:.06em;transition:color .2s}.footer-nav-col a:hover,.footer-legal-col a:hover{color:#D9D9D9}.footer-bottom{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-top:1px solid rgba(255,255,255,.12)}.footer-copy,.footer-dev{font-size:8px;font-weight:300;color:rgba(217,217,217,.2)}.footer-dev a{color:rgba(217,217,217,.35);text-decoration:none}@media(max-width:1023px){.footer-top{grid-template-columns:1fr;gap:24px;padding:32px 20px}.footer-bottom{padding:12px 20px;flex-direction:column;align-items:flex-start;gap:6px}}';
-  document.head.appendChild(s);
-})();
-
-document.addEventListener('DOMContentLoaded', function () {
+(function () {
   const PATH = window.location.pathname;
   const active = (href) => !href.startsWith('/#') && PATH === href ? ' active' : '';
 
@@ -120,4 +113,4 @@ document.addEventListener('DOMContentLoaded', function () {
   </div>
 </footer>`;
   }
-});
+})();
