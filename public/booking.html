@@ -472,6 +472,7 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
   .modal-actions { flex-direction: column; }
 }
 </style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -661,15 +662,15 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
         <div class="step-block-body">
           <div class="consent-row">
             <input type="checkbox" class="consent-cb" id="c1" checked>
-            <label class="consent-text" for="c1">Принимаю <a href="#">Публичную оферту</a> и <a href="#">Правила аренды</a></label>
+            <label class="consent-text" for="c1">Принимаю <a href="/user_agreement" target="_blank">Пользовательское соглашение</a></label>
           </div>
           <div class="consent-row">
             <input type="checkbox" class="consent-cb" id="c2" checked>
-            <label class="consent-text" for="c2">Согласен с <a href="#">Правилами возврата</a>: при отмене менее чем за 6 часов — предоплата не возвращается</label>
+            <label class="consent-text" for="c2">Согласен с <a href="/privacy_policy" target="_blank">Политикой конфиденциальности</a>: при отмене менее чем за 6 часов — предоплата не возвращается</label>
           </div>
           <div class="consent-row">
             <input type="checkbox" class="consent-cb" id="c3" checked>
-            <label class="consent-text" for="c3">Согласие на <a href="#">обработку персональных данных</a></label>
+            <label class="consent-text" for="c3">Согласие на <a href="/cttp_opd" target="_blank">обработку персональных данных</a></label>
           </div>
         </div>
       </div>
@@ -851,10 +852,10 @@ function initBookingPage() {
     setEl('sumTime',    timeLabel);
     setEl('sumTariff',  `${fmtMoney(rph)}/ч × ${hours} ч`);
     setEl('sumPrepay',  fmtMoney(prepay));
-    setEl('sumTotal',   `Полная стоимость: ${fmtMoney(total)}`);
-    setEl('sumPayLabel','К оплате сейчас');
+    setEl('sumTotal',   '100% оплата при бронировании');
+    setEl('sumPayLabel','К оплате');
     setEl('mobPrepay',  fmtMoney(prepay));
-    setEl('mobTotal',   `Полная стоимость: ${fmtMoney(total)}`);
+    setEl('mobTotal',   '100% оплата при бронировании');
 
     const msb = document.querySelector('.msb-name');
     if (msb) msb.textContent = `Зал А · ${dateLabel}`;
@@ -998,8 +999,19 @@ function restoreFormData() {
 
 // Init page from URL params
 document.addEventListener('DOMContentLoaded', function() {
+  // Telegram WebApp
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+
   initBookingPage();
   restoreFormData();
+
+  // Автозаполнение Telegram из WebApp (если открыто через бота)
+  const tgUser = tg?.initDataUnsafe?.user;
+  if (tgUser?.username) {
+    const el = document.getElementById('f-telegram');
+    if (el && !el.value) el.value = '@' + tgUser.username;
+  }
 
   // Сохраняем данные при изменении любого поля
   ['f-name', 'f-phone', 'f-email', 'f-telegram'].forEach(id => {

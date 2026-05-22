@@ -40,7 +40,7 @@ class BookingService
         $dayType      = $this->getDayType($date);
         $pricePerHour = $this->getPrice($hall->id, $dayType, $hours);
         $total        = $pricePerHour * $hours;
-        $prepayment   = (int) round($total * 0.5);
+        $prepayment   = $total; // почасовая — 100% сразу
 
         return DB::transaction(function () use ($data, $hall, $date, $timeStart, $timeEnd, $hours, $total, $prepayment) {
             $client = $this->resolveClient($data);

@@ -597,6 +597,7 @@ nav.d-nav {
   .sel-days-list { height: 64px; overflow: auto; }
 }
 </style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -1337,7 +1338,7 @@ function renderSelList(completeSels, fullEl, listId, totalId, prepayId) {
   const listEl = document.getElementById(listId || 'selDaysList');
   if (listEl) listEl.innerHTML = listHtml;
 
-  const prepay = Math.round(grandTotal / 2);
+  const prepay = grandTotal; // почасовая — 100%
   const tEl = document.getElementById(totalId  || 'selTotal');
   const pEl = document.getElementById(prepayId || 'selPrepay');
   if (tEl) tEl.textContent = `${grandTotal.toLocaleString('ru')} ₽`;
@@ -1438,7 +1439,7 @@ function onCellClick(hour) {
     // Уже полный — начинаем новый выбор для этого дня
     selections[key] = { start: hour, end: null };
   } else if (hour === s.start) {
-    delete selections[key];
+    selections[key] = { start: hour, end: hour }; // 1 час — подтверждаем
   } else if (hour < s.start) {
     selections[key] = { start: hour, end: null };
   } else {
@@ -1518,7 +1519,7 @@ function goToBooking() {
       p.set('hours',  dur);
       p.set('rph',    rph);
       p.set('total',  rph * dur);
-      p.set('prepay', Math.round(rph * dur * 0.5));
+      p.set('prepay', rph * dur); // почасовая — 100% сразу
     } else {
       // Несколько дней — сериализуем как JSON
       p.set('format',   'hourly_multi');
@@ -1529,7 +1530,7 @@ function goToBooking() {
         return { date: key, time_start: pad(sel.start)+':00', time_end: pad(sel.end+1)+':00', hours: dur, rph, total: rph*dur };
       })));
       p.set('total',  grandTotal);
-      p.set('prepay', Math.round(grandTotal * 0.5));
+      p.set('prepay', grandTotal); // почасовая — 100% сразу
     }
 
   } else {
@@ -1546,6 +1547,10 @@ function goToBooking() {
 
   window.location.href = '/booking?' + p.toString();
 }
+
+/* ===== TELEGRAM WEBAPP ===== */
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
 
 /* ===== INIT ===== */
 reloadAndRedraw();
