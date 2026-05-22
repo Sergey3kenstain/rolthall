@@ -605,9 +605,11 @@ nav.d-nav {
   if (!tg) return;
   var u = tg.initDataUnsafe && tg.initDataUnsafe.user;
   if (u) {
+    // Настоящий Mini App контекст — сохраняем данные и разворачиваем
     try { sessionStorage.setItem('rh_tg_user', JSON.stringify({id:u.id, username:u.username||'', first_name:u.first_name||''})); } catch(e){}
+    try { tg.ready(); tg.expand(); } catch(e){}
   }
-  try { tg.ready(); tg.expand(); } catch(e){}
+  // Без user — обычный браузер/BotFather тест, ничего не вызываем
 })();
 </script>
 <script src="/layout.js" defer></script>
