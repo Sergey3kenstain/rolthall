@@ -201,24 +201,32 @@ class AdminController extends Controller
         return response()->json(['ok' => true, 'clients' => $clients], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function debugFrontendReceive(Request $request): \Illuminate\Http\Response
+    {
+        $data = $request->getContent();
+        if ($data) {
+            $line = date('Y-m-d H:i:s') . ' ' . $data . "\n";
+            file_put_contents(storage_path('logs/frontend.log'), $line, FILE_APPEND | LOCK_EX);
+        }
+        return response('', 204);
+    }
+
     public function debugLog(Request $request): JsonResponse
     {
         if (!$this->isOwner($request)) {
             return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
         }
 
-        $logPath = storage_path('logs/laravel.log');
-        if (!file_exists($logPath)) {
-            return response()->json(['ok' => true, 'lines' => []]);
-        }
-
-        $lines   = file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $last100 = array_slice($lines, -100);
+        $readLog = function (string $path, int $n = 100): array {
+            if (!file_exists($path)) return [];
+            $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            return array_reverse(array_slice($lines, -$n));
+        };
 
         return response()->json([
-            'ok'    => true,
-            'lines' => array_reverse($last100),
-            'total' => count($lines),
+            'ok'       => true,
+            'frontend' => $readLog(storage_path('logs/frontend.log'), 100),
+            'server'   => $readLog(storage_path('logs/laravel.log'),  50),
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 

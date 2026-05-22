@@ -41,6 +41,9 @@ Route::get('/halls/{hall}',                 [HallController::class, 'show']);
 Route::get('/halls/{hall}/pricing',         [HallController::class, 'pricing']);
 Route::get('/halls/{hall}/availability',    [HallController::class, 'availability']);
 
+// ── Frontend error collector (публичный приём, чтение — owner only) ──
+Route::post('/debug/frontend',  [AdminController::class, 'debugFrontendReceive']);
+
 // ── Profile ───────────────────────────────────────────────────────────
 Route::post('/profile/login',    [ProfileController::class, 'login']);
 Route::get('/profile/bookings',  [ProfileController::class, 'bookings']);
