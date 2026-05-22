@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Панель управления — ROLTHALL</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== VARIABLES ===== */
+:root {
+  --charcoal: #2E2B35;
+  --charcoal-mid: #26232e;
+  --charcoal-deep: #1e1c24;
+  --light: #D9D9D9;
+  --accent: #ffffff;
+  --accent-border: rgba(255,255,255,0.12);
+  --success: #50d890;
+  --warning: #f5c842;
+  --danger: rgba(255,100,100,.9);
+  --muted: rgba(217,217,217,.4);
+  --font: 'Unbounded', sans-serif;
+  --sidebar-w: 220px;
+  --header-h: 56px;
+  --tabbar-h: 64px;
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--charcoal);
+  color: var(--light);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: var(--font); }
+input, select, textarea { font-family: var(--font); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent-border); }
+
+/* ===== LAYOUT ===== */
+#app { display: flex; flex-direction: column; min-height: 100%; }
+
+/* Header */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: var(--charcoal-deep);
+  border-bottom: 1px solid var(--accent-border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  z-index: 100;
+}
+.header-logo {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .3em;
+  color: var(--accent);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.header-spacer { flex: 1; }
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.header-name {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--light);
+  letter-spacing: .08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+.role-badge {
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--accent-border);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.role-badge.owner { border-color: var(--warning); color: var(--warning); }
+.btn-logout {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid var(--accent-border);
+  color: var(--muted);
+  padding: 7px 12px;
+  transition: border-color .2s, color .2s;
+  flex-shrink: 0;
+}
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+/* Sidebar (desktop) */
+.sidebar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--charcoal-mid);
+  border-right: 1px solid var(--accent-border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 12px;
+  z-index: 90;
+  overflow-y: auto;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  transition: all .2s;
+  text-align: left;
+  width: 100%;
+}
+.nav-item:hover { color: var(--light); border-color: var(--accent-border); }
+.nav-item.active {
+  color: var(--accent);
+  background: var(--charcoal-deep);
+  border-color: var(--accent-border);
+}
+.nav-icon { font-size: 14px; flex-shrink: 0; }
+
+/* Main content */
+.main {
+  margin-top: var(--header-h);
+  margin-left: var(--sidebar-w);
+  min-height: calc(100vh - var(--header-h));
+  padding: 24px;
+}
+
+/* Bottom tab bar (mobile) */
+.tabbar {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--tabbar-h);
+  background: var(--charcoal-deep);
+  border-top: 1px solid var(--accent-border);
+  z-index: 100;
+}
+.tabbar-inner {
+  display: flex;
+  height: 100%;
+}
+.tab-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: color .2s;
+  padding: 8px 4px;
+}
+.tab-btn .tab-icon { font-size: 18px; }
+.tab-btn.active { color: var(--accent); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .tabbar { display: block; }
+  .main {
+    margin-left: 0;
+    padding: 16px;
+    padding-bottom: calc(var(--tabbar-h) + 16px);
+  }
+}
+
+/* ===== SECTIONS ===== */
+.section { display: none; }
+.section.active { display: block; }
+.section-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: .08em;
+  margin-bottom: 20px;
+}
+
+/* ===== CARDS & PANELS ===== */
+.card {
+  border: 1px solid var(--accent-border);
+  background: var(--charcoal-mid);
+  padding: 20px 24px;
+}
+.card + .card { margin-top: 12px; }
+
+/* ===== STAT CARDS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  border: 1px solid var(--accent-border);
+  background: var(--charcoal-mid);
+  padding: 20px 24px;
+}
+.stat-label {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -.01em;
+}
+
+/* ===== FILTERS ===== */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: flex-end;
+}
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-label {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ===== INPUTS ===== */
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+select,
+textarea {
+  font-family: var(--font);
+  font-size: 11px;
+  background: var(--charcoal-deep);
+  border: 1px solid var(--accent-border);
+  color: var(--light);
+  padding: 10px 12px;
+  outline: none;
+  width: 100%;
+  transition: border-color .2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus { border-color: rgba(255,255,255,.4); }
+textarea { resize: vertical; min-height: 80px; }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(217,217,217,.4)'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+input[type="checkbox"] { width: auto; accent-color: var(--success); }
+
+/* ===== BUTTONS ===== */
+.btn {
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.btn:hover { opacity: .85; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn-primary { background: var(--accent); color: var(--charcoal); }
+.btn-secondary { background: transparent; border: 1px solid var(--accent-border); color: var(--light); }
+.btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+.btn-sm { font-size: 7.5px; padding: 7px 12px; }
+
+/* ===== STATUS BADGES ===== */
+.badge {
+  display: inline-block;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 0;
+}
+.badge-paid, .badge-confirmed { background: rgba(80,216,144,.15); color: var(--success); border: 1px solid rgba(80,216,144,.3); }
+.badge-hold, .badge-pending_payment { background: rgba(245,200,66,.12); color: var(--warning); border: 1px solid rgba(245,200,66,.3); }
+.badge-cancelled { background: rgba(255,255,255,.04); color: rgba(217,217,217,.3); border: 1px solid rgba(255,255,255,.08); }
+.badge-draft { background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid var(--accent-border); }
+
+/* ===== TABLE ===== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.data-table th {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--accent-border);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  color: var(--light);
+  vertical-align: top;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,.02); }
+.table-wrap {
+  border: 1px solid var(--accent-border);
+  background: var(--charcoal-mid);
+  overflow-x: auto;
+}
+
+/* ===== BOOKING CARDS ===== */
+.booking-card {
+  border: 1px solid var(--accent-border);
+  background: var(--charcoal-mid);
+  padding: 18px 20px;
+  margin-bottom: 10px;
+}
+.booking-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.booking-hall {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: .05em;
+}
+.booking-meta {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.booking-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  font-size: 10px;
+}
+@media (max-width: 480px) {
+  .booking-body { grid-template-columns: 1fr; }
+}
+.booking-field-label {
+  font-size: 7.5px;
+  color: var(--muted);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+.booking-field-val { color: var(--light); }
+.booking-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--accent-border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.booking-price { font-size: 13px; font-weight: 700; color: var(--accent); }
+.booking-price small { font-size: 9px; color: var(--muted); font-weight: 400; }
+
+/* ===== HALLS LAYOUT ===== */
+.halls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .halls-grid { grid-template-columns: 1fr; }
+}
+.panel-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--accent-border);
+}
+.form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-label {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Pricing row */
+.pricing-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 60px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.pricing-row:last-child { border-bottom: none; }
+.pricing-day { font-size: 10px; color: var(--light); }
+
+/* Toggle */
+.toggle-wrap { display: flex; align-items: center; gap: 8px; }
+.toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.1);
+  border: 1px solid var(--accent-border);
+  cursor: pointer;
+  transition: .2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  left: 3px; top: 3px;
+  background: var(--muted);
+  transition: .2s;
+}
+.toggle input:checked + .toggle-slider { background: rgba(80,216,144,.2); border-color: rgba(80,216,144,.4); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: var(--success); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--charcoal-mid);
+  border: 1px solid var(--accent-border);
+  width: 100%;
+  max-width: 500px;
+  padding: 28px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
+}
+.modal-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 24px;
+  letter-spacing: .05em;
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color .2s;
+}
+.modal-close:hover { color: var(--accent); }
+.modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+/* ===== MISC ===== */
+.loading-text { color: var(--muted); font-size: 10px; letter-spacing: .1em; padding: 20px 0; }
+.empty-text { color: var(--muted); font-size: 10px; letter-spacing: .08em; text-align: center; padding: 32px 0; }
+.err-msg { color: var(--danger); font-size: 10px; margin-top: 8px; }
+.success-msg { color: var(--success); font-size: 10px; margin-top: 8px; }
+.tel-link { color: var(--light); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.tel-link:hover { color: var(--accent); }
+.tg-link { color: var(--warning); text-decoration: none; }
+.tg-link:hover { text-decoration: underline; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--light); }
+.inline-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.section-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-logo">ROLTHALL</div>
+    <div class="header-spacer"></div>
+    <div class="header-user">
+      <span class="header-name" id="hdrName">—</span>
+      <span class="role-badge" id="hdrRole">—</span>
+      <button class="btn-logout" onclick="doLogout()">Выйти</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR (desktop) -->
+  <nav class="sidebar" id="sidebar">
+    <button class="nav-item active" data-tab="analytics" onclick="switchTab('analytics')">
+      <span class="nav-icon">📊</span>Аналитика
+    </button>
+    <button class="nav-item" data-tab="bookings" onclick="switchTab('bookings')">
+      <span class="nav-icon">📅</span>Брони
+    </button>
+    <button class="nav-item" data-tab="halls" onclick="switchTab('halls')">
+      <span class="nav-icon">🏛️</span>Залы
+    </button>
+    <button class="nav-item owner-tab" data-tab="clients" onclick="switchTab('clients')" style="display:none">
+      <span class="nav-icon">👥</span>Клиенты
+    </button>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ===== TAB: АНАЛИТИКА ===== -->
+    <div class="section active" id="sec-analytics">
+      <div class="section-title">Аналитика</div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">С</span>
+          <input type="date" id="an-from" style="width:160px" onchange="loadAnalytics()">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">По</span>
+          <input type="date" id="an-to" style="width:160px" onchange="loadAnalytics()">
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Броней за период</div>
+          <div class="stat-value" id="an-count">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Выручка (предоплаты)</div>
+          <div class="stat-value" id="an-revenue">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Часов занято</div>
+          <div class="stat-value" id="an-hours">—</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Брони</th>
+              <th>Выручка</th>
+              <th>Часов</th>
+            </tr>
+          </thead>
+          <tbody id="an-table-body">
+            <tr><td colspan="4" class="loading-text" style="text-align:center">Загрузка...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== TAB: БРОНИ ===== -->
+    <div class="section" id="sec-bookings">
+      <div class="section-toolbar">
+        <div class="section-title" style="margin-bottom:0">Брони</div>
+        <button class="btn btn-primary" onclick="openBookingModal()">+ Создать бронь</button>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">Дата</span>
+          <input type="date" id="bk-date" style="width:160px" onchange="loadBookings()">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Статус</span>
+          <select id="bk-status" style="width:160px" onchange="loadBookings()">
+            <option value="">Все</option>
+            <option value="paid">Оплачено</option>
+            <option value="confirmed">Подтверждено</option>
+            <option value="hold">Hold</option>
+            <option value="pending_payment">Ожидает оплаты</option>
+            <option value="cancelled">Отменено</option>
+            <option value="draft">Черновик</option>
+          </select>
+        </div>
+        <div style="align-self:flex-end">
+          <button class="btn btn-secondary" onclick="loadBookings()">Обновить</button>
+        </div>
+      </div>
+
+      <div id="bookings-list">
+        <div class="loading-text">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: ЗАЛЫ ===== -->
+    <div class="section" id="sec-halls">
+      <div class="section-title">Залы</div>
+      <div class="halls-grid">
+
+        <!-- Данные зала -->
+        <div class="card">
+          <div class="panel-title">Данные зала</div>
+          <div class="form-field">
+            <label class="form-label">Название</label>
+            <input type="text" id="hall-name" placeholder="Зал А">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Описание</label>
+            <textarea id="hall-description" rows="3" placeholder="Описание зала..."></textarea>
+          </div>
+          <div class="inline-pair">
+            <div class="form-field">
+              <label class="form-label">Площадь (м²)</label>
+              <input type="number" id="hall-area" placeholder="160">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Вместимость</label>
+              <input type="number" id="hall-capacity" placeholder="30">
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Правила аренды</label>
+            <textarea id="hall-rules" rows="4" placeholder="Правила использования зала..."></textarea>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Телефон для связи</label>
+            <input type="tel" id="hall-phone" placeholder="+7 (999) 000-00-00">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+            <button class="btn btn-primary" onclick="saveHall()">Сохранить</button>
+            <span id="hall-msg" class="success-msg" style="display:none"></span>
+          </div>
+        </div>
+
+        <!-- Тарифы -->
+        <div class="card">
+          <div class="panel-title">Тарифы</div>
+          <div id="pricing-rows">
+            <div class="loading-text">Загрузка...</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:16px">
+            <button class="btn btn-primary" onclick="savePricing()">Сохранить</button>
+            <span id="pricing-msg" class="success-msg" style="display:none"></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== TAB: КЛИЕНТЫ (owner only) ===== -->
+    <div class="section" id="sec-clients">
+      <div class="section-toolbar">
+        <div class="section-title" style="margin-bottom:0">Клиенты</div>
+        <button class="btn btn-secondary" onclick="downloadCSV()">Скачать CSV</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Имя</th>
+              <th>Телефон</th>
+              <th>Email</th>
+              <th>Telegram</th>
+              <th>Броней</th>
+              <th>Итого оплачено</th>
+            </tr>
+          </thead>
+          <tbody id="clients-table-body">
+            <tr><td colspan="6" class="loading-text" style="text-align:center">Загрузка...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM TAB BAR (mobile) -->
+  <nav class="tabbar">
+    <div class="tabbar-inner">
+      <button class="tab-btn active" data-tab="analytics" onclick="switchTab('analytics')">
+        <span class="tab-icon">📊</span>Аналитика
+      </button>
+      <button class="tab-btn" data-tab="bookings" onclick="switchTab('bookings')">
+        <span class="tab-icon">📅</span>Брони
+      </button>
+      <button class="tab-btn" data-tab="halls" onclick="switchTab('halls')">
+        <span class="tab-icon">🏛️</span>Залы
+      </button>
+      <button class="tab-btn owner-tab" data-tab="clients" onclick="switchTab('clients')" style="display:none">
+        <span class="tab-icon">👥</span>Клиенты
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- ===== MODAL: СОЗДАТЬ БРОНЬ ===== -->
+<div class="modal-overlay" id="modal-booking">
+  <div class="modal">
+    <button class="modal-close" onclick="closeBookingModal()">✕</button>
+    <div class="modal-title">Создать бронь</div>
+
+    <div class="form-field">
+      <label class="form-label">Зал</label>
+      <select id="m-hall">
+        <option value="">Загрузка залов...</option>
+      </select>
+    </div>
+    <div class="inline-pair">
+      <div class="form-field">
+        <label class="form-label">Дата</label>
+        <input type="date" id="m-date">
+      </div>
+      <div></div>
+    </div>
+    <div class="inline-pair">
+      <div class="form-field">
+        <label class="form-label">Начало</label>
+        <input type="time" id="m-time-start" step="3600">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Конец</label>
+        <input type="time" id="m-time-end" step="3600">
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Имя клиента</label>
+      <input type="text" id="m-name" placeholder="Иван Иванов">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Телефон</label>
+      <input type="tel" id="m-phone" placeholder="+7 (999) 000-00-00">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Email (опционально)</label>
+      <input type="email" id="m-email" placeholder="client@example.com">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Telegram (опционально)</label>
+      <input type="text" id="m-telegram" placeholder="@username">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Примечания</label>
+      <textarea id="m-notes" rows="2" placeholder="Дополнительная информация..."></textarea>
+    </div>
+    <div class="checkbox-row" style="margin-bottom:6px">
+      <input type="checkbox" id="m-paid">
+      <label for="m-paid">Уже оплачено</label>
+    </div>
+
+    <div id="m-err" class="err-msg" style="display:none"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeBookingModal()">Отмена</button>
+      <button class="btn btn-primary" id="m-submit-btn" onclick="submitBooking()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======================================================
+   STATE & AUTH
+   ====================================================== */
+let currentUser = null;
+let pricingData = [];
+let hallsCache = [];
+let activeTab = 'analytics';
+
+function init() {
+  const token = localStorage.getItem('rh_staff_token');
+  if (!token) { window.location.href = '/staff-login'; return; }
+
+  try {
+    currentUser = JSON.parse(localStorage.getItem('rh_staff_user') || '{}');
+  } catch(e) {
+    currentUser = {};
+  }
+
+  // Populate header
+  document.getElementById('hdrName').textContent = currentUser.name || currentUser.email || '—';
+  const roleBadge = document.getElementById('hdrRole');
+  if (currentUser.role === 'owner') {
+    roleBadge.textContent = 'Владелец';
+    roleBadge.classList.add('owner');
+    // Show clients tab for owner
+    document.querySelectorAll('.owner-tab').forEach(el => el.style.display = '');
+  } else {
+    roleBadge.textContent = 'Менеджер';
+  }
+
+  // Set default dates
+  const today = new Date();
+  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const todayStr = fmtDate(today);
+  const firstStr = fmtDate(firstOfMonth);
+
+  document.getElementById('an-from').value = firstStr;
+  document.getElementById('an-to').value = todayStr;
+  document.getElementById('bk-date').value = todayStr;
+
+  // Load default tab
+  loadAnalytics();
+  loadHalls();
+  loadPricing();
+  loadHallsForModal();
+  if (currentUser.role === 'owner') loadClients();
+}
+
+function fmtDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function doLogout() {
+  localStorage.clear();
+  window.location.href = '/staff-login';
+}
+
+/* ======================================================
+   API HELPER
+   ====================================================== */
+async function api(method, path, body) {
+  const token = localStorage.getItem('rh_staff_token');
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('/api/admin' + path, opts);
+  if (res.status === 401) {
+    localStorage.clear();
+    window.location.href = '/staff-login';
+    return null;
+  }
+  return res.json();
+}
+
+/* ======================================================
+   TAB NAVIGATION
+   ====================================================== */
+function switchTab(tab) {
+  activeTab = tab;
+
+  // Sidebar items
+  document.querySelectorAll('.sidebar .nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  // Tab bar buttons
+  document.querySelectorAll('.tabbar .tab-btn').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  // Sections
+  document.querySelectorAll('.section').forEach(el => {
+    el.classList.toggle('active', el.id === 'sec-' + tab);
+  });
+
+  // Lazy load on first switch
+  if (tab === 'bookings') loadBookings();
+  if (tab === 'clients' && currentUser.role === 'owner') loadClients();
+}
+
+/* ======================================================
+   TAB 1: АНАЛИТИКА
+   ====================================================== */
+async function loadAnalytics() {
+  const from = document.getElementById('an-from').value;
+  const to   = document.getElementById('an-to').value;
+  if (!from || !to) return;
+
+  document.getElementById('an-count').textContent   = '—';
+  document.getElementById('an-revenue').textContent = '—';
+  document.getElementById('an-hours').textContent   = '—';
+  document.getElementById('an-table-body').innerHTML =
+    '<tr><td colspan="4" class="loading-text" style="text-align:center">Загрузка...</td></tr>';
+
+  try {
+    const data = await api('GET', '/analytics?from=' + from + '&to=' + to);
+    if (!data) return;
+
+    document.getElementById('an-count').textContent   = data.total_bookings ?? '0';
+    document.getElementById('an-revenue').textContent = fmtMoney(data.total_revenue ?? 0);
+    document.getElementById('an-hours').textContent   = (data.total_hours ?? 0) + ' ч';
+
+    const rows = data.by_day || [];
+    if (!rows.length) {
+      document.getElementById('an-table-body').innerHTML =
+        '<tr><td colspan="4" class="empty-text">Нет данных за выбранный период</td></tr>';
+      return;
+    }
+
+    const sorted = [...rows].sort((a, b) => b.date.localeCompare(a.date));
+    document.getElementById('an-table-body').innerHTML = sorted.map(r => `
+      <tr>
+        <td>${fmtDateRu(r.date)}</td>
+        <td>${r.bookings ?? 0}</td>
+        <td>${fmtMoney(r.revenue ?? 0)}</td>
+        <td>${r.hours ?? 0} ч</td>
+      </tr>
+    `).join('');
+  } catch(e) {
+    document.getElementById('an-table-body').innerHTML =
+      '<tr><td colspan="4" class="empty-text" style="color:var(--danger)">Ошибка загрузки данных</td></tr>';
+  }
+}
+
+/* ======================================================
+   TAB 2: БРОНИ
+   ====================================================== */
+async function loadBookings() {
+  const date   = document.getElementById('bk-date').value;
+  const status = document.getElementById('bk-status').value;
+  const list   = document.getElementById('bookings-list');
+  list.innerHTML = '<div class="loading-text">Загрузка...</div>';
+
+  const qs = new URLSearchParams();
+  if (date)   qs.set('date', date);
+  if (status) qs.set('status', status);
+
+  try {
+    const data = await api('GET', '/bookings?' + qs.toString());
+    if (!data) return;
+
+    const bookings = data.data || data || [];
+    if (!bookings.length) {
+      list.innerHTML = '<div class="empty-text">Броней не найдено</div>';
+      return;
+    }
+
+    list.innerHTML = bookings.map(b => renderBookingCard(b)).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="empty-text" style="color:var(--danger)">Ошибка загрузки броней</div>';
+  }
+}
+
+function renderBookingCard(b) {
+  const statusBadge = renderBadge(b.status);
+  const tgUser = formatTelegram(b.telegram || b.client_telegram);
+  const phone  = b.phone || b.client_phone || '';
+  const name   = b.name || b.client_name || '—';
+  const email  = b.email || b.client_email || '';
+  const hallName = b.hall_name || b.hall?.name || 'Зал';
+  const dateStr = b.date ? fmtDateRu(b.date) : '—';
+  const timeStr = [b.time_start, b.time_end].filter(Boolean).join(' – ') || '—';
+  const format  = b.format || '—';
+  const total   = b.total_price ?? b.total ?? 0;
+  const prepay  = b.prepayment ?? b.prepay ?? 0;
+
+  return `
+  <div class="booking-card">
+    <div class="booking-card-head">
+      <div>
+        <div class="booking-hall">${esc(hallName)}</div>
+        <div class="booking-meta">${esc(dateStr)} · ${esc(timeStr)} · ${esc(format)}</div>
+      </div>
+      ${statusBadge}
+    </div>
+    <div class="booking-body">
+      <div>
+        <span class="booking-field-label">Клиент</span>
+        <span class="booking-field-val">${esc(name)}</span>
+      </div>
+      ${phone ? `<div>
+        <span class="booking-field-label">Телефон</span>
+        <span class="booking-field-val"><a class="tel-link" href="tel:${esc(phone)}">${esc(phone)}</a></span>
+      </div>` : '<div></div>'}
+      ${email ? `<div>
+        <span class="booking-field-label">Email</span>
+        <span class="booking-field-val">${esc(email)}</span>
+      </div>` : '<div></div>'}
+      ${tgUser ? `<div>
+        <span class="booking-field-label">Telegram</span>
+        <span class="booking-field-val"><a class="tg-link" href="https://t.me/${esc(tgUser.replace('@', ''))}" target="_blank">${esc(tgUser)}</a></span>
+      </div>` : '<div></div>'}
+    </div>
+    <div class="booking-footer">
+      <div>
+        <div class="booking-price">
+          ${fmtMoney(total)}
+          ${prepay ? `<small>  Предоплата: ${fmtMoney(prepay)}</small>` : ''}
+        </div>
+        ${b.notes ? `<div style="font-size:9px;color:var(--muted);margin-top:4px">${esc(b.notes)}</div>` : ''}
+      </div>
+      ${b.status !== 'cancelled' ? `
+        <button class="btn btn-danger btn-sm" onclick="cancelBooking(${b.id})">Отменить</button>
+      ` : ''}
+    </div>
+  </div>`;
+}
+
+async function cancelBooking(id) {
+  if (!confirm('Отменить бронь #' + id + '?')) return;
+  try {
+    const data = await api('POST', '/bookings/' + id + '/cancel');
+    if (data && (data.ok || data.success || data.status === 'cancelled')) {
+      loadBookings();
+    } else {
+      alert((data && data.error) || 'Не удалось отменить бронь');
+    }
+  } catch(e) {
+    alert('Ошибка соединения');
+  }
+}
+
+/* Modal: Create Booking */
+async function loadHallsForModal() {
+  try {
+    const data = await fetch('/api/halls', {
+      headers: { Accept: 'application/json', Authorization: 'Bearer ' + localStorage.getItem('rh_staff_token') }
+    }).then(r => r.json());
+    hallsCache = data.data || data || [];
+    const sel = document.getElementById('m-hall');
+    sel.innerHTML = '<option value="">— Выберите зал —</option>' +
+      hallsCache.map(h => `<option value="${h.id}">${esc(h.name)}</option>`).join('');
+  } catch(e) {
+    document.getElementById('m-hall').innerHTML = '<option value="">Ошибка загрузки залов</option>';
+  }
+}
+
+function openBookingModal() {
+  document.getElementById('modal-booking').classList.add('open');
+  document.getElementById('m-date').value = document.getElementById('bk-date').value || fmtDate(new Date());
+  document.getElementById('m-err').style.display = 'none';
+  document.getElementById('m-submit-btn').disabled = false;
+  document.getElementById('m-submit-btn').textContent = 'Создать';
+}
+
+function closeBookingModal() {
+  document.getElementById('modal-booking').classList.remove('open');
+  // Reset form
+  ['m-name','m-phone','m-email','m-telegram','m-notes','m-time-start','m-time-end'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('m-paid').checked = false;
+  document.getElementById('m-err').style.display = 'none';
+}
+
+async function submitBooking() {
+  const btn = document.getElementById('m-submit-btn');
+  const errEl = document.getElementById('m-err');
+  errEl.style.display = 'none';
+
+  const hallId = document.getElementById('m-hall').value;
+  const date   = document.getElementById('m-date').value;
+  const ts     = document.getElementById('m-time-start').value;
+  const te     = document.getElementById('m-time-end').value;
+  const name   = document.getElementById('m-name').value.trim();
+  const phone  = document.getElementById('m-phone').value.trim();
+
+  if (!hallId || !date || !ts || !te || !name || !phone) {
+    errEl.textContent = 'Заполните обязательные поля: зал, дата, время, имя, телефон';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Создаём...';
+
+  try {
+    const body = {
+      hall_id:    Number(hallId),
+      date,
+      time_start: ts,
+      time_end:   te,
+      name,
+      phone,
+      email:    document.getElementById('m-email').value.trim() || undefined,
+      telegram: document.getElementById('m-telegram').value.trim() || undefined,
+      notes:    document.getElementById('m-notes').value.trim() || undefined,
+      paid:     document.getElementById('m-paid').checked,
+    };
+
+    const data = await api('POST', '/bookings', body);
+    if (!data) return;
+
+    if (data.ok || data.success || data.id) {
+      closeBookingModal();
+      if (activeTab === 'bookings') loadBookings();
+    } else {
+      errEl.textContent = data.error || data.message || 'Не удалось создать бронь';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Создать';
+    }
+  } catch(e) {
+    errEl.textContent = 'Ошибка соединения';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Создать';
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('modal-booking').addEventListener('click', function(e) {
+  if (e.target === this) closeBookingModal();
+});
+
+/* ======================================================
+   TAB 3: ЗАЛЫ
+   ====================================================== */
+async function loadHalls() {
+  try {
+    const data = await api('GET', '/halls/1');
+    if (!data) return;
+    const h = data.data || data;
+    document.getElementById('hall-name').value        = h.name || '';
+    document.getElementById('hall-description').value = h.description || '';
+    document.getElementById('hall-area').value        = h.area_m2 || '';
+    document.getElementById('hall-capacity').value    = h.capacity || '';
+    document.getElementById('hall-rules').value       = h.rules || '';
+    document.getElementById('hall-phone').value       = h.contact_phone || '';
+  } catch(e) { /* silent */ }
+}
+
+async function saveHall() {
+  const msgEl = document.getElementById('hall-msg');
+  msgEl.style.display = 'none';
+
+  const body = {
+    name:          document.getElementById('hall-name').value.trim(),
+    description:   document.getElementById('hall-description').value.trim(),
+    area_m2:       Number(document.getElementById('hall-area').value) || undefined,
+    capacity:      Number(document.getElementById('hall-capacity').value) || undefined,
+    rules:         document.getElementById('hall-rules').value.trim(),
+    contact_phone: document.getElementById('hall-phone').value.trim(),
+  };
+
+  try {
+    const data = await api('PUT', '/halls/1', body);
+    if (!data) return;
+    if (data.ok || data.success || data.id || data.data) {
+      msgEl.textContent = 'Сохранено!';
+      msgEl.className = 'success-msg';
+      msgEl.style.display = 'inline';
+    } else {
+      msgEl.textContent = data.error || data.message || 'Ошибка сохранения';
+      msgEl.className = 'err-msg';
+      msgEl.style.display = 'inline';
+    }
+    setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+  } catch(e) {
+    msgEl.textContent = 'Ошибка соединения';
+    msgEl.className = 'err-msg';
+    msgEl.style.display = 'inline';
+  }
+}
+
+async function loadPricing() {
+  const container = document.getElementById('pricing-rows');
+  container.innerHTML = '<div class="loading-text">Загрузка...</div>';
+  try {
+    const data = await api('GET', '/pricing');
+    if (!data) return;
+    pricingData = data.data || data || [];
+    renderPricingRows();
+  } catch(e) {
+    container.innerHTML = '<div class="empty-text" style="color:var(--danger)">Ошибка загрузки</div>';
+  }
+}
+
+const dayTypeLabels = {
+  weekday: 'Пн–Пт',
+  weekend: 'Сб–Вс',
+};
+
+function renderPricingRows() {
+  const container = document.getElementById('pricing-rows');
+  if (!pricingData.length) {
+    container.innerHTML = '<div class="empty-text">Нет тарифов</div>';
+    return;
+  }
+  container.innerHTML = pricingData.map((p, i) => `
+    <div class="pricing-row">
+      <div class="pricing-day">${dayTypeLabels[p.day_type] || p.day_type}</div>
+      <div>
+        <input
+          type="number"
+          class="pricing-price-input"
+          data-index="${i}"
+          value="${p.price_per_hour || ''}"
+          placeholder="₽/час"
+          style="width:100%"
+        >
+      </div>
+      <div class="toggle-wrap">
+        <label class="toggle">
+          <input type="checkbox" class="pricing-active-toggle" data-index="${i}" ${p.is_active ? 'checked' : ''}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function savePricing() {
+  const msgEl = document.getElementById('pricing-msg');
+  msgEl.style.display = 'none';
+
+  // Collect current values from DOM
+  document.querySelectorAll('.pricing-price-input').forEach(input => {
+    const i = Number(input.dataset.index);
+    if (pricingData[i]) pricingData[i].price_per_hour = Number(input.value) || 0;
+  });
+  document.querySelectorAll('.pricing-active-toggle').forEach(cb => {
+    const i = Number(cb.dataset.index);
+    if (pricingData[i]) pricingData[i].is_active = cb.checked;
+  });
+
+  try {
+    const data = await api('PUT', '/pricing', { pricing: pricingData });
+    if (!data) return;
+    if (data.ok || data.success || data.data || Array.isArray(data)) {
+      msgEl.textContent = 'Сохранено!';
+      msgEl.className = 'success-msg';
+      msgEl.style.display = 'inline';
+    } else {
+      msgEl.textContent = data.error || data.message || 'Ошибка сохранения';
+      msgEl.className = 'err-msg';
+      msgEl.style.display = 'inline';
+    }
+    setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+  } catch(e) {
+    msgEl.textContent = 'Ошибка соединения';
+    msgEl.className = 'err-msg';
+    msgEl.style.display = 'inline';
+  }
+}
+
+/* ======================================================
+   TAB 4: КЛИЕНТЫ
+   ====================================================== */
+async function loadClients() {
+  const tbody = document.getElementById('clients-table-body');
+  tbody.innerHTML = '<tr><td colspan="6" class="loading-text" style="text-align:center">Загрузка...</td></tr>';
+  try {
+    const data = await api('GET', '/clients');
+    if (!data) return;
+    const clients = data.data || data || [];
+    if (!clients.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-text">Клиентов пока нет</td></tr>';
+      return;
+    }
+    tbody.innerHTML = clients.map(c => {
+      const tg = formatTelegram(c.telegram);
+      const phone = c.phone || '';
+      return `<tr>
+        <td>${esc(c.name || '—')}</td>
+        <td>${phone ? `<a class="tel-link" href="tel:${esc(phone)}">${esc(phone)}</a>` : '—'}</td>
+        <td>${esc(c.email || '—')}</td>
+        <td>${tg ? `<a class="tg-link" href="https://t.me/${esc(tg.replace('@',''))}" target="_blank">${esc(tg)}</a>` : '—'}</td>
+        <td>${c.bookings_count ?? 0}</td>
+        <td>${fmtMoney(c.total_paid ?? 0)}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-text" style="color:var(--danger)">Ошибка загрузки</td></tr>';
+  }
+}
+
+async function downloadCSV() {
+  const token = localStorage.getItem('rh_staff_token');
+  try {
+    const res = await fetch('/api/admin/clients/csv', {
+      headers: { Authorization: 'Bearer ' + token, Accept: 'text/csv,application/octet-stream' }
+    });
+    if (res.status === 401) { localStorage.clear(); window.location.href = '/staff-login'; return; }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = 'clients_' + fmtDate(new Date()) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  } catch(e) {
+    alert('Ошибка при скачивании файла');
+  }
+}
+
+/* ======================================================
+   HELPERS
+   ====================================================== */
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function fmtMoney(n) {
+  return Number(n).toLocaleString('ru') + ' ₽';
+}
+
+function fmtDateRu(iso) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return [d, m, y].join('.');
+}
+
+function formatTelegram(val) {
+  if (!val) return '';
+  val = val.trim();
+  if (!val) return '';
+  if (!val.startsWith('@')) val = '@' + val;
+  return val;
+}
+
+function renderBadge(status) {
+  const labels = {
+    paid:            'Оплачено',
+    confirmed:       'Подтверждено',
+    hold:            'Hold',
+    pending_payment: 'Ожидает оплаты',
+    cancelled:       'Отменено',
+    draft:           'Черновик',
+    completed:       'Завершено',
+  };
+  const label = labels[status] || status || '—';
+  return `<span class="badge badge-${status}">${esc(label)}</span>`;
+}
+
+/* ======================================================
+   BOOT
+   ====================================================== */
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

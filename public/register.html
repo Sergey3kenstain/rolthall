@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Регистрация — ROLTHALL</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#2E2B35; --mid:#26232e; --deep:#1e1c24; --light:#D9D9D9; --accent:#fff; --border:rgba(255,255,255,.12); --danger:rgba(255,100,100,.9); --success:#50d890; --font:'Unbounded',sans-serif; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--font); background:var(--bg); color:var(--light); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+.card { width:100%; max-width:400px; border:1px solid var(--border); background:var(--mid); padding:40px 32px; }
+.logo { font-size:10px; font-weight:700; letter-spacing:.3em; color:rgba(217,217,217,.3); text-transform:uppercase; margin-bottom:28px; }
+h1 { font-size:20px; font-weight:800; color:var(--accent); margin-bottom:28px; letter-spacing:-.01em; }
+.field { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+label { font-size:7.5px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:rgba(217,217,217,.4); }
+input { font-family:var(--font); font-size:13px; background:var(--deep); border:1px solid var(--border); color:var(--light); padding:13px 14px; outline:none; transition:border-color .2s; }
+input:focus { border-color:rgba(255,255,255,.4); }
+.btn { width:100%; font-family:var(--font); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; background:var(--accent); color:var(--bg); border:none; padding:15px; cursor:pointer; margin-top:8px; transition:opacity .2s; }
+.btn:hover { opacity:.88; }
+.btn:disabled { opacity:.4; }
+.msg { font-size:10px; line-height:1.6; margin-top:16px; padding:12px 14px; display:none; }
+.msg.err { background:rgba(255,100,100,.1); border:1px solid rgba(255,100,100,.25); color:var(--danger); }
+.msg.ok  { background:rgba(80,216,144,.1); border:1px solid rgba(80,216,144,.25); color:var(--success); }
+.link { margin-top:20px; font-size:9px; color:rgba(217,217,217,.35); text-align:center; }
+.link a { color:rgba(217,217,217,.6); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ROLTHALL</div>
+  <h1>Регистрация</h1>
+  <div class="field"><label>Имя и фамилия</label><input type="text" id="name" placeholder="Иван Иванов" autocomplete="name"></div>
+  <div class="field"><label>Телефон</label><input type="tel" id="phone" placeholder="+7 (___) ___-__-__" autocomplete="tel"></div>
+  <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@email.com" autocomplete="email"></div>
+  <div class="field"><label>Пароль</label><input type="password" id="password" placeholder="Минимум 8 символов"></div>
+  <div class="field"><label>Повторите пароль</label><input type="password" id="password_confirmation" placeholder="Повторите пароль"></div>
+  <button class="btn" id="btn" onclick="doRegister()">Создать аккаунт</button>
+  <div class="msg" id="msg"></div>
+  <div class="link"><a href="/staff-login">Уже есть аккаунт → Войти</a></div>
+</div>
+<script>
+async function doRegister() {
+  const btn = document.getElementById('btn');
+  const msg = document.getElementById('msg');
+  msg.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Создаём...';
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+        password_confirmation: document.getElementById('password_confirmation').value,
+      }),
+    });
+    const data = await res.json();
+    msg.style.display = 'block';
+    if (data.ok) {
+      msg.className = 'msg ok';
+      msg.textContent = data.message;
+      btn.textContent = 'Готово';
+    } else {
+      msg.className = 'msg err';
+      const errs = data.errors ? Object.values(data.errors).flat().join(' ') : data.error;
+      msg.textContent = errs || 'Ошибка';
+      btn.disabled = false; btn.textContent = 'Создать аккаунт';
+    }
+  } catch(e) { msg.style.display='block'; msg.className='msg err'; msg.textContent='Ошибка соединения'; btn.disabled=false; btn.textContent='Создать аккаунт'; }
+}
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') doRegister(); }));
+</script>
+</body>
+</html>

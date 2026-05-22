@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Вход для персонала — ROLTHALL</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#2E2B35; --mid:#26232e; --deep:#1e1c24; --light:#D9D9D9; --accent:#fff; --border:rgba(255,255,255,.12); --danger:rgba(255,100,100,.9); --font:'Unbounded',sans-serif; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--font); background:var(--bg); color:var(--light); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+.card { width:100%; max-width:360px; border:1px solid var(--border); background:var(--mid); padding:40px 32px; }
+.logo { font-size:10px; font-weight:700; letter-spacing:.3em; color:rgba(217,217,217,.3); text-transform:uppercase; margin-bottom:28px; }
+h1 { font-size:20px; font-weight:800; color:var(--accent); margin-bottom:28px; }
+.field { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+label { font-size:7.5px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:rgba(217,217,217,.4); }
+input { font-family:var(--font); font-size:13px; background:var(--deep); border:1px solid var(--border); color:var(--light); padding:13px 14px; outline:none; width:100%; transition:border-color .2s; }
+input:focus { border-color:rgba(255,255,255,.4); }
+.btn { width:100%; font-family:var(--font); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; background:var(--accent); color:var(--bg); border:none; padding:15px; cursor:pointer; margin-top:8px; transition:opacity .2s; }
+.btn:hover { opacity:.88; }
+.btn:disabled { opacity:.4; }
+.err { font-size:10px; color:var(--danger); margin-top:12px; display:none; }
+.link { margin-top:20px; font-size:9px; color:rgba(217,217,217,.35); text-align:center; }
+.link a { color:rgba(217,217,217,.6); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ROLTHALL</div>
+  <h1>Вход</h1>
+  <div class="field"><label>Email</label><input type="email" id="email" autocomplete="email"></div>
+  <div class="field"><label>Пароль</label><input type="password" id="password" autocomplete="current-password"></div>
+  <button class="btn" id="btn" onclick="doLogin()">Войти</button>
+  <div class="err" id="err"></div>
+  <div class="link"><a href="/register">Нет аккаунта → Зарегистрироваться</a></div>
+</div>
+<script>
+// Если уже авторизован — сразу в панель
+if (localStorage.getItem('rh_staff_token')) window.location.href = '/admin';
+
+async function doLogin() {
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Входим...';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+      }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      localStorage.setItem('rh_staff_token', data.token);
+      localStorage.setItem('rh_staff_user',  JSON.stringify(data.user));
+      window.location.href = '/admin';
+    } else {
+      err.style.display = 'block'; err.textContent = data.error || 'Ошибка входа';
+      btn.disabled = false; btn.textContent = 'Войти';
+    }
+  } catch(e) { err.style.display='block'; err.textContent='Ошибка соединения'; btn.disabled=false; btn.textContent='Войти'; }
+}
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); }));
+</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HallController;
 use App\Http\Controllers\LandingController;
@@ -10,9 +12,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth ──────────────────────────────────────────────────────────────
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/login',    [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/auth/me',      [AuthController::class, 'me']);
+});
+
+// ── Admin (owner + manager) ───────────────────────────────────────────
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('/halls',                    [AdminController::class, 'halls']);
+    Route::put('/halls/{id}',               [AdminController::class, 'updateHall']);
+    Route::get('/pricing',                  [AdminController::class, 'pricing']);
+    Route::put('/pricing',                  [AdminController::class, 'updatePricing']);
+    Route::get('/bookings',                 [AdminController::class, 'bookings']);
+    Route::post('/bookings',                [AdminController::class, 'createBooking']);
+    Route::post('/bookings/{id}/cancel',    [AdminController::class, 'cancelBooking']);
+    Route::get('/analytics',                [AdminController::class, 'analytics']);
+    Route::get('/clients',                  [AdminController::class, 'clients']);
+    Route::get('/clients/csv',              [AdminController::class, 'clientsCsv']);
+});
 
 // ── Halls ─────────────────────────────────────────────────────────────
 Route::get('/halls',                        [HallController::class, 'index']);
