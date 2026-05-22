@@ -2,6 +2,9 @@
     Options -Indexes
     RewriteEngine On
 
+    # Передаём Authorization header в PHP-CGI (Beget стриппит его иначе)
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
     # Корень / → лендинг
     RewriteRule ^$ index.html [L]
 
