@@ -43,7 +43,6 @@ class TelegramController extends Controller
         if (!$chatId) return;
 
         $username = $message['chat']['username'] ?? null;
-        Log::error('TG_IN', ['chat_id' => $chatId, 'username' => $username, 'text' => $text]);
 
         if ($username) {
             User::where('telegram_username', $username)
