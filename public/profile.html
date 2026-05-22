@@ -164,6 +164,25 @@ nav.d-nav {
 .info-card-text .info-sub   { font-size: 9px; font-weight: 300; color: rgba(217,217,217,.45); line-height: 1.7; }
 .info-card-text .info-sub a { color: rgba(217,217,217,.7); }
 
+/* ══ LOGIN ══ */
+.login-card { border: 1px solid var(--accent-border); background: var(--charcoal-mid); padding: 32px; }
+.login-hint { font-size: 10px; font-weight: 300; color: rgba(217,217,217,.45); line-height: 1.7; margin-bottom: 24px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-label { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(217,217,217,.4); }
+.form-input {
+  width: 100%; background: var(--charcoal-deep); border: 1px solid var(--accent-border);
+  color: var(--light); font-family: var(--font); font-size: 13px; padding: 14px 16px;
+  outline: none; transition: border-color .2s;
+}
+.form-input:focus { border-color: rgba(255,255,255,.4); }
+.login-error { font-size: 10px; color: var(--danger); margin-top: 12px; line-height: 1.6; }
+.btn-logout {
+  font-family: var(--font); font-size: 8px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+  background: transparent; border: 1px solid rgba(255,100,100,.3); color: rgba(255,100,100,.7);
+  padding: 10px 20px; cursor: pointer; transition: all .2s;
+}
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
 /* ══ LOADING ══ */
 .loading { text-align: center; padding: 40px; color: rgba(217,217,217,.3); font-size: 9px; letter-spacing: .2em; }
 
@@ -210,26 +229,53 @@ nav.d-nav {
 <div class="page-shell">
   <div class="container">
 
-    <div class="page-eyebrow">Личный кабинет</div>
-    <div class="page-title">Мои брони</div>
-
-    <!-- Telegram info -->
-    <div class="section">
-      <div class="info-card">
-        <div class="info-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
-        </div>
-        <div class="info-card-text">
-          <div class="info-title">Уведомления через бота</div>
-          <div class="info-sub">Напишите <a href="https://t.me/RoltHallBot" target="_blank">@RoltHallBot</a> команду /start — и после каждой оплаты вы будете получать подтверждение в личные сообщения.</div>
+    <!-- LOGIN FORM -->
+    <div id="loginView">
+      <div class="page-eyebrow">Личный кабинет</div>
+      <div class="page-title">Войти</div>
+      <div class="section">
+        <div class="login-card">
+          <div class="login-hint">Введите телефон и email, которые указывали при бронировании</div>
+          <div class="form-group">
+            <label class="form-label">Телефон</label>
+            <input type="tel" class="form-input" id="lPhone" placeholder="+7 (___) ___-__-__" autocomplete="tel">
+          </div>
+          <div class="form-group" style="margin-top:16px;">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="lEmail" placeholder="your@email.com" autocomplete="email">
+          </div>
+          <div id="loginError" class="login-error" style="display:none;"></div>
+          <button class="btn-primary" id="loginBtn" onclick="doLogin()" style="width:100%;margin-top:24px;">Войти</button>
         </div>
       </div>
     </div>
 
-    <!-- Bookings list -->
-    <div class="section">
-      <div class="section-label">История броней</div>
-      <div id="bookingsList"><div class="loading">Загрузка...</div></div>
+    <!-- BOOKINGS VIEW -->
+    <div id="bookingsView" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="page-eyebrow">Личный кабинет</div>
+          <div class="page-title" id="profileName">Мои брони</div>
+        </div>
+        <button onclick="doLogout()" class="btn-logout">Выйти</button>
+      </div>
+
+      <div class="section">
+        <div class="info-card">
+          <div class="info-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+          </div>
+          <div class="info-card-text">
+            <div class="info-title">Уведомления в Telegram</div>
+            <div class="info-sub">Напишите <a href="https://t.me/RoltHallBot" target="_blank">@RoltHallBot</a> команду /start — получайте уведомления о бронях в личку.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">История броней</div>
+        <div id="bookingsList"><div class="loading">Загрузка...</div></div>
+      </div>
     </div>
 
   </div>
@@ -256,40 +302,144 @@ nav.d-nav {
 </nav>
 
 <script>
-const MONTH = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
-const DAY   = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-
-function fmtDate(str) {
-  const d = new Date(str);
-  return `${DAY[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-const STATUS_MAP = {
-  paid:      { label: 'Оплачено',  cls: 'badge-paid',      dot: 'status-paid' },
-  confirmed: { label: 'Оплачено',  cls: 'badge-paid',      dot: 'status-paid' },
-  hold:      { label: 'Ожидает',   cls: 'badge-hold',      dot: 'status-hold' },
-  pending_payment: { label: 'Ожидает', cls: 'badge-hold',  dot: 'status-hold' },
-  cancelled: { label: 'Отменено',  cls: 'badge-cancelled', dot: 'status-cancelled' },
+const MONTH  = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const DAY    = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const STATUS = {
+  paid:            { label: 'Оплачено',  cls: 'badge-paid',      dot: 'status-paid'      },
+  confirmed:       { label: 'Оплачено',  cls: 'badge-paid',      dot: 'status-paid'      },
+  hold:            { label: 'Резерв',    cls: 'badge-hold',      dot: 'status-hold'      },
+  pending_payment: { label: 'Ожидает',   cls: 'badge-hold',      dot: 'status-hold'      },
+  cancelled:       { label: 'Отменено',  cls: 'badge-cancelled', dot: 'status-cancelled' },
 };
 
-// Пытаемся получить брони по номеру телефона из sessionStorage (заполняется в booking.html)
-async function loadBookings() {
-  const el = document.getElementById('bookingsList');
-  const phone = sessionStorage.getItem('rh_booking_form')
-    ? JSON.parse(sessionStorage.getItem('rh_booking_form')).phone
-    : null;
+function fmtDate(str) {
+  const d = new Date(str + 'T00:00:00');
+  return `${DAY[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]} ${d.getFullYear()}`;
+}
+function fmtMoney(n) { return Number(n).toLocaleString('ru') + ' ₽'; }
 
-  // Пока нет авторизации — показываем последние оплаченные брони по phone из session
-  // В будущем: API с токеном
-  el.innerHTML = `<div class="empty-state">
-    <div class="empty-icon">📋</div>
-    <div class="empty-title">Авторизация скоро</div>
-    <div class="empty-sub">Личный кабинет с историей броней появится после добавления авторизации.<br>Пока можете посмотреть брони, написав боту @RoltHallBot</div>
-    <a href="/calendar" class="btn-primary">Забронировать зал</a>
+const TOKEN_KEY = 'rh_profile_token';
+
+async function doLogin() {
+  const phone = document.getElementById('lPhone').value.trim();
+  const email = document.getElementById('lEmail').value.trim();
+  const err   = document.getElementById('loginError');
+  const btn   = document.getElementById('loginBtn');
+
+  if (!phone || !email) { showErr('Заполните оба поля'); return; }
+
+  btn.disabled = true; btn.textContent = 'Проверяем...';
+
+  try {
+    const res  = await fetch('/api/profile/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ phone, email }),
+    });
+    const data = await res.json();
+    if (!data.ok) { showErr(data.error || 'Ошибка входа'); return; }
+    sessionStorage.setItem(TOKEN_KEY, data.token);
+    showBookingsView(data.name, data.token);
+  } catch(e) {
+    showErr('Ошибка соединения');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Войти';
+  }
+}
+
+function showErr(msg) {
+  const e = document.getElementById('loginError');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+function doLogout() {
+  sessionStorage.removeItem(TOKEN_KEY);
+  document.getElementById('bookingsView').style.display = 'none';
+  document.getElementById('loginView').style.display    = 'block';
+  document.getElementById('loginError').style.display  = 'none';
+}
+
+async function showBookingsView(name, token) {
+  document.getElementById('loginView').style.display    = 'none';
+  document.getElementById('bookingsView').style.display = 'block';
+  document.getElementById('profileName').textContent    = name || 'Мои брони';
+
+  const el = document.getElementById('bookingsList');
+  el.innerHTML = '<div class="loading">Загрузка...</div>';
+
+  try {
+    const res  = await fetch(`/api/profile/bookings?token=${encodeURIComponent(token)}`, {
+      headers: { Accept: 'application/json' },
+    });
+    const data = await res.json();
+    if (!data.ok) { doLogout(); return; }
+    renderBookings(data.bookings);
+  } catch(e) {
+    el.innerHTML = '<div class="loading">Ошибка загрузки</div>';
+  }
+}
+
+function renderBookings(list) {
+  const el = document.getElementById('bookingsList');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">Броней пока нет</div>
+      <div class="empty-sub">Забронируйте зал — и оно появится здесь</div>
+      <a href="/calendar" class="btn-primary">Забронировать зал</a>
+    </div>`;
+    return;
+  }
+
+  const now = new Date(); now.setHours(0,0,0,0);
+  const upcoming = list.filter(b => new Date(b.date+'T00:00:00') >= now && b.status !== 'cancelled');
+  const past     = list.filter(b => new Date(b.date+'T00:00:00') <  now || b.status === 'cancelled');
+
+  let html = '';
+  if (upcoming.length) {
+    html += '<div class="section-label" style="margin-bottom:12px;">Предстоящие</div>';
+    html += upcoming.map(bookingCard).join('');
+  }
+  if (past.length) {
+    html += '<div class="section-label" style="margin-top:28px;margin-bottom:12px;">Прошедшие</div>';
+    html += past.map(bookingCard).join('');
+  }
+  el.innerHTML = html;
+}
+
+function bookingCard(b) {
+  const s   = STATUS[b.status] || { label: b.status, cls: 'badge-cancelled', dot: 'status-cancelled' };
+  const fmt = b.format === 'event' ? 'Мероприятие' : 'Почасовая';
+  return `<div class="booking-card">
+    <div class="booking-status-dot ${s.dot}"></div>
+    <div class="booking-info">
+      <div class="booking-hall">${b.hall}</div>
+      <div class="booking-date">${fmtDate(b.date)} · ${b.time_start}–${b.time_end} · ${fmt}</div>
+      <div class="booking-price">Оплачено: ${fmtMoney(b.prepayment)} из ${fmtMoney(b.total)}</div>
+    </div>
+    <span class="booking-badge ${s.cls}">${s.label}</span>
   </div>`;
 }
 
-loadBookings();
+// Автовход если токен уже есть
+const saved = sessionStorage.getItem(TOKEN_KEY);
+if (saved) showBookingsView('', saved);
+
+// Enter в полях входа
+document.addEventListener('DOMContentLoaded', () => {
+  ['lPhone','lEmail'].forEach(id =>
+    document.getElementById(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
+  );
+  // Подставляем телефон из формы бронирования если был
+  const form = sessionStorage.getItem('rh_booking_form');
+  if (form && !saved) {
+    try {
+      const d = JSON.parse(form);
+      if (d.phone) document.getElementById('lPhone').value = d.phone;
+      if (d.email) document.getElementById('lEmail').value = d.email;
+    } catch(_) {}
+  }
+});
 </script>
 </body>
 </html>

@@ -4,6 +4,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HallController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,10 @@ Route::get('/halls',                        [HallController::class, 'index']);
 Route::get('/halls/{hall}',                 [HallController::class, 'show']);
 Route::get('/halls/{hall}/pricing',         [HallController::class, 'pricing']);
 Route::get('/halls/{hall}/availability',    [HallController::class, 'availability']);
+
+// ── Profile ───────────────────────────────────────────────────────────
+Route::post('/profile/login',    [ProfileController::class, 'login']);
+Route::get('/profile/bookings',  [ProfileController::class, 'bookings']);
 
 // ── Landing ───────────────────────────────────────────────────────────
 Route::post('/landing/booking', [LandingController::class, 'booking']);
