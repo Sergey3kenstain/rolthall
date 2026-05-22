@@ -220,7 +220,7 @@ section { padding: 120px 48px; }
 .about-carousel-col { display:flex; flex-direction:column; gap:0; }
 .carousel-wrap {
   position:relative; overflow:hidden; border-radius:0;
-  width:100%; aspect-ratio:4/3; background:var(--charcoal-deep); flex-shrink:0;
+  width:100%; max-width:350px; aspect-ratio:4/3; background:var(--charcoal-deep); flex-shrink:0;
   cursor:pointer;
 }
 .carousel-track {
@@ -461,6 +461,7 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
 
 /* ══ RESPONSIVE ══ */
 @media (max-width:900px) {
+.carousel-wrap { width:40vw; max-width:none; }
 .hero-desc {margin-bottom: 100px;}
 
 .footer-nav-col {gap: 10px;display: grid;}
