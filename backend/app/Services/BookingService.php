@@ -167,6 +167,11 @@ class BookingService
             ]);
         }
 
+        // Сохраняем telegram_chat_id если пришёл из WebApp
+        if (!empty($data['tg_user_id']) && empty($user->telegram_chat_id)) {
+            $user->update(['telegram_chat_id' => (string) $data['tg_user_id']]);
+        }
+
         return Client::firstOrCreate(
             ['user_id' => $user->id],
             [

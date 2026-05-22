@@ -1550,7 +1550,18 @@ function goToBooking() {
 
 /* ===== TELEGRAM WEBAPP ===== */
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
+if (tg) {
+  tg.ready();
+  tg.expand();
+  // Сохраняем TG-данные пользователя в sessionStorage для booking.html
+  const u = tg.initDataUnsafe?.user;
+  if (u) {
+    sessionStorage.setItem('rh_tg_user', JSON.stringify({
+      id:       u.id,
+      username: u.username || '',
+    }));
+  }
+}
 
 /* ===== INIT ===== */
 reloadAndRedraw();

@@ -914,6 +914,9 @@ async function submitBooking() {
 
   try {
     if (BOOKING_DATA.format === 'hourly') {
+      const tgStored2 = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
+      const tgChatId  = tg?.initDataUnsafe?.user?.id || tgStored2?.id || null;
+
       const res  = await fetch('/api/bookings/hold', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -924,6 +927,7 @@ async function submitBooking() {
           time_end:        BOOKING_DATA.timeEnd,
           name, phone, email,
           telegram:        telegram || null,
+          tg_user_id:      tgChatId,
           notes,
           consent_offer:   true,
           consent_policy:  true,
@@ -1006,8 +1010,10 @@ document.addEventListener('DOMContentLoaded', function() {
   initBookingPage();
   restoreFormData();
 
-  // Автозаполнение Telegram из WebApp (если открыто через бота)
-  const tgUser = tg?.initDataUnsafe?.user;
+  // TG-данные: сначала из контекста WebApp, иначе из sessionStorage (если пришли из /calendar)
+  const tgDirect = tg?.initDataUnsafe?.user;
+  const tgStored = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
+  const tgUser   = tgDirect || tgStored;
   if (tgUser?.username) {
     const el = document.getElementById('f-telegram');
     if (el && !el.value) el.value = '@' + tgUser.username;

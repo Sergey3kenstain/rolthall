@@ -32,6 +32,7 @@ class BookingController extends Controller
             'phone'          => 'required|string|max:30',
             'email'          => 'nullable|email|max:191',
             'telegram'       => 'nullable|string|max:100',
+            'tg_user_id'     => 'nullable|string|max:50',
             'notes'          => 'nullable|string|max:1000',
             'consent_offer'  => 'boolean',
             'consent_policy' => 'boolean',
