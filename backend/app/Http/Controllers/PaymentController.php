@@ -122,6 +122,7 @@ class PaymentController extends Controller
             'amount'      => 50 * 100,  // 50 рублей
             'order_id'    => 'test-' . time(),
             'description' => 'Тестовый платёж RoltHall 50₽',
+            'email'       => 'test@rolthall.ru',
         ]);
 
         return response()->json($result);

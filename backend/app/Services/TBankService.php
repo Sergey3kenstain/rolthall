@@ -52,6 +52,8 @@ class TBankService
             $receipt['Email'] = $params['email'];
         } elseif (!empty($params['phone'])) {
             $receipt['Phone'] = $params['phone'];
+        } else {
+            $receipt['Email'] = 'noreply@rolthall.ru'; // fallback — не должен достигаться
         }
         $data['Receipt'] = $receipt;
 
