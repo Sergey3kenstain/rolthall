@@ -30,26 +30,29 @@ body { font-family: var(--font); background: var(--charcoal); color: var(--light
 ::-webkit-scrollbar-track { background: var(--charcoal-deep); }
 ::-webkit-scrollbar-thumb { background: rgba(217,217,217,.2); border-radius: 2px; }
 
-/* ══ DESKTOP NAV ══ */
+/* ══ DESKTOP NAV — точная копия index.html ══ */
 nav.d-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-  height: var(--nav-h); padding: 0 48px;
+  height: var(--nav-h);
+  padding: 0 48px;
   display: flex; align-items: center; justify-content: space-between;
-  background: rgba(30,28,36,.93); backdrop-filter: blur(20px);
+  background: rgba(30,28,36,.93);
+  backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--accent-border);
 }
-.d-nav-logo { display: flex; align-items: center; text-decoration: none; }
-.d-nav-logo svg { height: 14px; width: auto; display: block; }
-.d-nav-links { display: flex; gap: 32px; align-items: center; }
+.d-nav-logo { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+.d-nav-logo svg { height: 16px; width: auto; display: block; }
+.d-nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
 .d-nav-links a {
   font-size: 9px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
-  color: var(--light); text-decoration: none; opacity: .5; transition: opacity .2s;
+  color: var(--light); text-decoration: none; opacity: .55; transition: opacity .2s;
 }
 .d-nav-links a:hover, .d-nav-links a.active { opacity: 1; }
 .d-nav-account {
   width: 36px; height: 36px; border: 1px solid var(--accent-border); border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  text-decoration: none; color: var(--light); transition: border-color .2s, background .2s;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: border-color .2s, background .2s; flex-shrink: 0; text-decoration: none;
+  color: var(--light);
 }
 .d-nav-account:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.07); }
 .d-nav-account svg { width: 16px; height: 16px; }
@@ -128,14 +131,14 @@ nav.d-nav {
   /* Week grid */
   .wg-header {
     display: grid;
-    grid-template-columns: 52px repeat(7, minmax(0, 6vw));
+    grid-template-columns: 52px repeat(7, minmax(0, 12vw));
     position: sticky; top: 0; z-index: 5; flex-shrink: 0;
     background: var(--charcoal-mid);
     border-bottom: 1px solid var(--accent-border);
   }
   .wg-row {
     display: grid;
-    grid-template-columns: 52px repeat(7, minmax(0, 6vw));
+    grid-template-columns: 52px repeat(7, minmax(0, 12vw));
     border-bottom: 1px solid rgba(255,255,255,.04);
   }
   .wg-time-corner { border-right: 1px solid rgba(255,255,255,.06); }
@@ -168,7 +171,7 @@ nav.d-nav {
     background: var(--charcoal-mid);
   }
   .wg-cell {
-    min-height: 52px; max-width: 6vw;
+    min-height: 52px; max-width: 12vw;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     border-right: 1px solid rgba(255,255,255,.06);
     cursor: pointer; transition: background .1s; padding: 4px;
@@ -190,9 +193,11 @@ nav.d-nav {
   #desktopSheetWrap {
     display: block;
     border-top: 1px solid var(--accent-border);
-    padding: 0;
     flex-shrink: 0;
+    overflow: hidden;
   }
+  /* cal-side needs overflow-y for scroll but not clip the sheet */
+  .cal-side { overflow-y: auto; overflow-x: hidden; }
 
   /* Hide mobile bottom-sheet, info-bar (replaced by week nav) */
   .cal-main > .bottom-sheet { display: none !important; }
@@ -201,13 +206,7 @@ nav.d-nav {
   /* sel-days-list desktop */
   .sel-days-list { height: 96px; overflow: auto; }
 
-  /* Header: match index.html scrolled style */
-  nav.d-nav {
-    background: rgba(30,28,36,.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--accent-border);
-  }
-  .d-nav-links a { opacity: .55; }
+  /* Header already matches index.html in base styles */
 }
 
 /* ══ PAGE HEADER (desktop) ══ */
@@ -1185,7 +1184,7 @@ function updateSheetEl(emptyId, startId, selId, startLblId, listId, totalId, pre
     full.style.display     = completeSels.length > 0 ? 'block' : 'none';
     const sl = document.getElementById(startLblId);
     if (sl) sl.textContent = `${pad(s.start)}:00`;
-    if (completeSels.length > 0) renderSelList(completeSels, full);
+    if (completeSels.length > 0) renderSelList(completeSels, full, listId, totalId, prepayId);
     return;
   }
 
@@ -1199,10 +1198,10 @@ function updateSheetEl(emptyId, startId, selId, startLblId, listId, totalId, pre
   empty.style.display    = 'none';
   starting.style.display = 'none';
   full.style.display     = 'block';
-  renderSelList(completeSels, full);
+  renderSelList(completeSels, full, listId, totalId, prepayId);
 }
 
-function renderSelList(completeSels, fullEl) {
+function renderSelList(completeSels, fullEl, listId, totalId, prepayId) {
   const hall = HALLS[currentHall];
   let grandTotal = 0;
 
@@ -1228,13 +1227,14 @@ function renderSelList(completeSels, fullEl) {
 </div>`;
   }).join('');
 
-  const listEl = document.getElementById(listId);
+  const listEl = document.getElementById(listId || 'selDaysList');
   if (listEl) listEl.innerHTML = listHtml;
 
   const prepay = Math.round(grandTotal / 2);
-  const get = id => document.getElementById(id);
-  if (get(totalId))  get(totalId).textContent  = `${grandTotal.toLocaleString('ru')} ₽`;
-  if (get(prepayId)) get(prepayId).textContent  = `${prepay.toLocaleString('ru')} ₽`;
+  const tEl = document.getElementById(totalId  || 'selTotal');
+  const pEl = document.getElementById(prepayId || 'selPrepay');
+  if (tEl) tEl.textContent = `${grandTotal.toLocaleString('ru')} ₽`;
+  if (pEl) pEl.textContent = `${prepay.toLocaleString('ru')} ₽`;
 }
 
 function removeDay(dateKey) {
