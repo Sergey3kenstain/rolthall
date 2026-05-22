@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROLTHALL — Профессиональное танцевальное пространство</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --charcoal: #2E2B35;
+  --charcoal-deep: #1e1c24;
+  --charcoal-mid: #26232e;
+  --light: #D9D9D9;
+  --accent: #ffffff;
+  --accent-border: rgba(255,255,255,0.12);
+  --font: 'Unbounded', sans-serif;
+  --nav-h: 68px;
+  --mob-nav-h: 72px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--charcoal); color: var(--light); overflow-x: hidden; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--charcoal-deep); }
+::-webkit-scrollbar-thumb { background: rgba(217,217,217,0.3); border-radius: 2px; }
+
+/* ══ NAV — DESKTOP ══ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: var(--nav-h);
+  padding: 0 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background .4s, backdrop-filter .4s;
+}
+nav.scrolled {
+  background: rgba(30,28,36,.93);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--accent-border);
+}
+.nav-logo { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+.nav-logo svg { height: 16px; width: auto; display: block; }
+.nav-links { display: flex; gap: 32px; list-style: none; align-items: center;}
+.nav-links a {
+  font-size: 9px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--light); text-decoration: none; opacity: .55; transition: opacity .2s;
+}
+.nav-links a:hover { opacity: 1; }
+.nav-account {
+  width: 36px; height: 36px; border: 1px solid var(--accent-border); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: border-color .2s, background .2s; flex-shrink: 0; text-decoration: none;
+  color: var(--light);
+}
+.nav-account:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.07); }
+.nav-account svg { width: 16px; height: 16px; }
+
+/* ══ BOTTOM MOBILE NAV ══ */
+.mob-nav {
+  display: none;
+  position: fixed; top:92%; left: 0; right: 0; z-index: 200;
+  background: rgba(30,28,36,.97);
+  backdrop-filter: blur(24px);
+  border-top: 1px solid var(--accent-border);
+  padding: 0 4px env(safe-area-inset-bottom, 8px);
+  height: calc(var(--mob-nav-h) + env(safe-area-inset-bottom, 0px));
+  align-items: stretch; justify-content: space-around;
+}
+.mob-nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 8px 4px;
+  color: rgba(217,217,217,.45); text-decoration: none; cursor: pointer;
+  background: transparent; border: none; font-family: var(--font);
+  transition: color .2s;
+}
+.mob-nav-item:hover, .mob-nav-item.active { color: var(--accent); }
+.mob-nav-item svg { width: 20px; height: 20px; }
+.mob-nav-label { font-size: 7.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; line-height: 1; }
+
+/* Top mobile bar: logo + account */
+.mob-top {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 56px;
+  padding: 0 20px;
+  background: rgba(30,28,36,.97);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--accent-border);
+  align-items: center; justify-content: space-between;
+}
+.mob-top .nav-logo svg { height: 14px; }
+
+/* ══ SECTIONS ══ */
+section { padding: 120px 48px; }
+.section-label {
+  font-size: 8px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase;
+  color: rgba(217,217,217,.4); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.section-label::before { content:''; width:30px; height:1px; background:rgba(217,217,217,.3); }
+.section-title {
+  font-size: clamp(32px,5vw,72px); font-weight: 800; line-height: 1;
+  letter-spacing: -.02em; color: var(--accent);
+}
+.reveal { opacity:0; transform:translateY(40px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+.reveal.visible { opacity:1; transform:translateY(0); }
+.reveal-delay-1 { transition-delay:.1s; }
+.reveal-delay-2 { transition-delay:.2s; }
+.reveal-delay-3 { transition-delay:.3s; }
+.reveal-delay-4 { transition-delay:.4s; }
+
+/* ══ HERO ══ */
+#hero {
+  position: relative; min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 48px 80px; overflow: hidden;
+  padding-top: var(--nav-h);
+}
+.hero-bg { position:absolute; inset:0; background:var(--charcoal-deep); overflow:hidden; }
+.hero-bg video, .hero-bg img { width:100%; height:100%; object-fit:cover; opacity:.45; }
+.hero-bg::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(to bottom, rgba(30,28,36,.15) 0%, rgba(30,28,36,.05) 40%, rgba(30,28,36,.88) 80%, var(--charcoal-deep) 100%);
+}
+@keyframes rotateSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.hero-vertical {
+  position:absolute; right:48px; top:70%;
+  transform:translateY(-50%) rotate(90deg); transform-origin:right center;
+  font-size:8px; font-weight:400; letter-spacing:.25em; text-transform:uppercase;
+  color:rgba(217,217,217,.3); white-space:nowrap;
+}
+.hero-content { position:relative; z-index:2; max-width:900px; }
+.hero-tag {
+  font-size:8px; font-weight:400; letter-spacing:.25em; text-transform:uppercase;
+  color:rgba(217,217,217,.5); margin-bottom:32px;
+  display:flex; align-items:center; gap:16px;
+}
+.hero-tag::before { content:''; display:block; width:40px; height:1px; background:rgba(217,217,217,.4); }
+.hero-title {
+  font-size:clamp(56px,8vw,112px); font-weight:800; line-height:.92;
+  letter-spacing:-.02em; color:var(--accent); margin-bottom:32px;
+  opacity:0; transform:translateY(40px);
+  animation: fadeUp 1s cubic-bezier(.16,1,.3,1) .2s forwards;
+}
+.hero-desc {
+  font-size:clamp(12px,1.4vw,15px); font-weight:300; line-height:1.8;
+  color:rgba(217,217,217,.65); max-width:460px; margin-bottom:48px;
+  opacity:0; transform:translateY(30px);
+  animation: fadeUp 1s cubic-bezier(.16,1,.3,1) .5s forwards;
+}
+.hero-actions {
+  display:flex; gap:16px; flex-wrap:wrap;
+  opacity:0; transform:translateY(20px);
+  animation: fadeUp 1s cubic-bezier(.16,1,.3,1) .7s forwards;
+}
+@keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+
+/* Hero stats — новый блок */
+.hero-hero-stats {
+  position:absolute; bottom:80px; right:60px; z-index:2;
+  display:flex; gap:0;
+  background:rgba(30,28,36,.6);
+  backdrop-filter:blur(12px);
+  opacity:0; animation: fadeUp 1s cubic-bezier(.16,1,.3,1) .9s forwards;
+}
+.hero-hero-stats > div {
+  padding:20px 28px;
+  border-right:1px solid rgba(217,217,217,.1);
+  text-align:center;
+  min-width:100px;
+}
+.hero-hero-stats > div:last-child { border-right:none; }
+.hero-stat-num {
+  font-size:clamp(16px,2vw,22px); font-weight:800; color:var(--accent);
+  letter-spacing:-.02em; line-height:1.1; white-space:nowrap;
+  display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.hero-stat-label {
+  font-size:7.5px; font-weight:400; letter-spacing:.18em; text-transform:uppercase;
+  color:rgba(217,217,217,.4); margin-top:6px; white-space:nowrap;
+}
+.person-icon { display:inline-flex; align-items:center; }
+.person-icon svg { width:14px; height:14px; }
+
+.scroll-hint {
+  position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:8px; z-index:2;
+  opacity:0; animation: fadeUp 1s ease 1.2s forwards;
+}
+.scroll-hint span { font-size:7px; font-weight:400; letter-spacing:.25em; text-transform:uppercase; color:rgba(217,217,217,.3); }
+.scroll-line { width:1px; height:40px; background:linear-gradient(to bottom, rgba(217,217,217,.4), transparent); animation: scrollPulse 2s ease-in-out infinite; }
+@keyframes scrollPulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+/* Buttons */
+.btn-primary {
+  font-family:var(--font); font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--charcoal); background:var(--accent); border:none; padding:18px 40px;
+  cursor:pointer; text-decoration:none; display:inline-block;
+  transition:opacity .2s, transform .2s;
+}
+.btn-primary:hover { opacity:.9; transform:translateY(-2px); }
+.btn-secondary {
+  font-family:var(--font); font-size:10px; font-weight:500; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--light); background:transparent; border:1px solid rgba(217,217,217,.3);
+  padding:18px 40px; cursor:pointer; text-decoration:none; display:inline-block;
+  transition:border-color .2s, color .2s, transform .2s;
+}
+.btn-secondary:hover { border-color:var(--light); color:var(--accent); transform:translateY(-2px); }
+
+/* ══ ABOUT ══ */
+#about { background:var(--charcoal-mid); position:relative; overflow:hidden; }
+#about::before {
+  content:'346'; position:absolute; right:-40px; top:50%; transform:translateY(-50%);
+  font-size:280px; font-weight:900; color:rgba(255,255,255,.025); pointer-events:none; line-height:1;
+}
+.about-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; margin-top:64px; }
+
+/* CAROUSEL inside about */
+.about-carousel-col { display:flex; flex-direction:column; gap:0; }
+.carousel-wrap {
+  position:relative; overflow:hidden; border-radius:0;
+  width:100%; aspect-ratio:4/3; background:var(--charcoal-deep); flex-shrink:0;
+  cursor:pointer;
+}
+.carousel-track {
+  display:flex; height:100%;
+  transition:transform .45s cubic-bezier(.4,0,.2,1);
+}
+.carousel-track img {
+  min-width:100%; height:100%; object-fit:cover;
+  pointer-events:none; user-select:none; display:block;
+  /* placeholder gradient until real images are added */
+  background:linear-gradient(135deg,#26232e,#1e1c24);
+}
+.carousel-btn {
+  position:absolute; top:50%; transform:translateY(-50%);
+  background:rgba(30,28,36,.7); border:1px solid rgba(255,255,255,.15);
+  color:var(--accent); font-size:20px; width:40px; height:40px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:background .2s; z-index:3;
+  backdrop-filter:blur(4px);
+}
+.carousel-btn:hover { background:rgba(30,28,36,.95); }
+.carousel-prev { left:12px; }
+.carousel-next { right:12px; }
+.carousel-dots { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:3; }
+.cdot {
+  width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35);
+  cursor:pointer; transition:background .2s, transform .2s;
+}
+.cdot.active { background:var(--accent); transform:scale(1.3); }
+.hall-photo-badges {
+  position:absolute; top:12px; left:12px; right:12px;
+  display:flex; justify-content:space-between; align-items:center; z-index:3;
+}
+
+.badge {
+  font-size:8.5px; font-weight:600; letter-spacing:.08em;
+  padding:5px 12px; display:flex; align-items:center; gap:5px;
+}
+.badge-success { background:rgba(40,160,80,.2); border:1px solid rgba(40,200,90,.3); color:#6fda9f; }
+.status-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.dot-success { background:#50d890; box-shadow:0 0 6px #50d890; }
+.hall-photo-info {
+  position:absolute; bottom:48px; left:0; right:0;
+  padding:0 16px; z-index:3;
+}
+.hall-area {
+  font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  color:rgba(217,217,217,.7); background:rgba(30,28,36,.65); backdrop-filter:blur(6px);
+  display:inline-block; padding:5px 12px;
+  border:1px solid rgba(255,255,255,.1);
+}
+
+/* Lightbox */
+#lightbox {
+  display:none; position:fixed; inset:0; z-index:900;
+  background:rgba(10,9,14,.93); backdrop-filter:blur(12px);
+  align-items:center; justify-content:center;
+}
+#lightbox.open { display:flex; }
+#lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; display:block; }
+#lightbox-close {
+  position:absolute; top:20px; right:24px;
+  font-size:28px; color:var(--light); cursor:pointer; background:none; border:none;
+  opacity:.6; transition:opacity .2s;
+}
+#lightbox-close:hover { opacity:1; }
+#lightbox-prev, #lightbox-next {
+  position:absolute; top:50%; transform:translateY(-50%);
+  font-size:32px; color:var(--light); cursor:pointer; background:none; border:none;
+  opacity:.5; transition:opacity .2s; padding:20px;
+}
+#lightbox-prev:hover, #lightbox-next:hover { opacity:1; }
+#lightbox-prev { left:12px; }
+#lightbox-next { right:12px; }
+
+.about-features { display:grid; gap:0; margin-top:0; }
+.feature-item {
+  padding:28px 0; border-bottom:1px solid var(--accent-border);
+  display:grid; grid-template-columns:48px 1fr; gap:24px; align-items:start;
+}
+.feature-item:first-child { border-top:1px solid var(--accent-border); }
+.feature-num { font-size:10px; font-weight:700; color:rgba(217,217,217,.25); letter-spacing:.1em; padding-top:2px; }
+.feature-title { font-size:14px; font-weight:700; color:var(--accent); margin-bottom:8px; letter-spacing:-.01em; }
+.feature-text { font-size:11px; font-weight:300; line-height:1.8; color:rgba(217,217,217,.55); }
+
+/* ══ PRICING ══ */
+#pricing { background:var(--charcoal-deep); }
+.pricing-intro { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:end; margin-bottom:80px; }
+.pricing-intro-text { font-size:12px; font-weight:300; line-height:1.9; color:rgba(217,217,217,.5); max-width:420px; }
+.pricing-tabs { display:flex; gap:4px; margin-bottom:40px; }
+.tab-btn {
+  font-family:var(--font); font-size:9px; font-weight:600; letter-spacing:.15em; text-transform:uppercase;
+  color:rgba(217,217,217,.4); background:transparent; border:1px solid rgba(217,217,217,.15);
+  padding:12px 24px; cursor:pointer; transition:all .2s;
+}
+.tab-btn.active { color:var(--charcoal); background:var(--accent); border-color:var(--accent); }
+.tab-btn:hover:not(.active) { border-color:rgba(217,217,217,.4); color:var(--light); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+.pricing-table { width:100%; border-collapse:collapse; }
+.pricing-table thead th {
+  font-size:8px; font-weight:600; letter-spacing:.2em; text-transform:uppercase;
+  color:rgba(217,217,217,.35); text-align:left; padding:0 24px 20px;
+  border-bottom:1px solid var(--accent-border);
+}
+.pricing-table thead th:last-child { text-align:right; }
+.pricing-table tbody tr { border-bottom:1px solid rgba(217,217,217,.06); transition:background .2s; }
+.pricing-table tbody tr:hover { background:rgba(255,255,255,.03); }
+.pricing-table tbody td { padding:22px 24px; font-size:12px; font-weight:400; color:rgba(217,217,217,.7); }
+.pricing-table tbody td:first-child { font-weight:600; color:var(--accent); font-size:13px; }
+.pricing-table tbody td:last-child { text-align:right; font-weight:700; color:var(--accent); font-size:16px; }
+.price-note { font-size:8px; color:rgba(217,217,217,.3); font-weight:300; }
+.event-cards { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:8px; }
+.event-card {
+  border:1px solid var(--accent-border); padding:40px 36px;
+  position:relative; overflow:hidden; transition:border-color .3s;
+}
+.event-card:hover { border-color:rgba(255,255,255,.3); }
+.event-card.featured { background:var(--accent); border-color:var(--accent); }
+.event-card.featured .event-card-price,
+.event-card.featured .event-card-title,
+.event-card.featured .event-card-desc,
+.event-card.featured .event-card-label { color:var(--charcoal); }
+.event-card-label { font-size:8px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:rgba(217,217,217,.35); margin-bottom:24px; display:block; }
+.event-card-price { font-size:clamp(36px,4vw,60px); font-weight:900; color:var(--accent); line-height:1; letter-spacing:-.03em; }
+.event-card-currency { font-size:22px; font-weight:300; vertical-align:super; }
+.event-card-title { font-size:13px; font-weight:600; color:var(--light); margin-top:16px; margin-bottom:8px; }
+.event-card-desc { font-size:10px; font-weight:300; line-height:1.8; color:rgba(217,217,217,.5); }
+.conditions-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--accent-border); margin-top:48px;}
+.condition-item { background:var(--charcoal-deep); padding:28px 24px; }
+.condition-icon { width:32px; height:32px; margin-bottom:16px; opacity:.5; }
+.condition-title { font-size:11px; font-weight:700; color:var(--accent); margin-bottom:8px; }
+.condition-text { font-size:10px; font-weight:300; line-height:1.8; color:rgba(217,217,217,.5); }
+
+/* ══ RULES ══ */
+#rules { background:var(--charcoal-mid); }
+.rules-header { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:end; margin-bottom:64px; }
+.rules-note { font-size:11px; font-weight:400; line-height:1.8; color:rgba(217,217,217,.5); border-left:2px solid rgba(255,255,255,.2); padding-left:20px; }
+.accordion { border-top:1px solid var(--accent-border); }
+.accordion-item { border-bottom:1px solid var(--accent-border); }
+.accordion-header {
+  width:100%; background:transparent; border:none; padding:24px 0;
+  display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:24px; text-align:left;
+}
+.accordion-header-left { display:flex; align-items:center; gap:24px; }
+.accordion-num { font-size:10px; font-weight:700; color:rgba(217,217,217,.25); letter-spacing:.1em; min-width:28px; }
+.accordion-title { font-size:13px; font-weight:600; color:var(--accent); letter-spacing:-.01em; }
+.accordion-icon { width:20px; height:20px; position:relative; flex-shrink:0; opacity:.4; transition:opacity .2s, transform .3s; }
+.accordion-icon::before, .accordion-icon::after { content:''; position:absolute; background:var(--accent); border-radius:1px; }
+.accordion-icon::before { width:14px; height:1.5px; top:50%; left:50%; transform:translate(-50%,-50%); }
+.accordion-icon::after { width:1.5px; height:14px; top:50%; left:50%; transform:translate(-50%,-50%); transition:transform .3s,opacity .3s; }
+.accordion-item.open .accordion-icon { opacity:1; }
+.accordion-item.open .accordion-icon::after { transform:translate(-50%,-50%) rotate(90deg); opacity:0; }
+.accordion-body { max-height:0; overflow:hidden; transition:max-height .5s cubic-bezier(.16,1,.3,1),padding .3s; padding:0 0 0 52px; }
+.accordion-item.open .accordion-body { max-height:600px; padding:0 0 24px 52px; }
+.accordion-body p { font-size:11px; font-weight:300; line-height:1.9; color:rgba(217,217,217,.55); }
+.ban-block {
+  margin-top:48px; border:1px solid rgba(255,100,100,.2); padding:36px 40px;
+  background:rgba(255,50,50,.03); position:relative; overflow:hidden;
+}
+.ban-block::before { content:'!'; position:absolute; right:24px; top:-10px; font-size:160px; font-weight:900; color:rgba(255,80,80,.05); line-height:1; }
+.ban-label { font-size:8px; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,120,120,.7); margin-bottom:20px; }
+.ban-title { font-size:14px; font-weight:800; color:rgba(255,150,150,.9); margin-bottom:16px; letter-spacing:-.01em; }
+.ban-list { list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:10px 40px; }
+.ban-list li { font-size:11px; font-weight:400; color:rgba(217,217,217,.55); padding-left:16px; position:relative; line-height:1.6; }
+.ban-list li::before { content:'×'; position:absolute; left:0; color:rgba(255,120,120,.6); font-weight:700; }
+
+/* ══ FAQ ══ */
+#faq { background:var(--charcoal-deep); }
+.faq-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; margin-top:64px; align-items:start; }
+.faq-item { border-bottom:1px solid var(--accent-border); padding:28px 0; }
+.faq-item:first-child { border-top:1px solid var(--accent-border); }
+.faq-q { font-size:12px; font-weight:600; color:var(--accent); margin-bottom:12px; line-height:1.5; letter-spacing:-.01em; }
+.faq-a { font-size:11px; font-weight:300; line-height:1.9; color:rgba(217,217,217,.5); }
+.faq-cta-block { position:sticky; top:90px; border:1px solid var(--accent-border); padding:48px 40px; background:var(--charcoal-mid); }
+.faq-cta-label { font-size:8px; font-weight:600; letter-spacing:.25em; text-transform:uppercase; color:rgba(217,217,217,.35); margin-bottom:24px; }
+.faq-cta-title { font-size:28px; font-weight:800; color:var(--accent); line-height:1.1; letter-spacing:-.02em; margin-bottom:16px; }
+.faq-cta-text { font-size:11px; font-weight:300; line-height:1.8; color:rgba(217,217,217,.45); margin-bottom:32px; }
+.faq-cta-divider { width:40px; height:1px; background:rgba(217,217,217,.2); margin:24px 0; }
+.faq-contact { font-size:10px; font-weight:400; letter-spacing:.1em; color:rgba(217,217,217,.4); margin-top:16px; line-height:2; }
+.faq-contact a { color:var(--light); text-decoration:none; transition:color .2s; }
+.faq-contact a:hover { color:var(--accent); }
+
+/* ══ CONTACTS ══ */
+#contacts { background:var(--charcoal-mid); padding-bottom:0; }
+.contacts-layout { display:grid; grid-template-columns:1fr 1fr; gap:80px; padding-bottom:80px; align-items:start; }
+.contact-info-label { font-size:8px; font-weight:600; letter-spacing:.25em; text-transform:uppercase; color:rgba(217,217,217,.35); margin-bottom:40px; }
+.contact-address { font-size:clamp(18px,2.5vw,32px); font-weight:700; color:var(--accent); line-height:1.3; letter-spacing:-.01em; margin-bottom:48px; }
+.contact-links { display:flex; flex-direction:column; gap:16px; margin-bottom:48px; }
+.contact-link {
+  display:flex; align-items:center; gap:16px; font-size:12px; font-weight:500;
+  color:var(--light); text-decoration:none; opacity:.7; transition:opacity .2s;
+}
+.contact-link:hover { opacity:1; }
+.contact-link-icon {
+  width:36px; height:36px; border:1px solid var(--accent-border);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px;
+}
+
+/* Map — black & white until hover */
+.map-col {}
+.map-wrap { position:relative; overflow:hidden; border:1px solid var(--accent-border); }
+.map-wrap iframe {
+  width:100%; height:360px; border:none; display:block;
+  filter:grayscale(1) brightness(.8) contrast(1.1);
+  transition:filter .4s;
+}
+.map-wrap:hover iframe { filter:grayscale(0) brightness(1) contrast(1); }
+.map-wrap-full { margin-top:0; border:none; border-top:1px solid var(--accent-border); }
+.map-wrap-full iframe { height:400px; }
+
+/* ══ FOOTER ══ */
+footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-border); }
+.footer-top {
+  padding:48px 48px 36px;
+  display:grid; grid-template-columns:1fr auto 1fr;
+  gap:40px; align-items:start;
+}
+.footer-brand {}
+.footer-logo svg { height:16px; width:auto; opacity:.45; }
+.footer-tagline { font-size:9px; font-weight:300; letter-spacing:.12em; color:rgba(217,217,217,.25); margin-top:12px; }
+.footer-nav-col { display:flex; align-items:center; gap:16px; }
+.footer-nav-col a { font-size:9px; font-weight:500; letter-spacing:.15em; text-transform:uppercase; color:rgba(217,217,217,.4); text-decoration:none; transition:color .2s; }
+.footer-nav-col a:hover { color:var(--light); }
+.footer-legal-col { display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+.footer-legal-col a { font-size:8px; font-weight:300; letter-spacing:.05em; color:rgba(217,217,217,.3); text-decoration:none; transition:color .2s; text-align:right; line-height:1.5; }
+.footer-legal-col a:hover { color:rgba(217,217,217,.7); }
+.footer-bottom {
+  padding:20px 48px;
+  border-top:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+}
+.footer-copy { font-size:9px; font-weight:300; letter-spacing:.08em; color:rgba(217,217,217,.2); }
+.footer-dev { font-size:9px; font-weight:300; color:rgba(217,217,217,.2); }
+.footer-dev a { color:rgba(217,217,217,.4); text-decoration:none; transition:color .2s; }
+.footer-dev a:hover { color:var(--light); }
+.af_mobile {display: none;}
+
+/* ══ RESPONSIVE ══ */
+@media (max-width:900px) {
+.hero-desc {margin-bottom: 100px;}
+
+.footer-nav-col {gap: 10px;display: grid;}
+  nav { display:none; }
+  .mob-top { display:flex; }
+  .mob-nav { display:flex; }
+  body { padding-bottom:calc(var(--mob-nav-h) + env(safe-area-inset-bottom,0px)); }
+
+  section { padding:72px 20px; }
+  #hero { padding:0 20px calc(80px + var(--mob-nav-h)); padding-top:56px; }
+
+ .hero-vertical { display:none; }
+  .hero-hero-stats {
+    position:relative; bottom:auto; right:auto;
+    margin-top:32px; display:grid;
+    grid-template-columns:1fr 1fr; gap:0;
+    width:100%; animation:none; opacity:1;
+  }
+  .hero-hero-stats > div { min-width:0; padding:16px 12px; }
+  .hero-stat-num { font-size:16px; }
+
+  .about-grid { grid-template-columns:1fr; gap:40px; }
+  .pricing-intro { grid-template-columns:1fr; gap:32px; }
+  .event-cards { grid-template-columns:1fr; }
+  .conditions-grid { grid-template-columns:1fr; }
+  .rules-header { grid-template-columns:1fr; gap:32px; }
+  .ban-list { grid-template-columns:1fr; }
+  .faq-grid { grid-template-columns:1fr; gap:40px; }
+  .faq-cta-block { position:static; }
+  .contacts-layout { grid-template-columns:1fr; gap:40px; }
+
+  .footer-top { grid-template-columns:1fr; gap:32px; }
+  .footer-legal-col { align-items:flex-start; }
+  .footer-nav-col { align-items:flex-start; }
+  .footer-bottom { padding:16px 20px; flex-direction:column; align-items:flex-start; gap:8px; }
+  .footer-top { padding:36px 20px 28px; }
+}
+
+@media (max-width:480px) {
+    .scroll-hint {left:42%;}
+    .af_mobile {display: block;text-align: center;}
+    .hero-hero-stats {grid-template-columns: 1fr 1fr 1fr;position: absolute;bottom: 72VW;}
+    .hero-hero-stats > div {animation: fadeUp 1s cubic-bezier(.16, 1, .3, 1) .5s forwards;}
+  .hero-title { font-size:clamp(44px,14vw,72px); }
+  .pricing-tabs { flex-wrap:wrap; }
+  .tab-btn { font-size:8px; padding:10px 14px; }
+  .pricing-table thead { display:none; }
+  .pricing-table tbody td { display:block; padding:8px 16px; }
+  .pricing-table tbody td:first-child { padding-top:16px; }
+  .pricing-table tbody td:last-child { padding-bottom:16px; text-align:left; }
+  .pricing-table tbody tr { display:block; border-bottom:1px solid rgba(255,255,255,.08); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ TOP BAR MOBILE ══ -->
+<div class="mob-top" id="mobTop">
+  <a href="#" class="nav-logo">
+    <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#c0)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="c0"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
+  </a>
+  <a href="#lk" class="nav-account" title="Личный кабинет">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+  </a>
+</div>
+
+<!-- ══ DESKTOP NAV ══ -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#c1)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="c1"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">Пространство</a></li>
+    <li><a href="#pricing">Цены</a></li>
+    <li><a href="#rules">Правила</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contacts">Контакты</a></li>
+     <li><a href="#lk" class="nav-account" title="Личный кабинет">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+  </a>
+  </ul>
+
+</nav>
+
+<!-- ══ BOTTOM MOBILE NAV ══ -->
+<nav class="mob-nav" id="mobNav">
+  <a href="#about" class="mob-nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="mob-nav-label">Зал</span>
+  </a>
+  <a href="#pricing" class="mob-nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span class="mob-nav-label">Цены</span>
+  </a>
+  <a href="#rules" class="mob-nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span class="mob-nav-label">Правила</span>
+  </a>
+  <a href="#faq" class="mob-nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>
+    <span class="mob-nav-label">FAQ</span>
+  </a>
+  <a href="#contacts" class="mob-nav-item" onclick="setActive(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span class="mob-nav-label">Контакты</span>
+  </a>
+</nav>
+
+<!-- ══ LIGHTBOX ══ -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">×</button>
+  <button id="lightbox-prev" onclick="event.stopPropagation();lbPrev()">‹</button>
+  <img id="lightbox-img" src="" alt="">
+  <button id="lightbox-next" onclick="event.stopPropagation();lbNext()">›</button>
+</div>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-bg">
+    <!--
+      ВСТАВЬ ВИДЕО ИЛИ ФОТО СЮДА:
+      Видео: <video autoplay muted loop playsinline><source src="video.mp4" type="video/mp4"></video>
+      Фото:  <img src="hero.jpg" alt="ROLTHALL">
+    -->
+<div class="hero-hero-stats">
+<!--
+      <div class="div-hero-number">
+        <div class="hero-stat-num">1</div>
+        <div class="hero-stat-label">пространство</div>
+      </div>
+-->
+      <div class="div-hero-price">
+        <div class="hero-stat-num">3 500 ₽</div>
+        <div class="hero-stat-label">от / час</div>
+      </div>
+      <div class="div-hero-time">
+        <div class="hero-stat-num">1 час</div>
+        <div class="hero-stat-label">мин. бронь</div>
+      </div>
+      <div class="div-hero-min-price">
+        <div class="hero-stat-num">
+          150 чел
+        </div>
+        <div class="hero-stat-label">вместимость до</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-vertical">г. Краснодар — ул. Коммунаров, 278/1 — 346 м²</div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Профессиональное танцевальное пространство в Краснодаре</div>
+    <h1 class="hero-title">346 м²<br>свободы</h1>
+    <p class="hero-desc">Пространство для тренировок, мастер-классов и масштабных ивентов. Профессиональное покрытие, звук и свет — всё, что нужно для вашего танца.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать зал</button>
+      <button class="btn-secondary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Узнать цены</button>
+    </div>    
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Прокрутить</span>
+  </div>
+</section>
+
+<!-- ══ ABOUT ══ -->
+<section id="about">
+  <div class="section-label reveal">01 — О пространстве</div>
+  <div class="about-grid">
+    <div>
+      <h2 class="section-title reveal">Зал, который<br>не ограничивает</h2>
+      <div class="about-features" style="margin-top:48px">
+        <div class="feature-item reveal reveal-delay-1">
+          <span class="feature-num">01</span>
+          <div>
+            <div class="feature-title">Масштаб</div>
+            <div class="feature-text">346 квадратных метров профессионального покрытия. Достаточно для большой группы, конкурса или масштабного шоу.</div>
+          </div>
+        </div>
+        <div class="feature-item reveal reveal-delay-2">
+          <span class="feature-num">02</span>
+          <div>
+            <div class="feature-title">Свет и звук</div>
+            <div class="feature-text">Профессиональное звуковое и световое оборудование для мероприятий любого уровня — от занятий до концертов.</div>
+          </div>
+        </div>
+        <div class="feature-item reveal reveal-delay-3">
+          <span class="feature-num">03</span>
+          <div>
+            <div class="feature-title">Комфорт</div>
+            <div class="feature-text">Зона ожидания для гостей, раздевалки, гардеробная. Продуманная инфраструктура для тренеров и учеников.</div>
+          </div>
+        </div>
+      </div>
+        
+    </div>
+
+    <!-- CAROUSEL -->
+    <div class="about-carousel-col reveal reveal-delay-2">
+      <div class="carousel-wrap" id="car-a" onclick="openLightbox('a', currentSlide['a'])">
+        <div class="carousel-track" id="track-a">
+          <img src="uploads/image 1.png" alt="Зал — вид 1">
+          <img src="uploads/image 3.png" alt="Зал — вид 2">
+          <img src="uploads/image 2.png" alt="Зал — вид 3">
+        </div>
+        <button class="carousel-btn carousel-prev" onclick="carPrev(event,'a')">‹</button>
+        <button class="carousel-btn carousel-next" onclick="carNext(event,'a')">›</button>
+        <div class="carousel-dots" id="dots-a">
+          <div class="cdot active" onclick="carGo(event,'a',0)"></div>
+          <div class="cdot" onclick="carGo(event,'a',1)"></div>
+          <div class="cdot" onclick="carGo(event,'a',2)"></div>
+        </div>
+        <div class="hall-photo-badges">
+          <span class="badge badge-success"><span class="status-dot dot-success"></span> Свободен</span>
+        </div>
+        <div class="hall-photo-info">
+          <div class="hall-area">346 м²</div>
+        </div>
+      </div>
+    </div>
+      <div class="af_mobile" ><button class="btn-primary" onclick="document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать зал</button></div>
+  </div>
+</section>
+
+<!-- ══ PRICING ══ -->
+<section id="pricing">
+  <div class="pricing-intro">
+    <div>
+      <div class="section-label reveal">02 — Цены и форматы</div>
+      <h2 class="section-title reveal">Честные<br>тарифы</h2>
+    </div>
+    <p class="pricing-intro-text reveal">Простая и прозрачная система аренды. Выберите формат — почасовая практика или масштабное мероприятие на весь день.</p>
+  </div>
+  <div class="pricing-tabs reveal">
+    <button class="tab-btn active" onclick="switchTab('hourly',this)">Почасовая аренда</button>
+    <button class="tab-btn" onclick="switchTab('event',this)">Мероприятия</button>
+  </div>
+  <div class="tab-content active" id="tab-hourly">
+    <table class="pricing-table">
+      <thead><tr><th>День недели</th><th>Назначение</th><th>Стоимость</th></tr></thead>
+      <tbody>
+        <tr><td>Будни</td><td>Тренировки / Самостоятельная практика</td><td>3 500 ₽ / час</td></tr>
+        <tr><td>Выходные</td><td>Тренировки / Самостоятельная практика</td><td>5 000 ₽ / час</td></tr>
+        <tr><td>Будни</td><td>Мероприятия <span class="price-note">*до 30 чел.</span></td><td>10 000 ₽ / час</td></tr>
+        <tr><td>Выходные</td><td>Мастер-классы <span class="price-note">*до 30 чел.</span></td><td>15 000 ₽ / час</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:10px;font-weight:300;color:rgba(217,217,217,.35);margin-top:16px;padding-left:24px;line-height:1.7">* Если на мероприятии планируется более 30 человек, стоимость согласовывается индивидуально.</p>
+  </div>
+  <div class="tab-content" id="tab-event">
+    <div class="event-cards">
+      <div class="event-card reveal">
+        <span class="event-card-label">Весь день — базовый</span>
+        <div class="event-card-price"><span class="event-card-currency">₽</span>100 000</div>
+        <div class="event-card-title">День мероприятия</div>
+        <div class="event-card-desc">Аренда зала на весь день без дополнительного оборудования. Предоплата 50% при бронировании.</div>
+      </div>
+      <div class="event-card featured reveal reveal-delay-1">
+        <span class="event-card-label">Весь день — полный</span>
+        <div class="event-card-price"><span class="event-card-currency">₽</span>150 000</div>
+        <div class="event-card-title">День со светом и звуком</div>
+        <div class="event-card-desc">Профессиональный свет, звуковое оборудование, полная поддержка на весь день вашего мероприятия.</div>
+      </div>
+    </div>
+  </div>
+  <div class="conditions-grid reveal" style="margin-top:64px">
+    <div class="condition-item">
+      <svg class="condition-icon" viewBox="0 0 32 32" fill="none"><rect x="4" y="8" width="24" height="20" rx="1" stroke="white" stroke-width="1.5"/><path d="M4 14h24" stroke="white" stroke-width="1.5"/><path d="M11 4v8M21 4v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="condition-title">Почасовая аренда</div>
+      <div class="condition-text">100% стоимости списывается с карты за каждый час при бронировании.</div>
+    </div>
+    <div class="condition-item">
+      <svg class="condition-icon" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="white" stroke-width="1.5"/><path d="M16 9v7l4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="condition-title">Большие ивенты</div>
+      <div class="condition-text">Предоплата 50% при бронировании. Остаток — по согласованию.</div>
+    </div>
+    <div class="condition-item">
+      <svg class="condition-icon" viewBox="0 0 32 32" fill="none"><path d="M8 16l6 6 10-12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="condition-title">Отмена брони</div>
+      <div class="condition-text">За 24 ч и ранее — возврат 50%. Менее 24 ч до занятия — оплата не возвращается.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ RULES ══ -->
+<section id="rules">
+  <div class="rules-header">
+    <div>
+      <div class="section-label reveal">03 — Правила</div>
+      <h2 class="section-title reveal">Правила<br>пространства</h2>
+    </div>
+    <p class="rules-note reveal">Соглашаясь с бронированием, вы автоматически подтверждаете согласие с правилами пространства. Администратор вправе прекратить занятие без возврата средств при их нарушении.</p>
+  </div>
+  <div class="accordion reveal">
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left"><span class="accordion-num">01</span><span class="accordion-title">Время и доступ</span></div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body"><p>Время аренды включает настройку оборудования и уборку за собой. Опоздание не продлевает время аренды, а ранний уход не возвращает деньги. Гости ждут в зоне ожидания — посторонним в зале находиться нельзя.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left"><span class="accordion-num">02</span><span class="accordion-title">Обувь и чистота</span></div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body"><p>Только чистая сменная обувь для танцев — переобуваться строго в зале. Никаких набоек, металла или чёрной подошвы, оставляющей следы. Еда запрещена, из напитков — только вода в закрытой бутылке. На зеркала не опираться. Дети до 14 лет — только с тренером или родителем.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left"><span class="accordion-num">03</span><span class="accordion-title">Завершение занятия</span></div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body"><p>Зал сдаётся в чистоте — мусор в корзину. Оставленные вещи на вашей ответственности. Если после вас остаются крошки, пролитая вода или въевшиеся следы — удерживается 3 000 ₽ за химчистку.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left"><span class="accordion-num">04</span><span class="accordion-title">Имущество</span></div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body"><p>Поломки техники, зеркал или пола восстанавливаются за счёт арендатора. Проверяйте зал до начала занятия и сообщайте о любых повреждениях.</p></div>
+    </div>
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header-left"><span class="accordion-num">05</span><span class="accordion-title">Безопасность</span></div>
+        <div class="accordion-icon"></div>
+      </button>
+      <div class="accordion-body"><p>Ответственность за здоровье учеников несёт тренер. Огнетушители по периметру, аптечка у администратора. При ЧС — прекращаем работу и следуем к выходу.</p></div>
+    </div>
+  </div>
+  <div class="ban-block reveal">
+    <div class="ban-label">Категорически запрещено — штраф: бан и выселение без возврата</div>
+    <div class="ban-title">Нарушение = немедленное прекращение аренды без возврата средств</div>
+    <ul class="ban-list">
+      <li>Курение и вейпы (только на улице)</li>
+      <li>Алкоголь и любые вещества</li>
+      <li>Шум и агрессивное поведение вне зала</li>
+      <li>Вечеринки без предварительного согласования</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section id="faq">
+  <div class="section-label reveal">04 — Частые вопросы</div>
+  <div class="faq-grid">
+    <div>
+      <div class="faq-item reveal">
+        <div class="faq-q">Что делать, если мы закончили тренировку на 15 минут раньше?</div>
+        <div class="faq-a">Предупредите администратора. Помните: оплата за неиспользованное время не возвращается.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-1">
+        <div class="faq-q">Можно ли прийти в уличных кроссовках, если они чистые?</div>
+        <div class="faq-a">Нет. Уличную обувь необходимо оставить на входе. Танцевальная обувь надевается исключительно в самом зале.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-2">
+        <div class="faq-q">Могут ли родители подождать ребёнка в зале?</div>
+        <div class="faq-a">Нет. Для этого оборудована комфортная зона ожидания. В зале могут находиться только тренирующиеся.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-3">
+        <div class="faq-q">Можно ли провести вечеринку или день рождения?</div>
+        <div class="faq-a">По умолчанию зал сдаётся только под танцы и тренировки. Вечеринки и дни рождения — только при предварительном согласовании с администратором.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-4">
+        <div class="faq-q">Как происходит оплата и бронирование?</div>
+        <div class="faq-a">Оставьте заявку на сайте или напишите нам напрямую. При почасовой аренде — 100% предоплата. При аренде на день — 50% предоплата.</div>
+      </div>
+    </div>
+    <div class="faq-cta-block reveal">
+      <div class="faq-cta-label">Готовы начать?</div>
+      <div class="faq-cta-title">Забронируйте зал уже сегодня</div>
+      <div class="faq-cta-text">Оставьте заявку — мы свяжемся с вами и подберём удобное время.</div>
+      <button class="btn-primary" style="width:100%" onclick="document.getElementById('contacts').scrollIntoView({behavior:'smooth'})">Забронировать</button>
+<!--
+      <div class="faq-cta-divider"></div>
+      <div class="faq-contact">
+        Напишите напрямую:<br>
+        <a href="https://t.me/ВСТАВЬ_USERNAME">Telegram</a> &nbsp;·&nbsp;
+        <a href="https://wa.me/ВСТАВЬ_НОМЕР">WhatsApp</a> &nbsp;·&nbsp;
+        <a href="tel:+7ВСТАВЬ_ТЕЛЕФОН">+7 (___) ___-__-__</a>
+      </div>
+-->
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACTS ══ -->
+<section id="contacts">
+  <div class="section-label reveal">05 — Контакты</div>
+  <div class="contacts-layout">
+    <!-- LEFT: contact info -->
+    <div class="reveal">
+      <div class="contact-address">г. Краснодар,<br>ул. Коммунаров, 278/1</div>
+      <div class="contact-links">
+        <a href="tel:+7ВСТАВЬ_ТЕЛЕФОН" class="contact-link">
+          <div class="contact-link-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          +7 (___) ___-__-__ <!-- ВСТАВЬ ТЕЛЕФОН -->
+        </a>
+        <a href="https://t.me/ВСТАВЬ_USERNAME" class="contact-link" target="_blank">
+          <div class="contact-link-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+          </div>
+          Telegram <!-- ВСТАВЬ @username -->
+        </a>
+        <a href="https://wa.me/ВСТАВЬ_НОМЕР" class="contact-link" target="_blank">
+          <div class="contact-link-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          WhatsApp <!-- ВСТАВЬ НОМЕР -->
+        </a>
+      </div>
+      <div style="font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(217,217,217,.3);margin-bottom:12px">Режим работы</div>
+      <div style="font-size:11px;font-weight:300;color:rgba(217,217,217,.55);line-height:2">
+        Пн — Пт: по записи<br>
+        Сб — Вс: по записи<br>
+        Бронирование — онлайн
+      </div>
+    </div>
+
+    <!-- RIGHT: map -->
+    <div class="map-col reveal reveal-delay-1">
+      <div class="map-wrap">
+        <iframe
+          src="https://yandex.ru/map-widget/v1/?ll=38.985887%2C45.052060&mode=whatshere&whatshere%5Bpoint%5D=38.985886%2C45.052061&whatshere%5Bzoom%5D=17&z=17"
+          width="100%" height="360" frameborder="0" allowfullscreen="true"
+          title="ROLTHALL на карте — ул. Коммунаров, 278/1, Краснодар"
+          loading="lazy"
+        ></iframe>
+      </div>
+      <a href="https://yandex.ru/maps/35/krasnodar/house/ulitsa_kommunarov_278_1/Z0EYfw9lQU0BQFpvfXx0c3xlZQ==/?ll=38.985887%2C45.052060&z=17"
+         target="_blank"
+         style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(217,217,217,.35);text-decoration:none;transition:color .2s"
+         onmouseover="this.style.color='rgba(217,217,217,.8)'" onmouseout="this.style.color='rgba(217,217,217,.35)'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Открыть на Яндекс.Картах
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-top">
+    <!-- Logo + tagline -->
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#cf)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="cf"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
+      </div>
+      <div class="footer-tagline">Профессиональное танцевальное пространство · Краснодар</div>
+    </div>
+
+    <!-- Nav links center -->
+    <div class="footer-nav-col">
+      <a href="#about">Пространство</a>
+      <a href="#pricing">Цены</a>
+      <a href="#rules">Правила</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contacts">Контакты</a>
+    </div>
+
+    <!-- Legal links right -->
+    <div class="footer-legal-col">
+      <a href="https://hall.roltworld.com/cttp_opd.html" target="_blank">Согласие на обработку персональных данных</a>
+      <a href="https://hall.roltworld.com/user_agreement.html" target="_blank">Пользовательское соглашение</a>
+      <a href="https://hall.roltworld.com/privacy_policy.html" target="_blank">Политика конфиденциальности</a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 ROLTHALL. Все права защищены.</div>
+    <div class="footer-dev">dev by <a href="https://t.me/Sergey_3kenstain" target="_blank">Sergey 3kenstain</a></div>
+  </div>
+</footer>
+
+<script>
+// ╔══════════════════════════════════════╗
+// ║   НАСТРОЙКИ TELEGRAM БОТА           ║
+// ╠══════════════════════════════════════╣
+const TELEGRAM_BOT_TOKEN = 'ВСТАВЬ_ТОКЕН_СЮДА';
+const TELEGRAM_CHAT_ID   = 'ВСТАВЬ_ID_ЧАТА';
+const TELEGRAM_THREAD_ID = 'ВСТАВЬ_ID_ВЕТКИ';
+// ╚══════════════════════════════════════╝
+
+// ── NAV scroll ──
+window.addEventListener('scroll', () => {
+  const nb = document.getElementById('navbar');
+  if (nb) nb.classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ── Bottom nav active tab ──
+function setActive(el) {
+  document.querySelectorAll('.mob-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Scroll reveal ──
+const ro = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+// ── Tabs ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Accordion ──
+function toggleAccordion(btn) {
+  const item = btn.closest('.accordion-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.accordion-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ── CAROUSEL ──
+const currentSlide = {};
+const carImages = {};
+const autoplayTimers = {};
+const AUTOPLAY_MS = 3500;
+
+function initCarousel(id) {
+  const track = document.getElementById('track-' + id);
+  if (!track) return;
+  currentSlide[id] = 0;
+  carImages[id] = Array.from(track.querySelectorAll('img')).map(img => img.src);
+  startAutoplay(id);
+}
+
+function goSlide(id, idx) {
+  const track = document.getElementById('track-' + id);
+  const dots  = document.getElementById('dots-' + id);
+  if (!track) return;
+  const count = track.querySelectorAll('img').length;
+  idx = (idx + count) % count;
+  currentSlide[id] = idx;
+  track.style.transform = `translateX(-${idx * 100}%)`;
+  if (dots) {
+    dots.querySelectorAll('.cdot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+}
+function carPrev(e, id) { e.stopPropagation(); resetAutoplay(id); goSlide(id, currentSlide[id] - 1); }
+function carNext(e, id) { e.stopPropagation(); resetAutoplay(id); goSlide(id, currentSlide[id] + 1); }
+function carGo(e, id, idx) { e.stopPropagation(); resetAutoplay(id); goSlide(id, idx); }
+
+function startAutoplay(id) {
+  autoplayTimers[id] = setInterval(() => {
+    const track = document.getElementById('track-' + id);
+    if (!track) return;
+    const count = track.querySelectorAll('img').length;
+    goSlide(id, (currentSlide[id] + 1) % count);
+  }, AUTOPLAY_MS);
+}
+function resetAutoplay(id) {
+  clearInterval(autoplayTimers[id]);
+  startAutoplay(id);
+}
+
+// Pause on focus/hover
+document.querySelectorAll('.carousel-wrap').forEach(wrap => {
+  const id = wrap.id.replace('car-', '');
+  wrap.addEventListener('mouseenter', () => clearInterval(autoplayTimers[id]));
+  wrap.addEventListener('mouseleave', () => { clearInterval(autoplayTimers[id]); startAutoplay(id); });
+  wrap.addEventListener('touchstart', () => clearInterval(autoplayTimers[id]), {passive:true});
+  wrap.addEventListener('touchend',   () => { clearInterval(autoplayTimers[id]); startAutoplay(id); });
+});
+
+initCarousel('a');
+
+// ── LIGHTBOX ──
+let lbImages = [];
+let lbIdx = 0;
+
+function openLightbox(carId, idx) {
+  const track = document.getElementById('track-' + carId);
+  if (!track) return;
+  lbImages = Array.from(track.querySelectorAll('img')).map(i => i.src);
+  lbIdx = idx;
+  document.getElementById('lightbox-img').src = lbImages[lbIdx];
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function lbPrev() {
+  lbIdx = (lbIdx - 1 + lbImages.length) % lbImages.length;
+  document.getElementById('lightbox-img').src = lbImages[lbIdx];
+}
+function lbNext() {
+  lbIdx = (lbIdx + 1) % lbImages.length;
+  document.getElementById('lightbox-img').src = lbImages[lbIdx];
+}
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') lbPrev();
+  if (e.key === 'ArrowRight') lbNext();
+});
+</script>
+</body>
+</html>

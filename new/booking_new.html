@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Оформление брони — ROLTHALL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --charcoal:      #2E2B35;
+  --charcoal-deep: #1e1c24;
+  --charcoal-mid:  #26232e;
+  --light:         #D9D9D9;
+  --accent:        #ffffff;
+  --accent-border: rgba(255,255,255,0.12);
+  --danger:        rgba(255,100,100,.9);
+  --success:       #50d890;
+  --font:          'Unbounded', sans-serif;
+  --nav-h:         68px;
+  --mob-nav-h:     72px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--charcoal); color: var(--light); overflow-x: hidden; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--charcoal-deep); }
+::-webkit-scrollbar-thumb { background: rgba(217,217,217,0.3); border-radius: 2px; }
+
+/* ══ DESKTOP NAV ══ */
+nav.d-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: var(--nav-h);
+  padding: 0 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(30,28,36,.93);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--accent-border);
+}
+.d-nav-logo { display: flex; align-items: center; text-decoration: none; }
+.d-nav-logo svg { height: 14px; width: auto; display: block; }
+.d-nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
+.d-nav-links a {
+  font-size: 9px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--light); text-decoration: none; opacity: .5; transition: opacity .2s;
+}
+.d-nav-links a:hover { opacity: 1; }
+.d-nav-account {
+  width: 36px; height: 36px; border: 1px solid var(--accent-border); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: border-color .2s, background .2s; text-decoration: none; color: var(--light);
+}
+.d-nav-account:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.07); }
+.d-nav-account svg { width: 16px; height: 16px; }
+
+/* ══ MOBILE TOP BAR ══ */
+.mob-top {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 56px; padding: 0 20px;
+  background: rgba(30,28,36,.97);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--accent-border);
+  align-items: center; justify-content: space-between;
+}
+.mob-top svg { height: 14px; width: auto; }
+
+/* ══ MOBILE BOTTOM NAV ══ */
+.mob-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(30,28,36,.97);
+  backdrop-filter: blur(24px);
+  border-top: 1px solid var(--accent-border);
+  padding: 0 4px env(safe-area-inset-bottom, 8px);
+  height: calc(var(--mob-nav-h) + env(safe-area-inset-bottom, 0px));
+  align-items: stretch; justify-content: space-around;
+}
+.mob-nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 8px 4px;
+  color: rgba(217,217,217,.4); text-decoration: none;
+  background: transparent; border: none; font-family: var(--font); cursor: pointer;
+  transition: color .2s;
+}
+.mob-nav-item:hover, .mob-nav-item.active { color: var(--accent); }
+.mob-nav-item svg { width: 20px; height: 20px; }
+.mob-nav-label { font-size: 7.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; line-height: 1; }
+
+/* ══ PAGE WRAPPER ══ */
+.page-shell {
+  min-height: 100vh;
+  padding-top: var(--nav-h);
+  padding-bottom: 120px;
+}
+
+/* ══ PAGE HEADER ══ */
+.page-header {
+  padding: 48px 48px 0;
+  display: flex; align-items: center; gap: 20px;
+}
+.back-link {
+  width: 36px; height: 36px; border: 1px solid var(--accent-border);
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; color: var(--light); opacity: .5;
+  transition: opacity .2s, border-color .2s; flex-shrink: 0;
+}
+.back-link:hover { opacity: 1; border-color: rgba(255,255,255,.5); }
+.back-link svg { width: 16px; height: 16px; }
+.page-header-title { font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(217,217,217,.4); }
+
+/* Step breadcrumb — desktop */
+.step-breadcrumb {
+  display: flex; align-items: center; gap: 0;
+  padding: 24px 48px 0;
+}
+.step-crumb {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 8px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(217,217,217,.25);
+}
+.step-crumb.done { color: rgba(217,217,217,.45); }
+.step-crumb.active { color: var(--accent); }
+.step-crumb-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+  border: 1px solid rgba(217,217,217,.2); color: rgba(217,217,217,.3);
+}
+.step-crumb.done .step-crumb-num { background: rgba(80,216,144,.15); border-color: rgba(80,216,144,.4); color: var(--success); }
+.step-crumb.active .step-crumb-num { background: var(--accent); border-color: var(--accent); color: var(--charcoal); }
+.step-crumb-sep { width: 32px; height: 1px; background: rgba(217,217,217,.1); margin: 0 8px; }
+
+/* ══ BOOKING LAYOUT ══ */
+.booking-wrap {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  padding: 40px 48px;
+  align-items: start;
+}
+
+/* ══ FORM STEPS ══ */
+.section-label {
+  font-size: 8px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase;
+  color: rgba(217,217,217,.4); margin-bottom: 32px;
+  display: flex; align-items: center; gap: 16px;
+}
+.section-label::before { content: ''; width: 30px; height: 1px; background: rgba(217,217,217,.3); }
+
+.step-block {
+  border: 1px solid var(--accent-border);
+  margin-bottom: 2px;
+  position: relative; overflow: hidden;
+  transition: border-color .3s;
+}
+.step-block:hover { border-color: rgba(255,255,255,.2); }
+.step-block-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--accent-border);
+}
+.step-num {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  color: rgba(217,217,217,.25); min-width: 28px;
+}
+.step-num.done { color: var(--success); }
+.step-num.active { color: var(--accent); }
+.step-block-title { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: -.01em; }
+.step-block-sub   { font-size: 9px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.3); margin-top: 4px; }
+.step-block-body  { padding: 28px 32px; }
+
+/* Forms */
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group + .form-group { margin-top: 20px; }
+.form-label {
+  font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(217,217,217,.4);
+}
+.form-label .req { color: var(--danger); }
+.input-wrap { position: relative; }
+.input-icon-el {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 14px; pointer-events: none;
+  display: flex; align-items: center;
+  opacity: .5;
+}
+.input-icon-el svg { width: 15px; height: 15px; color: rgba(217,217,217,.45); }
+.form-input {
+  font-family: var(--font);
+  width: 100%; background: var(--charcoal-deep);
+  border: 1px solid var(--accent-border);
+  color: var(--light); font-size: 11px; font-weight: 400;
+  padding: 14px 16px 14px 44px;
+  outline: none; transition: border-color .2s, background .2s;
+  appearance: none; -webkit-appearance: none;
+}
+.form-input:focus { border-color: rgba(255,255,255,.4); background: rgba(30,28,36,.8); }
+.form-input::placeholder { color: rgba(217,217,217,.25); }
+.form-input.no-icon { padding-left: 16px; }
+textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
+.form-hint { font-size: 9px; font-weight: 300; color: rgba(217,217,217,.3); letter-spacing: .05em; }
+
+/* Notice */
+.notice {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 16px 20px; margin-top: 20px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+}
+.notice-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; opacity: .7; }
+.notice-text { font-size: 10px; font-weight: 300; line-height: 1.8; color: rgba(217,217,217,.5); }
+.notice-text strong { color: var(--light); font-weight: 600; }
+
+/* Consents */
+.consent-row {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 18px 0; border-bottom: 1px solid var(--accent-border);
+}
+.consent-row:last-child { border-bottom: none; padding-bottom: 0; }
+.consent-row:first-child { padding-top: 0; }
+.consent-cb {
+  width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px;
+  border: 1px solid rgba(217,217,217,.3); background: transparent;
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  position: relative; transition: border-color .2s, background .2s;
+}
+.consent-cb:checked { background: var(--accent); border-color: var(--accent); }
+.consent-cb:checked::after {
+  content: ''; position: absolute; left: 4px; top: 1px;
+  width: 5px; height: 9px;
+  border: 2px solid var(--charcoal); border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+.consent-text { font-size: 10px; font-weight: 300; line-height: 1.8; color: rgba(217,217,217,.5); }
+.consent-text a { color: var(--light); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.2); transition: border-color .2s; }
+.consent-text a:hover { border-color: var(--light); }
+
+/* Payment */
+.pay-method-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-bottom: 24px; }
+.pay-tab {
+  font-family: var(--font); font-size: 9px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+  padding: 14px 16px; border: 1px solid var(--accent-border);
+  background: transparent; color: rgba(217,217,217,.4); cursor: pointer;
+  transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.pay-tab svg { width: 14px; height: 14px; }
+.pay-tab.active { border-color: var(--accent); background: var(--accent); color: var(--charcoal); }
+.pay-tab:hover:not(.active) { border-color: rgba(255,255,255,.3); color: var(--light); }
+
+.pay-widget {
+  border: 1px solid var(--accent-border);
+  background: var(--charcoal-deep);
+}
+.pay-widget-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--accent-border);
+}
+.pay-widget-title { font-size: 9px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: rgba(217,217,217,.4); display: flex; align-items: center; gap: 8px; }
+.pay-widget-title svg { width: 12px; height: 12px; color: var(--success); }
+.pay-secure { font-size: 8px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: rgba(217,217,217,.25); }
+.pay-body { padding: 20px; }
+.pay-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.save-card-row {
+  display: flex; align-items: center; gap: 12px; margin-top: 20px;
+  font-size: 9px; font-weight: 400; letter-spacing: .08em; color: rgba(217,217,217,.4);
+}
+.save-card-row input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent); }
+.pay-logos {
+  display: flex; align-items: center; gap: 8px; margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.pay-logo {
+  font-size: 8px; font-weight: 700; letter-spacing: .1em;
+  color: rgba(217,217,217,.25); border: 1px solid rgba(255,255,255,.08);
+  padding: 4px 10px;
+}
+.pay-3ds { margin-left: auto; font-size: 8px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.25); display: flex; align-items: center; gap: 6px; }
+.pay-3ds svg { width: 10px; height: 10px; }
+
+/* ══ DESKTOP SUMMARY SIDEBAR ══ */
+.booking-summary {
+  position: sticky; top: calc(var(--nav-h) + 32px);
+  border: 1px solid var(--accent-border);
+  background: var(--charcoal-mid);
+}
+.summary-hall-photo {
+  position: relative; overflow: hidden; aspect-ratio: 16/9;
+}
+.summary-hall-photo img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(.8); }
+.summary-hall-photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(30,28,36,.95) 0%, transparent 55%);
+}
+.summary-hall-info { position: absolute; bottom: 16px; left: 20px; z-index: 2; }
+.summary-hall-name { font-size: 14px; font-weight: 800; color: var(--accent); letter-spacing: -.01em; }
+.summary-hall-meta { font-size: 9px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.5); margin-top: 4px; }
+.summary-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  font-size: 8px; font-weight: 600; letter-spacing: .08em;
+  padding: 5px 12px; display: flex; align-items: center; gap: 6px;
+  background: rgba(40,160,80,.2); border: 1px solid rgba(40,200,90,.3); color: #6fda9f;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #50d890; box-shadow: 0 0 6px #50d890; flex-shrink: 0; }
+
+.summary-rows { padding: 0; }
+.summary-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-row-label { font-size: 9px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.3); }
+.summary-row-val { font-size: 11px; font-weight: 600; color: var(--accent); text-align: right; }
+.summary-row-val.strike { text-decoration: line-through; color: rgba(217,217,217,.25); font-weight: 400; }
+.summary-row-val.green { color: var(--success); }
+
+.summary-total {
+  padding: 20px;
+  border-top: 1px solid var(--accent-border);
+  background: rgba(255,255,255,.03);
+}
+.summary-total-label { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(217,217,217,.35); margin-bottom: 8px; }
+.summary-total-amount { font-size: 36px; font-weight: 900; color: var(--accent); letter-spacing: -.03em; line-height: 1; }
+.summary-total-sub { font-size: 9px; font-weight: 300; color: rgba(217,217,217,.35); margin-top: 6px; }
+
+.summary-actions { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+.summary-legal {
+  padding: 16px 20px; border-top: 1px solid var(--accent-border);
+  font-size: 8px; font-weight: 300; line-height: 1.8; color: rgba(217,217,217,.25); text-align: center;
+}
+
+/* ══ BUTTONS ══ */
+.btn-primary {
+  font-family: var(--font); font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--charcoal); background: var(--accent); border: none; padding: 16px 32px;
+  cursor: pointer; text-decoration: none; display: inline-block; width: 100%; text-align: center;
+  transition: opacity .2s, transform .2s;
+}
+.btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+.btn-secondary {
+  font-family: var(--font); font-size: 9px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--light); background: transparent; border: 1px solid rgba(217,217,217,.2);
+  padding: 14px 32px; cursor: pointer; text-decoration: none; display: inline-block; width: 100%; text-align: center;
+  transition: border-color .2s, color .2s;
+}
+.btn-secondary:hover { border-color: rgba(255,255,255,.5); color: var(--accent); }
+
+/* ══ MOBILE SUMMARY BAR ══ */
+.mob-summary-bar {
+  display: none;
+  background: var(--charcoal-deep); border-bottom: 1px solid var(--accent-border);
+  padding: 14px 20px; align-items: center; gap: 14px;
+}
+.msb-img { width: 52px; height: 38px; object-fit: cover; flex-shrink: 0; filter: brightness(.8); }
+.msb-name { font-size: 11px; font-weight: 700; color: var(--accent); }
+.msb-date { font-size: 8px; font-weight: 400; letter-spacing: .08em; color: rgba(217,217,217,.4); margin-top: 3px; }
+.msb-price { font-size: 16px; font-weight: 900; color: var(--accent); text-align: right; }
+.msb-prepay { font-size: 8px; font-weight: 300; color: rgba(217,217,217,.3); margin-top: 2px; }
+
+/* Mobile step progress */
+.mob-step-bar {
+  display: none; background: var(--charcoal-deep); border-bottom: 1px solid var(--accent-border);
+  padding: 14px 20px;
+}
+.steps-row { display: flex; align-items: center; }
+.step-item { display: flex; align-items: center; flex: 1; }
+.step-item:last-child { flex: 0; }
+.step-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.step-circle {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700;
+  border: 1px solid rgba(217,217,217,.2); color: rgba(217,217,217,.3);
+}
+.step-circle.done { border-color: var(--success); color: var(--success); background: rgba(80,216,144,.1); }
+.step-circle.active { border-color: var(--accent); color: var(--charcoal); background: var(--accent); }
+.step-name { font-size: 7px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.3); white-space: nowrap; }
+.step-name.active-label { color: var(--accent); }
+.step-line { flex: 1; height: 1px; background: rgba(217,217,217,.1); margin: 0 6px; margin-bottom: 18px; }
+.step-line.done { background: rgba(80,216,144,.4); }
+
+/* ══ MOBILE STICKY FOOTER ══ */
+.booking-footer {
+  display: none;
+  position: fixed;
+  bottom: calc(var(--mob-nav-h) + env(safe-area-inset-bottom, 0px));
+  left: 0; right: 0; z-index: 150;
+  background: rgba(30,28,36,.97);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--accent-border);
+  padding: 14px 20px;
+}
+.booking-footer-inner { display: flex; align-items: center; gap: 14px; }
+.bf-total-label { font-size: 7px; font-weight: 500; letter-spacing: .15em; text-transform: uppercase; color: rgba(217,217,217,.3); }
+.bf-total-val { font-size: 20px; font-weight: 900; color: var(--accent); letter-spacing: -.02em; line-height: 1; }
+.bf-prepay { font-size: 8px; font-weight: 300; color: rgba(217,217,217,.3); margin-top: 2px; }
+.bf-pay-btn {
+  flex-shrink: 0;
+  font-family: var(--font); font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--charcoal); background: var(--accent); border: none;
+  padding: 16px 28px; cursor: pointer; transition: opacity .2s;
+}
+.bf-pay-btn:hover { opacity: .9; }
+
+/* ══ SUCCESS MODAL ══ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(10,9,14,.93); backdrop-filter: blur(16px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.modal {
+  background: var(--charcoal-mid); border: 1px solid var(--accent-border);
+  max-width: 480px; width: 100%; position: relative;
+}
+.modal-body { padding: 48px 40px; text-align: center; }
+.success-icon {
+  width: 64px; height: 64px; margin: 0 auto 24px;
+  border: 1px solid rgba(80,216,144,.3); background: rgba(80,216,144,.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.success-icon svg { width: 28px; height: 28px; color: var(--success); }
+.modal-title { font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: -.02em; margin-bottom: 8px; }
+.modal-sub { font-size: 11px; font-weight: 300; line-height: 1.8; color: rgba(217,217,217,.5); margin-bottom: 28px; }
+.modal-detail-block { background: var(--charcoal-deep); border: 1px solid var(--accent-border); padding: 20px; text-align: left; margin-bottom: 28px; }
+.modal-detail-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.modal-detail-row:last-child { border-bottom: none; }
+.modal-detail-label { font-size: 8px; font-weight: 500; letter-spacing: .15em; text-transform: uppercase; color: rgba(217,217,217,.3); min-width: 80px; padding-top: 2px; }
+.modal-detail-val { font-size: 11px; font-weight: 600; color: var(--accent); }
+.modal-detail-val.green { color: var(--success); }
+.modal-actions { display: flex; gap: 8px; }
+.modal-actions .btn-primary { flex: 1; }
+.modal-actions .btn-secondary { flex: 1; }
+
+/* ══ REVEAL ══ */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .2s; }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width: 1023px) {
+  nav.d-nav { display: none; }
+  .mob-top { display: flex; }
+  .mob-nav { display: flex; }
+  .mob-summary-bar { display: flex; }
+  .mob-step-bar { display: block; }
+  .booking-footer { display: block; }
+  .desktop-only { display: none !important; }
+  body { padding-bottom: calc(var(--mob-nav-h) + 80px + env(safe-area-inset-bottom, 0px)); }
+
+  .page-shell { padding-top: 56px; padding-bottom: 0; }
+  .page-header { display: none; }
+  .step-breadcrumb { display: none; }
+
+  .booking-wrap {
+    display: block;
+    padding: 16px;
+  }
+  #desktopSummary { display: none !important; }
+
+  .step-block-header { padding: 18px 20px; }
+  .step-block-body { padding: 20px; }
+  .pay-row-2 { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .booking-wrap { padding: 12px; }
+  .step-block-header { padding: 16px; }
+  .step-block-body { padding: 16px; }
+  .modal-body { padding: 32px 20px; }
+  .modal-actions { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ MOBILE TOP ══ -->
+<div class="mob-top">
+  <a href="index.html" style="display:flex;align-items:center;text-decoration:none;">
+    <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:14px;width:auto;"><g clip-path="url(#c0)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="c0"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
+  </a>
+  <a href="profile.html" class="d-nav-account">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+  </a>
+</div>
+
+<!-- ══ DESKTOP NAV ══ -->
+<nav class="d-nav">
+  <a href="index.html" class="d-nav-logo">
+    <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#c1)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="c1"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
+  </a>
+  <div class="d-nav-links">
+    <a href="index.html">Главная</a>
+    <a href="calendar.html">Расписание</a>
+    <a href="tariffs.html">Тарифы</a>
+    <a href="profile.html">Кабинет</a>
+  </div>
+  <a href="profile.html" class="d-nav-account">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+  </a>
+</nav>
+
+<!-- ══ MOBILE STEP PROGRESS ══ -->
+<div class="mob-step-bar">
+  <div class="steps-row">
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-circle done">✓</div>
+        <div class="step-name">Зал</div>
+      </div>
+      <div class="step-line done"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-circle done">✓</div>
+        <div class="step-name">Дата</div>
+      </div>
+      <div class="step-line done"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-wrap">
+        <div class="step-circle active">3</div>
+        <div class="step-name active-label">Контакты</div>
+      </div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-item" style="flex:0;">
+      <div class="step-wrap">
+        <div class="step-circle">4</div>
+        <div class="step-name">Оплата</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MOBILE SUMMARY BAR ══ -->
+<div class="mob-summary-bar">
+  <img src="uploads/image 1.png" class="msb-img" alt="Зал А">
+  <div style="flex:1;">
+    <div class="msb-name">Зал А · Ср 14 мая</div>
+    <div class="msb-date">11:00 – 15:00 · 4 часа · 800 ₽/ч</div>
+  </div>
+  <div>
+    <div class="msb-price">3 200 ₽</div>
+    <div class="msb-prepay">предоплата 1 600 ₽</div>
+  </div>
+</div>
+
+<!-- ══ PAGE SHELL ══ -->
+<div class="page-shell">
+
+  <!-- Desktop header -->
+  <div class="page-header desktop-only">
+    <a href="calendar.html" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </a>
+    <span class="page-header-title">Оформление брони</span>
+  </div>
+
+  <!-- Desktop breadcrumb -->
+  <div class="step-breadcrumb desktop-only">
+    <div class="step-crumb done">
+      <div class="step-crumb-num">✓</div>
+      Зал
+    </div>
+    <div class="step-crumb-sep"></div>
+    <div class="step-crumb done">
+      <div class="step-crumb-num">✓</div>
+      Дата и время
+    </div>
+    <div class="step-crumb-sep"></div>
+    <div class="step-crumb active">
+      <div class="step-crumb-num">3</div>
+      Контактные данные
+    </div>
+    <div class="step-crumb-sep"></div>
+    <div class="step-crumb">
+      <div class="step-crumb-num">4</div>
+      Оплата
+    </div>
+  </div>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <div class="booking-wrap">
+
+    <!-- LEFT: FORM -->
+    <div>
+      <div class="section-label reveal">03 — Оформление</div>
+
+      <!-- STEP 1: CONTACTS -->
+      <div class="step-block reveal">
+        <div class="step-block-header">
+          <div class="step-num active">01</div>
+          <div>
+            <div class="step-block-title">Контактные данные</div>
+            <div class="step-block-sub">Обязательно: ФИО, телефон, email, Telegram</div>
+          </div>
+        </div>
+        <div class="step-block-body">
+
+          <div class="form-group">
+            <label class="form-label">ФИО <span class="req">*</span></label>
+            <div class="input-wrap">
+              <span class="input-icon-el">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+              </span>
+              <input type="text" class="form-input" placeholder="Иванов Иван Иванович">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Телефон <span class="req">*</span></label>
+            <div class="input-wrap">
+              <span class="input-icon-el">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </span>
+              <input type="tel" class="form-input" placeholder="+7 (900) 000-00-00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email <span class="req">*</span></label>
+            <div class="input-wrap">
+              <span class="input-icon-el">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </span>
+              <input type="email" class="form-input" placeholder="email@example.com">
+            </div>
+            <span class="form-hint">Чек и напоминания — сюда</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Telegram <span class="req">*</span></label>
+            <div class="input-wrap">
+              <span class="input-icon-el">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+              </span>
+              <input type="text" class="form-input" placeholder="@username">
+            </div>
+            <span class="form-hint">Уведомления через @RoltHallBot</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Комментарий</label>
+            <textarea class="form-input no-icon" placeholder="Особые пожелания, требования..."></textarea>
+          </div>
+
+          <div class="notice">
+            <div class="notice-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="16" height="16"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+            </div>
+            <div class="notice-text">Уведомление с деталями придёт в <strong>@RoltHallBot</strong> сразу после оплаты</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- STEP 2: CONSENTS -->
+      <div class="step-block reveal reveal-delay-1">
+        <div class="step-block-header">
+          <div class="step-num" style="color:rgba(217,217,217,.25);">02</div>
+          <div>
+            <div class="step-block-title">Согласия</div>
+            <div class="step-block-sub">Обязательные документы</div>
+          </div>
+        </div>
+        <div class="step-block-body">
+          <div class="consent-row">
+            <input type="checkbox" class="consent-cb" id="c1" checked>
+            <label class="consent-text" for="c1">Принимаю <a href="#">Публичную оферту</a> и <a href="#">Правила аренды</a></label>
+          </div>
+          <div class="consent-row">
+            <input type="checkbox" class="consent-cb" id="c2" checked>
+            <label class="consent-text" for="c2">Согласен с <a href="#">Правилами возврата</a>: при отмене менее чем за 6 часов — предоплата не возвращается</label>
+          </div>
+          <div class="consent-row">
+            <input type="checkbox" class="consent-cb" id="c3" checked>
+            <label class="consent-text" for="c3">Согласие на <a href="#">обработку персональных данных</a></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: PAYMENT -->
+      <div class="step-block reveal reveal-delay-2">
+        <div class="step-block-header">
+          <div class="step-num" style="color:rgba(217,217,217,.25);">03</div>
+          <div>
+            <div class="step-block-title">Оплата</div>
+            <div class="step-block-sub">Предоплата 50% · CloudPayments</div>
+          </div>
+        </div>
+        <div class="step-block-body">
+
+          <div class="pay-method-tabs">
+            <button class="pay-tab active" onclick="setPayTab(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              Карта
+            </button>
+            <button class="pay-tab" onclick="setPayTab(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              СБП
+            </button>
+          </div>
+
+          <div class="pay-widget">
+            <div class="pay-widget-header">
+              <div class="pay-widget-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Безопасная оплата
+              </div>
+              <div class="pay-secure">SSL · PCI DSS</div>
+            </div>
+            <div class="pay-body">
+              <div class="form-group">
+                <label class="form-label">Номер карты</label>
+                <input type="text" class="form-input no-icon" style="font-family:monospace;letter-spacing:.08em;" placeholder="0000 0000 0000 0000" maxlength="19">
+              </div>
+              <div class="pay-row-2">
+                <div class="form-group">
+                  <label class="form-label">Срок</label>
+                  <input type="text" class="form-input no-icon" placeholder="MM / YY" maxlength="7">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CVV</label>
+                  <input type="password" class="form-input no-icon" placeholder="•••" maxlength="3">
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:16px;">
+                <label class="form-label">Держатель карты</label>
+                <input type="text" class="form-input no-icon" placeholder="IVAN IVANOV" style="text-transform:uppercase;">
+              </div>
+              <div class="save-card-row">
+                <input type="checkbox" id="savecard" checked>
+                <label for="savecard">Сохранить карту для быстрой оплаты</label>
+              </div>
+              <div class="pay-logos">
+                <div class="pay-logo">VISA</div>
+                <div class="pay-logo">MC</div>
+                <div class="pay-logo">МИР</div>
+                <div class="pay-3ds">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  3-D Secure
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /left -->
+
+    <!-- RIGHT: DESKTOP SUMMARY -->
+    <div class="booking-summary" id="desktopSummary">
+      <div class="summary-hall-photo">
+        <img src="uploads/image 1.png" alt="Зал А">
+        <span class="summary-badge"><span class="status-dot"></span> Свободен</span>
+        <div class="summary-hall-info">
+          <div class="summary-hall-name">Зал А</div>
+          <div class="summary-hall-meta">346 м² · до 150 человек</div>
+        </div>
+      </div>
+
+      <div class="summary-rows">
+        <div class="summary-row">
+          <span class="summary-row-label">Дата</span>
+          <span class="summary-row-val">Ср, 14 мая 2026</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-row-label">Время</span>
+          <span class="summary-row-val">11:00 – 15:00 (4 ч)</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-row-label">Тариф</span>
+          <span class="summary-row-val green">800 ₽/ч × 4 ч</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-row-label">Без скидки</span>
+          <span class="summary-row-val strike">4 000 ₽</span>
+        </div>
+      </div>
+
+      <div class="summary-total">
+        <div class="summary-total-label">К оплате сейчас (50%)</div>
+        <div class="summary-total-amount">1 600 ₽</div>
+        <div class="summary-total-sub">Предоплата · Полная стоимость: 3 200 ₽</div>
+      </div>
+
+      <div class="summary-actions">
+        <button class="btn-primary" onclick="openSuccess()">Оплатить 1 600 ₽</button>
+        <a href="calendar.html" class="btn-secondary">← Изменить время</a>
+      </div>
+
+      <div class="summary-legal">
+        Оплата через CloudPayments · SSL · PCI DSS<br>
+        При отмене &lt;6ч до начала — предоплата не возвращается
+      </div>
+    </div>
+
+  </div><!-- /booking-wrap -->
+</div><!-- /page-shell -->
+
+<!-- ══ MOBILE BOTTOM NAV ══ -->
+<nav class="mob-nav">
+  <a href="index.html" class="mob-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="mob-nav-label">Главная</span>
+  </a>
+  <a href="calendar.html" class="mob-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span class="mob-nav-label">Расписание</span>
+  </a>
+  <a href="tariffs.html" class="mob-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span class="mob-nav-label">Тарифы</span>
+  </a>
+  <a href="profile.html" class="mob-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    <span class="mob-nav-label">Кабинет</span>
+  </a>
+</nav>
+
+<!-- ══ MOBILE STICKY FOOTER ══ -->
+<div class="booking-footer">
+  <div class="booking-footer-inner">
+    <div style="flex:1;">
+      <div class="bf-total-label">К оплате сейчас (50%)</div>
+      <div class="bf-total-val">1 600 ₽</div>
+      <div class="bf-prepay">Полная стоимость: 3 200 ₽</div>
+    </div>
+    <button class="bf-pay-btn" onclick="openSuccess()">Оплатить</button>
+  </div>
+</div>
+
+<!-- ══ SUCCESS MODAL ══ -->
+<div id="successModal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-body">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="modal-title">Бронь подтверждена</div>
+      <p class="modal-sub">Оплата прошла успешно. Уведомление отправлено в Telegram.</p>
+
+      <div class="modal-detail-block">
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Зал</span>
+          <span class="modal-detail-val">Зал А · 346 м²</span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Дата</span>
+          <span class="modal-detail-val">Ср, 14 мая 2026 · 11:00–15:00</span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Оплачено</span>
+          <span class="modal-detail-val green">1 600 ₽</span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Транзакция</span>
+          <span class="modal-detail-val" style="color:rgba(217,217,217,.4);font-size:9px;letter-spacing:.05em;">CP-3481344670</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <a href="profile.html" class="btn-primary">Мои брони</a>
+        <a href="index.html" class="btn-secondary">На главную</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Reveal on scroll
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+// Desktop summary visibility
+function applyLayout() {
+  const summary = document.getElementById('desktopSummary');
+  if (summary) summary.style.display = window.innerWidth >= 1024 ? 'block' : 'none';
+}
+applyLayout();
+window.addEventListener('resize', applyLayout);
+
+// Payment method tabs
+function setPayTab(btn) {
+  document.querySelectorAll('.pay-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Success modal
+function openSuccess() {
+  document.getElementById('successModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+document.getElementById('successModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    this.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+});
+</script>
+</body>
+</html>

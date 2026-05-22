@@ -89,9 +89,8 @@ nav.d-nav {
 /* ══ PAGE SHELL ══ */
 .page-shell {
   display: flex; flex-direction: column;
-  height: 100dvh;
+  min-height: 100vh;
   padding-top: var(--nav-h);
-  overflow: hidden;
 }
 
 /* ══ PAGE HEADER (desktop) ══ */
@@ -111,8 +110,6 @@ nav.d-nav {
   display: grid;
   grid-template-columns: 280px 1fr;
   flex: 1;
-  min-height: 0;
-  overflow: hidden;
   border-top: 1px solid var(--accent-border);
   margin-top: 24px;
 }
@@ -122,7 +119,8 @@ nav.d-nav {
   border-right: 1px solid var(--accent-border);
   display: flex; flex-direction: column;
   overflow-y: auto;
-  height: 100%;
+  position: sticky; top: var(--nav-h);
+  max-height: calc(100vh - var(--nav-h));
 }
 .side-section {
   border-bottom: 1px solid var(--accent-border);
@@ -209,8 +207,6 @@ nav.d-nav {
 .cal-main {
   display: flex; flex-direction: column;
   overflow: hidden;
-  min-height: 0;
-  height: 100%;
 }
 
 /* Info bar */
@@ -323,28 +319,6 @@ nav.d-nav {
   transition: border-color .2s, color .2s; flex-shrink: 0;
 }
 .btn-ghost:hover { border-color: rgba(255,255,255,.4); color: var(--light); }
-
-/* ══ MULTI-DAY SELECTION ══ */
-.sel-days-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-.sel-day-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 14px; background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
-}
-.sel-day-label { font-size: 9px; font-weight: 700; color: var(--accent); letter-spacing: .02em; }
-.sel-day-time  { font-size: 8.5px; font-weight: 400; color: rgba(217,217,217,.55); margin-top: 2px; }
-.sel-day-price { font-size: 10px; font-weight: 700; color: var(--accent); }
-.sel-day-remove {
-  width: 22px; height: 22px; background: transparent; border: 1px solid rgba(217,217,217,.15);
-  color: rgba(217,217,217,.4); cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;
-  transition: border-color .2s, color .2s; flex-shrink: 0; margin-left: 10px;
-}
-.sel-day-remove:hover { border-color: rgba(255,100,100,.5); color: rgba(255,100,100,.8); }
-/* Dot on date chips when that date has a selection */
-.date-chip.has-sel { border-color: var(--accent) !important; }
-.date-chip.has-sel .date-chip-num { color: var(--accent) !important; }
-.mob-date-chip.has-sel .mob-date-num { color: var(--accent) !important; }
-.mob-date-chip.has-sel { border-bottom-color: var(--accent) !important; }
 
 /* ══ MOBILE OVERRIDES ══ */
 @media (max-width: 1023px) {
@@ -619,13 +593,16 @@ nav.d-nav {
 
         <!-- Full selection -->
         <div id="stateSelected" class="bs-selected">
-          <!-- Список выбранных дней (JS заполняет) -->
-          <div class="sel-days-list" id="selDaysList"></div>
           <div class="bs-selected-top">
             <div>
-              <div class="bs-sel-total-label">Итого за всё</div>
-              <div class="bs-sel-total" id="selTotal">—</div>
-              <div class="bs-sel-prepay">предоплата <span id="selPrepay">—</span></div>
+              <div class="bs-sel-hall" id="selHallDate">Зал А · Ср 14 мая</div>
+              <div class="bs-sel-time" id="selTimeRange">11:00 – 15:00 · 4 часа</div>
+              <div class="bs-sel-rate" id="selRph">Тариф: 800 ₽/ч × 4 ч</div>
+            </div>
+            <div>
+              <div class="bs-sel-total-label">Итого</div>
+              <div class="bs-sel-total" id="selTotal">3 200 ₽</div>
+              <div class="bs-sel-prepay">предоплата <span id="selPrepay">1 600 ₽</span></div>
             </div>
           </div>
           <div class="hold-banner">
@@ -635,7 +612,7 @@ nav.d-nav {
             <div class="hold-text">После «Далее» слот резервируется на <strong>10 минут</strong></div>
           </div>
           <div class="bs-actions">
-            <button onclick="clearAllSelections()" class="btn-ghost" title="Сбросить всё">✕ Всё</button>
+            <button onclick="clearSelection()" class="btn-ghost">✕</button>
             <a href="booking.html" class="btn-primary">Далее →</a>
           </div>
         </div>
@@ -698,21 +675,11 @@ const MONTH_FULL  = ['Январь','Февраль','Март','Апрель','
 const DAY_SHORT   = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 
 /* ===== STATE ===== */
-let currentHall     = 'a';
-let weekOffset      = 0;
+let currentHall    = 'a';
+let selStart       = null;
+let selEnd         = null;
+let weekOffset     = 0;
 let selectedDateIdx = 2;
-
-// Мультидневные выборы: { 'YYYY-MM-DD': { start: H, end: H|null } }
-const selections = {};
-
-// Геттеры для текущего дня
-function curDateKey() {
-  const d = getStripDates()[selectedDateIdx];
-  return d.toISOString().split('T')[0];
-}
-function curSel()      { return selections[curDateKey()]; }
-function curSelStart() { return curSel()?.start ?? null; }
-function curSelEnd()   { return curSel()?.end   ?? null; }
 
 /* ===== HELPERS ===== */
 function getStripDates() {
@@ -740,13 +707,9 @@ function getRph(hours, tiers) {
 function bookedHours() { return BOOKED_BY_HALL[currentHall] || []; }
 function isBooked(h)   { return bookedHours().includes(h); }
 function isSelected(h) {
-  const s = curSel();
-  if (!s) return false;
-  if (s.end === null) return h === s.start;
-  return h >= s.start && h <= s.end;
-}
-function dateKeyFor(days, idx) {
-  return days[idx].toISOString().split('T')[0];
+  if (selStart === null) return false;
+  if (selEnd === null) return h === selStart;
+  return h >= selStart && h <= selEnd;
 }
 function pad(n) { return String(n).padStart(2,'0'); }
 function plural(n, one, few, many) {
@@ -774,15 +737,12 @@ function renderDates() {
     : `${MONTH_NAMES[months[0]]} – ${MONTH_NAMES[months[1]]} ${yr}`;
 
   grid.innerHTML = days.map((d, i) => {
-    const key     = dateKeyFor(days, i);
     const isToday = d.getTime() === today.getTime();
     const isSel   = i === selectedDateIdx;
     const hasBusy = bookedHours().length > 0;
-    const hasMySel = selections[key]?.end != null;
     let cls = 'date-chip';
-    if (isToday)  cls += ' today';
-    if (isSel)    cls += ' selected';
-    if (hasMySel && !isSel) cls += ' has-sel';
+    if (isToday) cls += ' today';
+    if (isSel)   cls += ' selected';
     const dot = hasBusy ? `<div class="date-chip-dot"></div>` : '';
     return `<div class="${cls}" onclick="selectDate(${i})">
       <div class="date-chip-day">${DAY_SHORT[d.getDay()]}</div>
@@ -800,15 +760,12 @@ function renderMobDates() {
   const days  = getStripDates();
 
   scroll.innerHTML = days.map((d, i) => {
-    const key     = dateKeyFor(days, i);
     const isToday = d.getTime() === today.getTime();
     const isSel   = i === selectedDateIdx;
     const hasBusy = bookedHours().length > 0;
-    const hasMySel = selections[key]?.end != null;
     let cls = 'mob-date-chip';
-    if (isToday)  cls += ' today';
-    if (isSel)    cls += ' selected';
-    if (hasMySel && !isSel) cls += ' has-sel';
+    if (isToday) cls += ' today';
+    if (isSel)   cls += ' selected';
     const dot = hasBusy && !isSel ? `<div class="mob-date-dot"></div>` : '';
     return `<div class="${cls}" onclick="selectDate(${i})">
       <div class="mob-date-day">${DAY_SHORT[d.getDay()]}</div>
@@ -828,8 +785,8 @@ function renderSlots() {
   container.innerHTML = HOURS.map(h => {
     const booked   = isBooked(h);
     const selected = isSelected(h);
-    const isStart  = h === curSelStart();
-    const isEnd    = h === curSelEnd();
+    const isStart  = h === selStart;
+    const isEnd    = h === selEnd;
 
     let cellCls  = 'slot-cell';
     let mainHtml = '', subHtml = '';
@@ -838,8 +795,7 @@ function renderSlots() {
       cellCls  += ' booked';
       mainHtml = 'Занято';
     } else if (selected) {
-      const s   = curSel();
-      const dur = s?.end !== null ? s.end - s.start + 1 : 1;
+      const dur = selEnd !== null ? selEnd - selStart + 1 : 1;
       const rph = getRph(dur, tiers);
       cellCls  += ' selected';
       if (isStart) cellCls += ' sel-start';
@@ -872,9 +828,8 @@ function renderPricing() {
   const date  = days[selectedDateIdx];
   const tiers = getTiers(date);
   const we    = isWeekend(date);
-  const s     = curSel();
-  const dur   = (s?.start != null && s?.end != null) ? s.end - s.start + 1
-              : (s?.start != null ? 1 : 0);
+  const dur   = (selStart !== null && selEnd !== null) ? selEnd - selStart + 1
+              : (selStart !== null ? 1 : 0);
   const activeTier = dur > 0
     ? tiers.find(t => dur >= t.minH && (t.maxH === null || dur <= t.maxH))
     : null;
@@ -918,79 +873,49 @@ function renderInfoBar() {
 
 /* ===== UPDATE BOTTOM SHEET ===== */
 function updateSheet() {
+  const days  = getStripDates();
+  const date  = days[selectedDateIdx];
+  const tiers = getTiers(date);
+  const hall  = HALLS[currentHall];
+  const dayName   = DAY_SHORT[date.getDay()];
+  const monthName = MONTH_NAMES[date.getMonth()];
+
   const empty    = document.getElementById('stateEmpty');
   const starting = document.getElementById('stateStart');
   const full     = document.getElementById('stateSelected');
 
-  // Полные выборы (у которых есть и start и end)
-  const completeSels = Object.entries(selections)
-    .filter(([, v]) => v.start != null && v.end != null)
-    .sort(([a],[b]) => a.localeCompare(b));
-
-  const s = curSel(); // текущий день
-
-  // Есть незавершённый выбор на текущем дне (start без end)
-  if (s?.start != null && s?.end == null) {
-    empty.style.display    = 'none';
-    starting.style.display = 'block';
-    full.style.display     = completeSels.length > 0 ? 'block' : 'none';
-    const sl = document.getElementById('startLabel');
-    if (sl) sl.textContent = `${pad(s.start)}:00`;
-    if (completeSels.length > 0) renderSelList(completeSels, full);
-    return;
-  }
-
-  if (completeSels.length === 0) {
+  if (selStart === null) {
     empty.style.display    = 'block';
     starting.style.display = 'none';
     full.style.display     = 'none';
+    return;
+  }
+  if (selEnd === null) {
+    empty.style.display    = 'none';
+    starting.style.display = 'block';
+    full.style.display     = 'none';
+    const sl = document.getElementById('startLabel');
+    if (sl) sl.textContent = `${pad(selStart)}:00`;
     return;
   }
 
   empty.style.display    = 'none';
   starting.style.display = 'none';
   full.style.display     = 'block';
-  renderSelList(completeSels, full);
-}
 
-function renderSelList(completeSels, fullEl) {
-  const hall = HALLS[currentHall];
-  let grandTotal = 0;
+  const dur    = selEnd - selStart + 1;
+  const endH   = selEnd + 1;
+  const rph    = getRph(dur, tiers);
+  const total  = dur * rph;
+  const prepay = Math.round(total / 2);
+  const durStr = `${dur} ${plural(dur,'час','часа','часов')}`;
 
-  const listHtml = completeSels.map(([dateKey, sel]) => {
-    const d       = new Date(dateKey + 'T00:00:00');
-    const tiers   = getTiers(d);
-    const dur     = sel.end - sel.start + 1;
-    const rph     = getRph(dur, tiers);
-    const amount  = dur * rph;
-    grandTotal   += amount;
-
-    const dayName   = DAY_SHORT[d.getDay()];
-    const dateLabel = `${dayName} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`;
-    const timeLabel = `${pad(sel.start)}:00 – ${pad(sel.end+1)}:00 · ${dur} ${plural(dur,'час','часа','часов')}`;
-
-    return `<div class="sel-day-item">
-  <div style="flex:1;">
-    <div class="sel-day-label">${hall.name} · ${dateLabel}</div>
-    <div class="sel-day-time">${timeLabel} · ${rph.toLocaleString('ru')} ₽/ч</div>
-  </div>
-  <div class="sel-day-price">${amount.toLocaleString('ru')} ₽</div>
-  <button class="sel-day-remove" onclick="removeDay('${dateKey}')">✕</button>
-</div>`;
-  }).join('');
-
-  const listEl = document.getElementById('selDaysList');
-  if (listEl) listEl.innerHTML = listHtml;
-
-  const prepay = Math.round(grandTotal / 2);
   const get = id => document.getElementById(id);
-  if (get('selTotal'))  get('selTotal').textContent  = `${grandTotal.toLocaleString('ru')} ₽`;
-  if (get('selPrepay')) get('selPrepay').textContent  = `${prepay.toLocaleString('ru')} ₽`;
-}
-
-function removeDay(dateKey) {
-  delete selections[dateKey];
-  renderDates(); renderMobDates(); renderSlots(); renderPricing(); updateSheet();
+  if (get('selHallDate'))  get('selHallDate').textContent  = `${hall.name} · ${dayName} ${date.getDate()} ${monthName}`;
+  if (get('selTimeRange')) get('selTimeRange').textContent = `${pad(selStart)}:00 – ${pad(endH)}:00 · ${durStr}`;
+  if (get('selRph'))       get('selRph').textContent       = `Тариф: ${rph.toLocaleString('ru')} ₽/ч × ${dur} ч`;
+  if (get('selTotal'))     get('selTotal').textContent     = `${total.toLocaleString('ru')} ₽`;
+  if (get('selPrepay'))    get('selPrepay').textContent    = `${prepay.toLocaleString('ru')} ₽`;
 }
 
 /* ===== FULL REDRAW ===== */
@@ -1006,26 +931,22 @@ function redraw() {
 /* ===== INTERACTION ===== */
 function onCellClick(hour) {
   if (isBooked(hour)) return;
-  const key = curDateKey();
-  const s   = selections[key];
-
-  if (!s) {
-    selections[key] = { start: hour, end: null };
-  } else if (s.end !== null) {
-    // Уже полный — начинаем новый выбор для этого дня
-    selections[key] = { start: hour, end: null };
-  } else if (hour === s.start) {
-    delete selections[key];
-  } else if (hour < s.start) {
-    selections[key] = { start: hour, end: null };
+  if (selStart === null) {
+    selStart = hour; selEnd = null;
+  } else if (selEnd !== null) {
+    selStart = hour; selEnd = null;
+  } else if (hour === selStart) {
+    selStart = null; selEnd = null;
+  } else if (hour < selStart) {
+    selStart = hour; selEnd = null;
   } else {
     const booked = bookedHours();
     let blocked = false;
-    for (let h = s.start + 1; h <= hour; h++) {
+    for (let h = selStart + 1; h <= hour; h++) {
       if (booked.includes(h)) { blocked = true; break; }
     }
-    if (blocked) selections[key] = { start: hour, end: null };
-    else         selections[key].end = hour;
+    if (blocked) { selStart = hour; selEnd = null; }
+    else          { selEnd = hour; }
   }
   renderSlots();
   renderPricing();
@@ -1033,34 +954,29 @@ function onCellClick(hour) {
 }
 
 function clearSelection() {
-  // Очищаем только текущий день
-  delete selections[curDateKey()];
+  selStart = null; selEnd = null;
   renderSlots(); renderPricing(); updateSheet();
 }
 
-function clearAllSelections() {
-  Object.keys(selections).forEach(k => delete selections[k]);
-  renderDates(); renderMobDates(); renderSlots(); renderPricing(); updateSheet();
-}
-
 function selectHall(el, hall) {
+  // Sync both desktop and mobile tabs
   document.querySelectorAll('.hall-tab, .mob-hall-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll(`[data-hall="${hall}"]`).forEach(t => t.classList.add('active'));
   currentHall = hall;
-  // Сброс всех выборов при смене зала
-  Object.keys(selections).forEach(k => delete selections[k]);
+  selStart = null; selEnd = null;
   redraw();
 }
 
 function selectDate(idx) {
   selectedDateIdx = idx;
-  // НЕ сбрасываем выборы — сохраняем между днями
+  selStart = null; selEnd = null;
   redraw();
 }
 
 function shiftWeek(dir) {
   weekOffset += dir;
   selectedDateIdx = dir > 0 ? 0 : 6;
+  selStart = null; selEnd = null;
   redraw();
 }
 
