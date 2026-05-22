@@ -98,8 +98,56 @@ nav.d-nav {
 }
 
 /* Mobile-only elements: hidden by default, shown in @media */
-.mob-hall-tabs,
+.mob-format-tabs,
 .mob-date-strip { display: none; }
+
+/* ══ FORMAT SELECTOR ══ */
+/* Desktop sidebar */
+.format-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.format-tab {
+  font-family: var(--font); font-size: 8px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 12px 8px; text-align: center;
+  border: 1px solid var(--accent-border);
+  background: transparent; color: rgba(217,217,217,.4); cursor: pointer;
+  transition: all .2s;
+}
+.format-tab.active { background: var(--accent); border-color: var(--accent); color: var(--charcoal); }
+.format-tab:hover:not(.active) { border-color: rgba(255,255,255,.25); color: var(--light); }
+
+/* Mobile format tabs (replaces mob-hall-tabs) */
+.mob-format-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--accent-border);
+  background: var(--charcoal-mid);
+}
+.mob-format-tab {
+  flex: 1; padding: 14px 8px; text-align: center;
+  font-family: var(--font); font-size: 8px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(217,217,217,.4); background: transparent; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: all .2s;
+}
+.mob-format-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(255,255,255,.04); }
+.mob-format-tab:not(:last-child) { border-right: 1px solid var(--accent-border); }
+
+/* Event packages (shown instead of time grid when format=event) */
+.event-packages {
+  display: none; flex-direction: column; gap: 10px;
+  padding: 20px; flex: 1; overflow-y: auto;
+}
+.event-packages.show { display: flex; }
+.event-pkg {
+  padding: 24px 28px; border: 1px solid var(--accent-border);
+  cursor: pointer; transition: border-color .25s, background .25s;
+}
+.event-pkg:hover    { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.03); }
+.event-pkg.selected { border-color: var(--accent); background: rgba(255,255,255,.06); }
+.pkg-tag { font-size: 7.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: rgba(217,217,217,.35); margin-bottom: 12px; }
+.pkg-price { font-size: clamp(28px,4vw,42px); font-weight: 900; color: var(--accent); letter-spacing: -.03em; line-height: 1; }
+.pkg-name  { font-size: 12px; font-weight: 700; color: var(--accent); margin-top: 12px; margin-bottom: 6px; }
+.pkg-desc  { font-size: 10px; font-weight: 300; color: rgba(217,217,217,.45); line-height: 1.8; }
+.pkg-prepay { font-size: 9px; color: rgba(217,217,217,.3); margin-top: 10px; }
 
 /* ══ WEEK GRID — desktop only ══ */
 .week-nav-bar { display: none; }
@@ -481,25 +529,8 @@ nav.d-nav {
   .cal-side { display: none; } /* side panel replaced by mobile strips */
   .cal-main { min-height: 0; }
 
-  /* Mobile hall tabs */
-  .mob-hall-tabs {
-    display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
-    border-bottom: 1px solid var(--accent-border);
-    background: var(--charcoal-mid);
-  }
-  .mob-hall-tabs::-webkit-scrollbar { display: none; }
-  .mob-hall-tab {
-    flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 12px 18px; border-bottom: 2px solid transparent;
-    cursor: pointer; transition: border-color .2s, background .2s;
-    font-family: var(--font); background: transparent; border-right: 1px solid var(--accent-border);
-  }
-  .mob-hall-tab:last-child { border-right: none; }
-  .mob-hall-tab.active { border-bottom-color: var(--accent); background: rgba(255,255,255,.04); }
-  .mob-hall-tab-name { font-size: 9px; font-weight: 700; color: rgba(217,217,217,.5); }
-  .mob-hall-tab.active .mob-hall-tab-name { color: var(--accent); }
-  .mob-hall-tab-dot { width: 5px; height: 5px; border-radius: 50%; }
-  .mob-hall-tab-size { font-size: 7px; font-weight: 400; letter-spacing: .08em; color: rgba(217,217,217,.25); }
+  /* Mobile format tabs */
+  .mob-format-tabs { display: flex; }
 
   /* Mobile date strip */
   .mob-date-strip {
@@ -595,28 +626,10 @@ nav.d-nav {
     <div class="section-label">02 — Расписание</div>
   </div>
 
-  <!-- ══ MOBILE: hall tabs ══ -->
-  <div class="mob-hall-tabs" id="mobHallTabs">
-    <div class="mob-hall-tab active" data-hall="a" onclick="selectHall(this,'a')">
-      <div class="mob-hall-tab-dot" style="background:var(--success);"></div>
-      <div class="mob-hall-tab-name">Зал А</div>
-      <div class="mob-hall-tab-size">346 м²</div>
-    </div>
-    <div class="mob-hall-tab" data-hall="b" onclick="selectHall(this,'b')">
-      <div class="mob-hall-tab-dot" style="background:var(--warning);"></div>
-      <div class="mob-hall-tab-name">Зал Б</div>
-      <div class="mob-hall-tab-size">65 м²</div>
-    </div>
-    <div class="mob-hall-tab" data-hall="c" onclick="selectHall(this,'c')">
-      <div class="mob-hall-tab-dot" style="background:var(--success);"></div>
-      <div class="mob-hall-tab-name">Зал В</div>
-      <div class="mob-hall-tab-size">60 м²</div>
-    </div>
-    <div class="mob-hall-tab" data-hall="d" onclick="selectHall(this,'d')">
-      <div class="mob-hall-tab-dot" style="background:var(--success);"></div>
-      <div class="mob-hall-tab-name">Зал Г</div>
-      <div class="mob-hall-tab-size">15 м²</div>
-    </div>
+  <!-- ══ MOBILE: format tabs ══ -->
+  <div class="mob-format-tabs">
+    <button class="mob-format-tab active" onclick="setFormat('hourly', this)">Почасовая аренда</button>
+    <button class="mob-format-tab" onclick="setFormat('event', this)">Мероприятие на день</button>
   </div>
 
   <!-- ══ MOBILE: date strip ══ -->
@@ -632,38 +645,12 @@ nav.d-nav {
     <!-- SIDE PANEL (desktop only) -->
     <div class="cal-side">
 
-      <!-- Hall selector -->
+      <!-- Format selector (replaces hall selector) -->
       <div class="side-section">
-        <div class="side-section-label">Выберите зал</div>
-        <div class="hall-tabs" id="hallTabs">
-          <div class="hall-tab active" data-hall="a" onclick="selectHall(this,'a')">
-            <div class="hall-tab-dot" style="background:var(--success);"></div>
-            <div>
-              <div class="hall-tab-name">Зал А</div>
-              <div class="hall-tab-size">346 м² · до 150 чел</div>
-            </div>
-          </div>
-          <div class="hall-tab" data-hall="b" onclick="selectHall(this,'b')">
-            <div class="hall-tab-dot" style="background:var(--warning);"></div>
-            <div>
-              <div class="hall-tab-name">Зал Б</div>
-              <div class="hall-tab-size">65 м² · до 30 чел</div>
-            </div>
-          </div>
-          <div class="hall-tab" data-hall="c" onclick="selectHall(this,'c')">
-            <div class="hall-tab-dot" style="background:var(--success);"></div>
-            <div>
-              <div class="hall-tab-name">Зал В</div>
-              <div class="hall-tab-size">60 м² · до 25 чел</div>
-            </div>
-          </div>
-          <div class="hall-tab" data-hall="d" onclick="selectHall(this,'d')">
-            <div class="hall-tab-dot" style="background:var(--success);"></div>
-            <div>
-              <div class="hall-tab-name">Зал Г</div>
-              <div class="hall-tab-size">15 м² · до 8 чел</div>
-            </div>
-          </div>
+        <div class="side-section-label">Формат аренды</div>
+        <div class="format-tabs">
+          <button class="format-tab active" onclick="setFormat('hourly', this)">Почасовая</button>
+          <button class="format-tab" onclick="setFormat('event', this)">Мероприятие</button>
         </div>
       </div>
 
@@ -735,6 +722,24 @@ nav.d-nav {
           <div class="info-bar-sub" id="hallInfoLabel">346 м² · до 150 человек · Пн–Пт тариф</div>
         </div>
         <span id="dayTypeBadge" class="day-type-badge weekday">Пн–Пт</span>
+      </div>
+
+      <!-- Event packages (shown when format=event) -->
+      <div class="event-packages" id="eventPackages">
+        <div class="event-pkg" onclick="selectPkg(this, 100000)">
+          <div class="pkg-tag">Весь день — базовый</div>
+          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>100 000</div>
+          <div class="pkg-name">День мероприятия</div>
+          <div class="pkg-desc">Аренда зала на весь день без дополнительного оборудования. Предоплата 50% при бронировании.</div>
+          <div class="pkg-prepay">Предоплата: 50 000 ₽</div>
+        </div>
+        <div class="event-pkg" onclick="selectPkg(this, 150000)">
+          <div class="pkg-tag">Весь день — полный</div>
+          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>150 000</div>
+          <div class="pkg-name">День со светом и звуком</div>
+          <div class="pkg-desc">Профессиональный свет, звуковое оборудование, полная поддержка на весь день вашего мероприятия.</div>
+          <div class="pkg-prepay">Предоплата: 75 000 ₽</div>
+        </div>
       </div>
 
       <!-- Slots -->
@@ -861,6 +866,8 @@ const DAY_SHORT   = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 let currentHall     = 'a';
 let weekOffset      = 0;
 let selectedDateIdx = 2;
+let currentFormat   = 'hourly'; // 'hourly' | 'event'
+let selectedPkg     = null;     // null | 100000 | 150000
 
 // Мультидневные выборы: { 'YYYY-MM-DD': { start: H, end: H|null } }
 const selections = {};
@@ -1112,6 +1119,21 @@ function renderPricing() {
   const pricingEl = document.getElementById('pricingTable');
   if (!pricingEl) return;
 
+  // Event format: show event packages
+  if (currentFormat === 'event') {
+    pricingEl.innerHTML = [
+      { price: 100000, label: 'Весь день — базовый',   sel: selectedPkg === 100000 },
+      { price: 150000, label: 'Со светом и звуком', sel: selectedPkg === 150000 },
+    ].map(p => `<div class="pricing-row ${p.sel ? 'tier-active' : ''}">
+  <div>
+    <div class="pricing-range">${p.label}</div>
+    ${p.sel ? '<div class="tier-badge">выбрано</div>' : ''}
+  </div>
+  <div class="pricing-val">${p.price.toLocaleString('ru')} ₽</div>
+</div>`).join('');
+    return;
+  }
+
   const days  = getStripDates();
   const date  = days[selectedDateIdx];
   const tiers = getTiers(date);
@@ -1161,10 +1183,49 @@ function renderInfoBar() {
 }
 
 /* ===== UPDATE BOTTOM SHEET ===== */
-// Обновляет и мобайл и десктоп варианты
 function updateSheet() {
+  // Event format: show selected package + date in sheet
+  if (currentFormat === 'event') {
+    updateEventSheet('stateEmpty','stateSelected','selDaysList','selTotal','selPrepay');
+    updateEventSheet('dstateEmpty','dstateSelected','dselDaysList','dselTotal','dselPrepay');
+    return;
+  }
   updateSheetEl('stateEmpty','stateStart','stateSelected','startLabel','selDaysList','selTotal','selPrepay');
   updateSheetEl('dstateEmpty','dstateStart','dstateSelected','dstartLabel','dselDaysList','dselTotal','dselPrepay');
+}
+
+function updateEventSheet(emptyId, selId, listId, totalId, prepayId) {
+  const empty = document.getElementById(emptyId);
+  const full  = document.getElementById(selId);
+  if (!empty || !full) return;
+
+  if (!selectedPkg) {
+    empty.style.display = 'block'; full.style.display = 'none'; return;
+  }
+
+  const days    = getStripDates();
+  const date    = days[selectedDateIdx];
+  const dayName = DAY_SHORT[date.getDay()];
+  const dLabel  = `${dayName} ${date.getDate()} ${MONTH_NAMES[date.getMonth()]}`;
+  const pkgName = selectedPkg === 100000 ? 'День мероприятия — базовый' : 'День со светом и звуком';
+  const prepay  = Math.round(selectedPkg * 0.5);
+
+  empty.style.display = 'none';
+  full.style.display  = 'block';
+
+  const listEl = document.getElementById(listId);
+  if (listEl) listEl.innerHTML = `<div class="sel-day-item">
+  <div style="flex:1;">
+    <div class="sel-day-label">${dLabel}</div>
+    <div class="sel-day-time">${pkgName}</div>
+  </div>
+  <div class="sel-day-price">${selectedPkg.toLocaleString('ru')} ₽</div>
+</div>`;
+
+  const tEl = document.getElementById(totalId);
+  const pEl = document.getElementById(prepayId);
+  if (tEl) tEl.textContent = `${selectedPkg.toLocaleString('ru')} ₽`;
+  if (pEl) pEl.textContent = `${prepay.toLocaleString('ru')} ₽`;
 }
 function updateSheetEl(emptyId, startId, selId, startLblId, listId, totalId, prepayId) {
   const empty    = document.getElementById(emptyId);
@@ -1242,6 +1303,53 @@ function renderSelList(completeSels, fullEl, listId, totalId, prepayId) {
 function removeDay(dateKey) {
   delete selections[dateKey];
   renderDates(); renderMobDates(); renderSlots(); renderPricing(); updateSheet();
+}
+
+/* ===== FORMAT SWITCHING ===== */
+function setFormat(format, btn) {
+  currentFormat = format;
+  selectedPkg   = null;
+
+  // Sync all format buttons (desktop + mobile)
+  document.querySelectorAll('.format-tab, .mob-format-tab').forEach(b => b.classList.remove('active'));
+  // Activate all buttons for this format
+  document.querySelectorAll('.format-tab, .mob-format-tab').forEach(b => {
+    if ((format === 'hourly' && b.textContent.includes('Почасов')) ||
+        (format === 'event'  && (b.textContent.includes('Мероп') || b.textContent.includes('Мероприятие')))) {
+      b.classList.add('active');
+    }
+  });
+
+  const slotsScroll  = document.querySelector('.slots-scroll');
+  const eventPkgs    = document.getElementById('eventPackages');
+  const wgHeader     = document.getElementById('wgHeader');
+  const weekNavBar   = document.querySelector('.week-nav-bar');
+
+  if (format === 'event') {
+    if (slotsScroll) slotsScroll.style.display = 'none';
+    if (eventPkgs)   eventPkgs.classList.add('show');
+    if (wgHeader)    wgHeader.style.display = 'none';
+    if (weekNavBar)  weekNavBar.style.display = 'none';
+    // Clear hourly selections
+    Object.keys(selections).forEach(k => delete selections[k]);
+  } else {
+    if (slotsScroll) slotsScroll.style.display = '';
+    if (eventPkgs)   eventPkgs.classList.remove('show');
+    if (wgHeader)    wgHeader.style.display = '';
+    if (weekNavBar)  weekNavBar.style.display = '';
+  }
+
+  renderPricing();
+  updateSheet();
+  if (format === 'hourly') renderSlots();
+}
+
+function selectPkg(el, price) {
+  document.querySelectorAll('.event-pkg').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPkg = price;
+  renderPricing();
+  updateSheet();
 }
 
 /* ===== FULL REDRAW ===== */
