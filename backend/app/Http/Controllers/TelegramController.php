@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,10 +44,18 @@ class TelegramController extends Controller
 
         if (!$chatId) return;
 
+        // Сохраняем chat_id по username если пользователь известен
+        $username = $message['chat']['username'] ?? null;
+        if ($username) {
+            User::where('telegram_username', $username)
+                ->whereNull('telegram_chat_id')
+                ->update(['telegram_chat_id' => (string) $chatId]);
+        }
+
         match (true) {
             str_starts_with($text, '/start') => $this->sendMessage(
                 $chatId,
-                "👋 Привет! Это бот <b>RoltHall</b>.\n\nДля бронирования залов перейдите на сайт:\nhttps://hall.roltworld.com"
+                "👋 Привет! Это бот <b>RoltHall</b>.\n\nТеперь вы будете получать уведомления о своих бронях здесь.\n\nДля бронирования: https://hall.roltworld.com"
             ),
             str_starts_with($text, '/mychat') => $this->sendMessage(
                 $chatId,

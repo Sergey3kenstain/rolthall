@@ -78,6 +78,7 @@ class PaymentController extends Controller
 
                 // Уведомление администратору
                 $this->notify->notifyAdminNewBooking([
+                    'format'         => $booking->format,
                     'client_name'    => $booking->client->name,
                     'date'           => $booking->getDateFormatted(),
                     'time_start'     => substr($booking->time_start, 0, 5),
@@ -89,6 +90,18 @@ class PaymentController extends Controller
                     'prepayment'     => $booking->prepayment_amount,
                     'transaction_id' => $paymentId,
                 ]);
+
+                // Уведомление клиенту в личку (если он написал боту /start)
+                $clientChatId = $booking->client->user->telegram_chat_id ?? null;
+                if ($clientChatId) {
+                    $this->notify->notifyClientConfirmed($clientChatId, [
+                        'hall_name'  => $booking->hall->name,
+                        'date'       => $booking->getDateFormatted(),
+                        'time_start' => substr($booking->time_start, 0, 5),
+                        'time_end'   => substr($booking->time_end, 0, 5),
+                        'prepayment' => $booking->prepayment_amount,
+                    ]);
+                }
             } else {
                 // Тестовый платёж без реальной брони
                 $this->notify->sendRaw(
