@@ -23,9 +23,17 @@ class TelegramController extends Controller
      */
     public function webhook(Request $request): JsonResponse
     {
-        Log::info('Telegram update', $request->all());
-
         $update = $request->all();
+
+        // Временно: логируем входящие для отладки chat_id
+        $msg = $update['message'] ?? null;
+        if ($msg) {
+            Log::error('TG_DEBUG incoming', [
+                'chat_id'  => $msg['chat']['id'] ?? null,
+                'username' => $msg['chat']['username'] ?? null,
+                'text'     => $msg['text'] ?? null,
+            ]);
+        }
 
         if (isset($update['message'])) {
             $this->handleMessage($update['message']);
