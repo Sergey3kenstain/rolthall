@@ -472,8 +472,7 @@ nav.d-nav {
 .bs-sel-prepay { font-size: 8px; font-weight: 300; color: rgba(217,217,217,.3); margin-top: 4px; }
 .hold-banner {
   display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px; border: 1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.03); margin-bottom: 16px;
+  padding: 12px 16px; margin-bottom: 16px;
 }
 .hold-icon { flex-shrink: 0; }
 .hold-icon svg { width: 14px; height: 14px; color: rgba(217,217,217,.35); }
@@ -582,13 +581,15 @@ nav.d-nav {
 
   /* bs-selected-top + hold-banner рядом */
   .bs-totals-row {
-    display: flex; gap: 55px; align-items: stretch; margin-bottom: 14px;
+    display: flex; gap: 10px; align-items: stretch; margin-bottom: 14px;
   }
-  .bs-totals-row .bs-selected-top,
-  .bs-totals-row .hold-banner {
+  .bs-totals-row .bs-selected-top {
     flex: 1; margin-bottom: 0; min-width: 0;
   }
-  .bs-totals-row .hold-banner { flex-direction: row; justify-content: flex-start; align-items: center; }
+  .bs-totals-row .hold-banner {
+    flex-direction: row; justify-content: flex-start; align-items: center;
+    margin-bottom: 0; max-width: 170px; min-width: 0;
+  }
 
   /* sel-days-list — убираем margin, border, background на мобильном */
   .sel-days-list { margin-bottom: 0; background: transparent; border: none; }
@@ -1469,22 +1470,11 @@ function onCellClick(hour) {
   const key = curDateKey();
   const s   = selections[key];
 
-  if (!s) {
-    selections[key] = { start: hour, end: null };
-  } else if (s.end !== null) {
-    // Уже полный — начинаем новый выбор для этого дня
-    selections[key] = { start: hour, end: null };
-  } else if (hour === s.start) {
-    selections[key] = { start: hour, end: hour }; // 1 час — подтверждаем
-  } else if (hour < s.start) {
-    selections[key] = { start: hour, end: null };
+  // 1 тап = выбрать этот 1 час. Повторный тап на тот же час = снять выбор.
+  if (s && s.start === hour && s.end === hour) {
+    delete selections[key]; // снимаем выбор
   } else {
-    let blocked = false;
-    for (let h = s.start + 1; h <= hour; h++) {
-      if (isBooked(h)) { blocked = true; break; }
-    }
-    if (blocked) selections[key] = { start: hour, end: null };
-    else         selections[key].end = hour;
+    selections[key] = { start: hour, end: hour }; // 1 час всегда
   }
   renderSlots();
   renderPricing();

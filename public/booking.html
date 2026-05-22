@@ -110,6 +110,10 @@ nav.d-nav {
 .back-link svg { width: 16px; height: 16px; }
 .page-header-title { font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(217,217,217,.4); }
 
+/* Мобильные элементы навигации — скрыты на десктопе */
+.mob-breadcrumb { display: none; }
+.mob-back       { display: none; }
+
 /* Step breadcrumb — desktop */
 .step-breadcrumb {
   display: flex; align-items: center; gap: 0;
@@ -444,14 +448,13 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
   .mob-top { display: flex; }
   .mob-nav { display: flex; }
   .mob-summary-bar { display: flex; }
-  .mob-step-bar { display: none; } /* заменяем на breadcrumb */
-  .mob-breadcrumb { display: flex; align-items: center; padding: 10px 16px; gap: 0; overflow-x: auto; background: var(--charcoal-mid); border-bottom: 1px solid var(--accent-border); }
-  .mob-breadcrumb .step-crumb { font-size: 7px; flex-shrink: 0; }
-  .mob-breadcrumb .step-crumb-num { width: 18px; height: 18px; font-size: 8px; }
-  .mob-breadcrumb .step-crumb-sep { width: 16px; margin: 0 4px; }
-  .mob-back { display: flex; align-items: center; gap: 8px; padding: 12px 16px 0; font-size: 9px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.4); text-decoration: none; }
+  .mob-step-bar { display: none; }
+  .mob-back { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; font-size: 9px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.4); text-decoration: none; }
   .mob-back svg { width: 14px; height: 14px; }
-  .mob-back:hover { color: var(--light); }
+  .mob-breadcrumb { display: flex; align-items: center; padding: 8px 16px 12px; gap: 0; overflow-x: auto; }
+  .mob-breadcrumb .step-crumb { font-size: 7px; flex-shrink: 0; gap: 6px; }
+  .mob-breadcrumb .step-crumb-num { width: 18px; height: 18px; font-size: 7px; }
+  .mob-breadcrumb .step-crumb-sep { width: 12px; margin: 0 3px; }
   .booking-footer { display: block; }
   .desktop-only { display: none !important; }
   body { padding-bottom: calc(var(--mob-nav-h) + 80px + env(safe-area-inset-bottom, 0px)); }
