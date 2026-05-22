@@ -1032,7 +1032,25 @@ document.querySelectorAll('.carousel-wrap').forEach(wrap => {
   wrap.addEventListener('touchend',   () => { clearInterval(autoplayTimers[id]); startAutoplay(id); });
 });
 
-initCarousel('a');
+// Запускаем карусель только если хотя бы одно изображение загрузилось
+(function() {
+  const track = document.getElementById('track-a');
+  if (!track) return;
+  const imgs = track.querySelectorAll('img');
+  let failed = 0;
+  imgs.forEach(img => {
+    img.addEventListener('error', () => {
+      img.style.display = 'none';
+      failed++;
+      if (failed === imgs.length) {
+        // Все изображения не загрузились — скрываем секцию карусели
+        const col = document.querySelector('.about-carousel-col');
+        if (col) col.style.display = 'none';
+      }
+    });
+  });
+  initCarousel('a');
+})();
 
 // ── LIGHTBOX ──
 let lbImages = [];
