@@ -29,7 +29,6 @@ Route::post('/bookings/{booking}/cancel',[BookingController::class, 'cancel']);
 
 // ── Payment (T-Bank) ──────────────────────────────────────────────────
 Route::post('/payment/init',           [PaymentController::class, 'init']);
-Route::post('/payment/sbp',            [PaymentController::class, 'sbp']);
 Route::post('/payment/webhook',        [PaymentController::class, 'webhook']);
 Route::get('/payment/status/{id}',     [PaymentController::class, 'status']);
 Route::get('/payment/test',            [PaymentController::class, 'test']);
