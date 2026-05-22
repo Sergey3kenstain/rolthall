@@ -44,6 +44,7 @@ class TelegramController extends Controller
 
         $username = $message['chat']['username'] ?? null;
 
+        // Сохраняем chat_id при любом входящем сообщении
         if ($username) {
             User::where('telegram_username', $username)
                 ->whereNull('telegram_chat_id')
@@ -51,10 +52,7 @@ class TelegramController extends Controller
         }
 
         match (true) {
-            str_starts_with($text, '/start') => $this->sendMessage(
-                $chatId,
-                "👋 Привет! Это бот <b>RoltHall</b>.\n\nТеперь вы будете получать уведомления о своих бронях здесь.\n\nДля бронирования: https://hall.roltworld.com"
-            ),
+            str_starts_with($text, '/start') => $this->sendStart($chatId),
             str_starts_with($text, '/mychat') => $this->sendMessage(
                 $chatId,
                 "Chat ID: <code>{$chatId}</code>\n" .
@@ -63,6 +61,30 @@ class TelegramController extends Controller
             ),
             default => null,
         };
+    }
+
+    /**
+     * Приветствие /start с кнопкой открытия Mini App
+     */
+    private function sendStart(int|string $chatId): void
+    {
+        try {
+            $this->telegram->sendMessage([
+                'chat_id'      => $chatId,
+                'text'         => "👋 Привет! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\nНажми кнопку ниже чтобы выбрать время и забронировать зал. После оплаты уведомление придёт сюда.",
+                'parse_mode'   => 'HTML',
+                'reply_markup' => json_encode([
+                    'inline_keyboard' => [[
+                        [
+                            'text'    => '📅 Забронировать зал',
+                            'web_app' => ['url' => config('app.url') . '/calendar'],
+                        ],
+                    ]],
+                ]),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Telegram sendStart error', ['error' => $e->getMessage()]);
+        }
     }
 
     /**
