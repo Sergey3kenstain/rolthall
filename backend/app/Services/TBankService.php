@@ -35,6 +35,26 @@ class TBankService
             'FailURL'     => config('app.url') . '/booking/fail',
         ], $params['extra'] ?? []);
 
+        // Фискальный чек (54-ФЗ) — обязателен для T-Bank
+        $receipt = [
+            'Taxation' => config('services.tbank.taxation', 'usn_income'),
+            'Items'    => [[
+                'Name'          => mb_substr($params['description'], 0, 128),
+                'Price'         => $params['amount'],
+                'Quantity'      => 1.00,
+                'Amount'        => $params['amount'],
+                'Tax'           => config('services.tbank.vat', 'none'),
+                'PaymentMethod' => 'full_prepayment',
+                'PaymentObject' => 'service',
+            ]],
+        ];
+        if (!empty($params['email'])) {
+            $receipt['Email'] = $params['email'];
+        } elseif (!empty($params['phone'])) {
+            $receipt['Phone'] = $params['phone'];
+        }
+        $data['Receipt'] = $receipt;
+
         $data['Token'] = $this->generateToken($data);
 
         return $this->request('Init', $data);

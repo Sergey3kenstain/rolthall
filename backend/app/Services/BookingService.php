@@ -85,6 +85,8 @@ class BookingService
             'amount'      => $booking->prepayment_amount,
             'order_id'    => 'booking-' . $booking->id,
             'description' => "Предоплата {$booking->hall->name} · {$booking->getDateFormatted()} {$booking->getTimeRangeLabel()}",
+            'email'       => $booking->client->email,
+            'phone'       => $booking->client->phone,
         ];
     }
 

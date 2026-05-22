@@ -46,6 +46,8 @@ return [
         'secret_key'   => env('TBANK_SECRET_KEY'),
         'test_mode'    => env('TBANK_TEST_MODE', true),
         'api_url'      => 'https://securepay.tinkoff.ru/v2/',
+        'taxation'     => env('TBANK_TAXATION', 'usn_income'),
+        'vat'          => env('TBANK_VAT', 'none'),
     ],
 
 ];

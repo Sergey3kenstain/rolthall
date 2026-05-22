@@ -46,6 +46,8 @@ class BookingController extends Controller
                 'amount'      => $payData['amount'] * 100, // T-Bank — копейки
                 'order_id'    => $payData['order_id'],
                 'description' => $payData['description'],
+                'email'       => $payData['email'] ?? null,
+                'phone'       => $payData['phone'] ?? null,
             ]);
 
             if (!$result['ok']) {

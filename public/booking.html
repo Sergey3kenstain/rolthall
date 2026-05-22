@@ -639,11 +639,6 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
             <span class="form-hint">Уведомления через @RoltHallBot</span>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Комментарий</label>
-            <textarea class="form-input no-icon" id="f-comment" placeholder="Особые пожелания, требования..."></textarea>
-          </div>
-
           <div class="notice">
             <div class="notice-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="16" height="16"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
@@ -905,7 +900,7 @@ async function submitBooking() {
   const phone    = document.getElementById('f-phone')?.value.trim();
   const email    = document.getElementById('f-email')?.value.trim();
   const telegram = (document.getElementById('f-telegram')?.value.trim() || '').replace('@','');
-  const notes    = document.getElementById('f-comment')?.value.trim() || '';
+  const notes    = '';
 
   if (!name)  { alert('Введите ФИО'); return; }
   if (!phone) { alert('Введите телефон'); return; }
@@ -941,7 +936,8 @@ async function submitBooking() {
         allBtns.forEach(b => { b.disabled = false; b.textContent = 'Оплатить'; });
         return;
       }
-      // Редирект на T-Bank
+      // Редирект на T-Bank — данные формы больше не нужны
+      sessionStorage.removeItem(FORM_STORAGE_KEY);
       window.location.href = data.payment_url;
 
     } else if (BOOKING_DATA.format === 'event') {
@@ -955,9 +951,39 @@ async function submitBooking() {
   }
 }
 
+const FORM_STORAGE_KEY = 'rh_booking_form';
+
+function saveFormData() {
+  const data = {
+    name:     document.getElementById('f-name')?.value     || '',
+    phone:    document.getElementById('f-phone')?.value    || '',
+    email:    document.getElementById('f-email')?.value    || '',
+    telegram: document.getElementById('f-telegram')?.value || '',
+  };
+  sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(data));
+}
+
+function restoreFormData() {
+  try {
+    const raw = sessionStorage.getItem(FORM_STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.name)     { const el = document.getElementById('f-name');     if (el) el.value = data.name; }
+    if (data.phone)    { const el = document.getElementById('f-phone');    if (el) el.value = data.phone; }
+    if (data.email)    { const el = document.getElementById('f-email');    if (el) el.value = data.email; }
+    if (data.telegram) { const el = document.getElementById('f-telegram'); if (el) el.value = data.telegram; }
+  } catch (_) {}
+}
+
 // Init page from URL params
 document.addEventListener('DOMContentLoaded', function() {
   initBookingPage();
+  restoreFormData();
+
+  // Сохраняем данные при изменении любого поля
+  ['f-name', 'f-phone', 'f-email', 'f-telegram'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', saveFormData);
+  });
 
   // Telegram mask: только @username
   const tgInput = document.getElementById('f-telegram');
