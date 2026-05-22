@@ -580,15 +580,18 @@ nav.d-nav {
   .slot-cell { min-height: 48px; padding: 6px 8px; }
   .hold-banner { padding: 4px 16px; }
 
-  /* bs-selected-top + hold-banner рядом, по половине экрана */
+  /* bs-selected-top + hold-banner рядом */
   .bs-totals-row {
-    display: flex; gap: 8px; align-items: stretch; margin-bottom: 14px;
+    display: flex; gap: 55px; align-items: stretch; margin-bottom: 14px;
   }
   .bs-totals-row .bs-selected-top,
   .bs-totals-row .hold-banner {
     flex: 1; margin-bottom: 0; min-width: 0;
   }
-  .bs-totals-row .hold-banner { flex-direction: column; justify-content: center; }
+  .bs-totals-row .hold-banner { flex-direction: row; justify-content: flex-start; align-items: center; }
+
+  /* sel-days-list — убираем margin, border, background на мобильном */
+  .sel-days-list { margin-bottom: 0; background: transparent; border: none; }
 
   .bottom-sheet {
     position: fixed;
@@ -710,6 +713,10 @@ function _initTg() {
           </div>
           <div id="dstateSelected" class="bs-selected" style="display:none;">
             <div class="sel-days-list" id="dselDaysList"></div>
+            <div class="hold-banner" style="margin-bottom:12px;">
+              <div class="hold-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="hold-text">После «Далее» слот резервируется на <strong>10 минут</strong></div>
+            </div>
             <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);">
               <div>
                 <div class="bs-sel-total-label">Итого</div>
@@ -755,14 +762,14 @@ function _initTg() {
       <div class="event-packages" id="eventPackages">
         <div class="event-pkg" onclick="selectPkg(this, 100000)">
           <div class="pkg-tag">Весь день — базовый</div>
-          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>100 000</div>
+          <div class="pkg-price">100 000<span style="font-size:.5em;font-weight:300;margin:1em 0.5em;vertical-align:super;">₽</span></div>
           <div class="pkg-name">День мероприятия</div>
           <div class="pkg-desc">Аренда зала на весь день без дополнительного оборудования. Предоплата 50% при бронировании.</div>
           <div class="pkg-prepay">Предоплата: 50 000 ₽</div>
         </div>
         <div class="event-pkg" onclick="selectPkg(this, 150000)">
           <div class="pkg-tag">Весь день — полный</div>
-          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>150 000</div>
+          <div class="pkg-price">150 000<span style="font-size:.5em;font-weight:300;margin:1em 0.5em;vertical-align:super;">₽</span></div>
           <div class="pkg-name">День со светом и звуком</div>
           <div class="pkg-desc">Профессиональный свет, звуковое оборудование, полная поддержка на весь день вашего мероприятия.</div>
           <div class="pkg-prepay">Предоплата: 75 000 ₽</div>
@@ -1152,7 +1159,7 @@ function renderWeekGrid(days) {
         cls += ' free';
         price = `${getRph(1, tiers).toLocaleString('ru')} ₽`;
       }
-      const onclick = (booked || isPast) ? '' : `onclick="wgCellClick(${i},${h})"`;
+      const onclick = (booked || isPast) ? '' : `onclick="wgCellClick('${key}',${h})"`;
       html += `<div class="${cls}" ${onclick}><span class="wgc-price">${price}</span></div>`;
     });
     html += '</div>';
@@ -1160,10 +1167,12 @@ function renderWeekGrid(days) {
   }).join('');
 }
 
-function wgCellClick(dayIdx, hour) {
-  selectedDateIdx = dayIdx;
+function wgCellClick(dateKey, hour) {
+  // Находим индекс по dateKey — исключает off-by-one при рендере
+  const days = getStripDates();
+  selectedDateIdx = days.findIndex((_, idx) => dateKeyFor(days, idx) === dateKey);
+  if (selectedDateIdx < 0) selectedDateIdx = 0;
   onCellClick(hour);
-  // Also update info bar and date grid
   renderInfoBar();
   renderDates();
 }
