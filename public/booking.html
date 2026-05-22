@@ -603,7 +603,7 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
               <span class="input-icon-el">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
               </span>
-              <input type="text" class="form-input" placeholder="Иванов Иван Иванович">
+              <input type="text" class="form-input" id="f-name" placeholder="Иванов Иван Иванович">
             </div>
           </div>
 
@@ -613,7 +613,7 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
               <span class="input-icon-el">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               </span>
-              <input type="tel" class="form-input" placeholder="+7 (900) 000-00-00">
+              <input type="tel" class="form-input" id="f-phone" placeholder="+7 (900) 000-00-00">
             </div>
           </div>
 
@@ -623,7 +623,7 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
               <span class="input-icon-el">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               </span>
-              <input type="email" class="form-input" placeholder="email@example.com">
+              <input type="email" class="form-input" id="f-email" placeholder="email@example.com">
             </div>
             <span class="form-hint">Чек и напоминания — сюда</span>
           </div>
@@ -641,7 +641,7 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
 
           <div class="form-group">
             <label class="form-label">Комментарий</label>
-            <textarea class="form-input no-icon" placeholder="Особые пожелания, требования..."></textarea>
+            <textarea class="form-input no-icon" id="f-comment" placeholder="Особые пожелания, требования..."></textarea>
           </div>
 
           <div class="notice">
@@ -746,34 +746,30 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
         </div>
       </div>
 
-      <div class="summary-rows">
+      <div class="summary-rows" id="summaryRows">
         <div class="summary-row">
           <span class="summary-row-label">Дата</span>
-          <span class="summary-row-val">Ср, 14 мая 2026</span>
+          <span class="summary-row-val" id="sumDate">—</span>
         </div>
-        <div class="summary-row">
+        <div class="summary-row" id="sumTimeRow">
           <span class="summary-row-label">Время</span>
-          <span class="summary-row-val">11:00 – 15:00 (4 ч)</span>
+          <span class="summary-row-val" id="sumTime">—</span>
         </div>
         <div class="summary-row">
           <span class="summary-row-label">Тариф</span>
-          <span class="summary-row-val green">800 ₽/ч × 4 ч</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-row-label">Без скидки</span>
-          <span class="summary-row-val strike">4 000 ₽</span>
+          <span class="summary-row-val green" id="sumTariff">—</span>
         </div>
       </div>
 
       <div class="summary-total">
-        <div class="summary-total-label">К оплате сейчас (50%)</div>
-        <div class="summary-total-amount">1 600 ₽</div>
-        <div class="summary-total-sub">Предоплата · Полная стоимость: 3 200 ₽</div>
+        <div class="summary-total-label" id="sumPayLabel">К оплате</div>
+        <div class="summary-total-amount" id="sumPrepay">—</div>
+        <div class="summary-total-sub" id="sumTotal">—</div>
       </div>
 
       <div class="summary-actions">
-        <button class="btn-primary" onclick="openSuccess()">Оплатить 1 600 ₽</button>
-        <a href="calendar.html" class="btn-secondary">← Изменить время</a>
+        <button class="btn-primary" id="desktopPayBtn" onclick="submitBooking()">Оплатить</button>
+        <a href="calendar.html" class="btn-secondary">← Изменить</a>
       </div>
 
       <div class="summary-legal">
@@ -809,11 +805,11 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
 <div class="booking-footer">
   <div class="booking-footer-inner">
     <div style="flex:1;">
-      <div class="bf-total-label">К оплате сейчас (50%)</div>
-      <div class="bf-total-val">1 600 ₽</div>
-      <div class="bf-prepay">Полная стоимость: 3 200 ₽</div>
+      <div class="bf-total-label" id="mobPayLabel">К оплате</div>
+      <div class="bf-total-val" id="mobPrepay">—</div>
+      <div class="bf-prepay" id="mobTotal">—</div>
     </div>
-    <button class="bf-pay-btn" onclick="openSuccess()">Оплатить</button>
+    <button class="bf-pay-btn" id="mobilePayBtn" onclick="submitBooking()">Оплатить</button>
   </div>
 </div>
 
@@ -855,6 +851,140 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
 </div>
 
 <script>
+/* ══ BOOKING PAGE INIT ══ */
+const MONTH_SHORT = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const DAY_SHORT   = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+let BOOKING_DATA  = null; // хранит данные из URL для отправки в API
+
+function fmtDate(key) {
+  const d = new Date(key + 'T00:00:00');
+  return `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
+}
+function fmtMoney(n) { return Number(n).toLocaleString('ru') + ' ₽'; }
+
+function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+function initBookingPage() {
+  const p = new URLSearchParams(window.location.search);
+  const format  = p.get('format') || 'hourly';
+  const hallId  = parseInt(p.get('hall_id') || '1');
+  const total   = parseInt(p.get('total')   || '0');
+  const prepay  = parseInt(p.get('prepay')  || '0');
+
+  // Обновляем мобильный summary bar
+  const msbDate = document.querySelector('.msb-date');
+
+  if (format === 'hourly') {
+    const date      = p.get('date');
+    const timeStart = p.get('time_start');
+    const timeEnd   = p.get('time_end');
+    const hours     = parseInt(p.get('hours') || '1');
+    const rph       = parseInt(p.get('rph')   || '0');
+
+    const dateLabel = date ? fmtDate(date) : '—';
+    const timeLabel = `${timeStart} – ${timeEnd} (${hours} ч)`;
+
+    setEl('sumDate',    dateLabel);
+    setEl('sumTime',    timeLabel);
+    setEl('sumTariff',  `${fmtMoney(rph)}/ч × ${hours} ч`);
+    setEl('sumPrepay',  fmtMoney(prepay));
+    setEl('sumTotal',   `Полная стоимость: ${fmtMoney(total)}`);
+    setEl('sumPayLabel','К оплате сейчас');
+    setEl('mobPrepay',  fmtMoney(prepay));
+    setEl('mobTotal',   `Полная стоимость: ${fmtMoney(total)}`);
+
+    const msb = document.querySelector('.msb-name');
+    if (msb) msb.textContent = `Зал А · ${dateLabel}`;
+    if (msbDate) msbDate.textContent = timeLabel;
+
+    // Кнопки оплаты
+    document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
+      b.textContent = `Оплатить ${fmtMoney(prepay)}`;
+    });
+
+    BOOKING_DATA = { format: 'hourly', hallId, date, timeStart, timeEnd, total, prepay };
+
+  } else if (format === 'event') {
+    const dates  = (p.get('dates') || '').split(',').filter(Boolean);
+    const pkg    = parseInt(p.get('pkg') || '100000');
+    const pkgName = pkg === 100000 ? 'Базовый' : 'Со светом и звуком';
+
+    const dateLabels = dates.map(fmtDate).join(', ');
+    setEl('sumDate',    dateLabels);
+    setEl('sumTime',    'Весь день');
+    setEl('sumTariff',  pkgName);
+    setEl('sumPrepay',  fmtMoney(prepay));
+    setEl('sumTotal',   `Полная стоимость: ${fmtMoney(total)}`);
+    setEl('sumPayLabel','Предоплата 50%');
+    setEl('mobPrepay',  fmtMoney(prepay));
+    setEl('mobTotal',   `Полная стоимость: ${fmtMoney(total)}`);
+
+    // Скрываем строку "Время" — для события не актуально
+    const timeRow = document.getElementById('sumTimeRow');
+    if (timeRow) timeRow.style.display = 'none';
+
+    document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
+      b.textContent = `Оплатить ${fmtMoney(prepay)}`;
+    });
+
+    BOOKING_DATA = { format: 'event', hallId, dates, pkg, total, prepay };
+  }
+}
+
+/* ══ SUBMIT BOOKING ══ */
+async function submitBooking() {
+  const name     = document.getElementById('f-name')?.value.trim();
+  const phone    = document.getElementById('f-phone')?.value.trim();
+  const email    = document.getElementById('f-email')?.value.trim();
+  const telegram = (document.getElementById('f-telegram')?.value.trim() || '').replace('@','');
+  const notes    = document.getElementById('f-comment')?.value.trim() || '';
+
+  if (!name)  { alert('Введите ФИО'); return; }
+  if (!phone) { alert('Введите телефон'); return; }
+  if (!email) { alert('Введите email'); return; }
+
+  if (!BOOKING_DATA) { alert('Данные бронирования не найдены. Вернитесь в расписание.'); return; }
+
+  const allBtns = document.querySelectorAll('#desktopPayBtn, #mobilePayBtn');
+  allBtns.forEach(b => { b.disabled = true; b.textContent = 'Создаём бронь...'; });
+
+  try {
+    if (BOOKING_DATA.format === 'hourly') {
+      const res  = await fetch('/api/bookings/hold', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hall_id:         BOOKING_DATA.hallId,
+          date:            BOOKING_DATA.date,
+          time_start:      BOOKING_DATA.timeStart,
+          time_end:        BOOKING_DATA.timeEnd,
+          name, phone, email,
+          telegram:        telegram || null,
+          notes,
+          consent_offer:   true,
+          consent_policy:  true,
+          consent_refund:  true,
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) { alert('Ошибка: ' + data.error); allBtns.forEach(b => { b.disabled = false; b.textContent = 'Оплатить'; }); return; }
+      // Редирект на T-Bank
+      window.location.href = data.payment_url;
+
+    } else if (BOOKING_DATA.format === 'event') {
+      // Мероприятие: пока показываем успех (интеграция оплаты аналогична)
+      // TODO: POST /api/bookings/event когда будет готов endpoint
+      openSuccess();
+    }
+  } catch(e) {
+    alert('Ошибка соединения: ' + e.message);
+    allBtns.forEach(b => { b.disabled = false; b.textContent = 'Оплатить'; });
+  }
+}
+
+// Init page from URL params
+document.addEventListener('DOMContentLoaded', initBookingPage);
+
 // Reveal on scroll
 const ro = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });

@@ -693,7 +693,7 @@ nav.d-nav {
             </div>
             <div class="bs-actions" style="margin-top:12px;">
               <button onclick="clearAllSelections()" class="btn-ghost">Сброс</button>
-              <a href="booking.html" class="btn-primary">Далее →</a>
+              <button onclick="goToBooking()" class="btn-primary" style="flex:1;">Далее →</button>
             </div>
           </div>
         </div>
@@ -802,7 +802,7 @@ nav.d-nav {
           </div>
           <div class="bs-actions">
             <button onclick="clearAllSelections()" class="btn-ghost" title="Сбросить всё">Сброс</button>
-            <a href="booking.html" class="btn-primary">Далее →</a>
+            <button onclick="goToBooking()" class="btn-primary" style="flex:1;">Далее →</button>
           </div>
         </div>
 
@@ -1452,6 +1452,68 @@ function shiftWeek(dir) {
   weekOffset += dir;
   selectedDateIdx = dir > 0 ? 0 : 6;
   redraw();
+}
+
+/* ===== NAVIGATE TO BOOKING ===== */
+function goToBooking() {
+  const p = new URLSearchParams();
+  p.set('hall_id', '1');
+
+  if (currentFormat === 'hourly') {
+    const sels = Object.entries(selections)
+      .filter(([, v]) => v.start != null && v.end != null)
+      .sort(([a],[b]) => a.localeCompare(b));
+    if (!sels.length) return;
+
+    // Суммируем все выбранные дни
+    let grandTotal = 0;
+    sels.forEach(([key, sel]) => {
+      const d    = new Date(key + 'T00:00:00');
+      const dur  = sel.end - sel.start + 1;
+      const rph  = getRph(dur, getTiers(d));
+      grandTotal += rph * dur;
+    });
+
+    // Если несколько дней — передаём список, если один — простые параметры
+    if (sels.length === 1) {
+      const [key, sel] = sels[0];
+      const d   = new Date(key + 'T00:00:00');
+      const dur = sel.end - sel.start + 1;
+      const rph = getRph(dur, getTiers(d));
+      p.set('format', 'hourly');
+      p.set('date',       key);
+      p.set('time_start', pad(sel.start) + ':00');
+      p.set('time_end',   pad(sel.end + 1) + ':00');
+      p.set('hours',  dur);
+      p.set('rph',    rph);
+      p.set('total',  rph * dur);
+      p.set('prepay', Math.round(rph * dur * 0.5));
+    } else {
+      // Несколько дней — сериализуем как JSON
+      p.set('format',   'hourly_multi');
+      p.set('bookings', JSON.stringify(sels.map(([key, sel]) => {
+        const d   = new Date(key + 'T00:00:00');
+        const dur = sel.end - sel.start + 1;
+        const rph = getRph(dur, getTiers(d));
+        return { date: key, time_start: pad(sel.start)+':00', time_end: pad(sel.end+1)+':00', hours: dur, rph, total: rph*dur };
+      })));
+      p.set('total',  grandTotal);
+      p.set('prepay', Math.round(grandTotal * 0.5));
+    }
+
+  } else {
+    // Event format
+    if (!selectedPkg || !eventDays.size) return;
+    const sortedDays = [...eventDays].sort();
+    const total = selectedPkg * sortedDays.length;
+    p.set('format', 'event');
+    p.set('dates',  sortedDays.join(','));
+    p.set('pkg',    selectedPkg);
+    p.set('total',  total);
+    p.set('prepay', Math.round(total * 0.5));
+  }
+
+  window.location.href = 'booking.html?' + p.toString();
 }
 
 /* ===== INIT ===== */
