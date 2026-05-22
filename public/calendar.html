@@ -580,6 +580,16 @@ nav.d-nav {
   .slot-cell { min-height: 48px; padding: 6px 8px; }
   .hold-banner { padding: 4px 16px; }
 
+  /* bs-selected-top + hold-banner рядом, по половине экрана */
+  .bs-totals-row {
+    display: flex; gap: 8px; align-items: stretch; margin-bottom: 14px;
+  }
+  .bs-totals-row .bs-selected-top,
+  .bs-totals-row .hold-banner {
+    flex: 1; margin-bottom: 0; min-width: 0;
+  }
+  .bs-totals-row .hold-banner { flex-direction: column; justify-content: center; }
+
   .bottom-sheet {
     position: fixed;
     bottom: calc(var(--mob-nav-h) + env(safe-area-inset-bottom, 0px));
@@ -796,25 +806,26 @@ function _initTg() {
             <div class="bs-line"></div>
             <div class="bs-line-hint">выберите конец</div>
           </div>
-          <button onclick="clearSelection()" class="btn-ghost" style="width:100%;">Сбросить</button>
         </div>
 
         <!-- Full selection -->
         <div id="stateSelected" class="bs-selected">
           <!-- Список выбранных дней (JS заполняет) -->
           <div class="sel-days-list" id="selDaysList"></div>
-          <div class="bs-selected-top">
-            <div>
-              <div class="bs-sel-total-label">Итого за всё</div>
-              <div class="bs-sel-total" id="selTotal">—</div>
-              <div class="bs-sel-prepay">предоплата <span id="selPrepay">—</span></div>
+          <div class="bs-totals-row">
+            <div class="bs-selected-top">
+              <div>
+                <div class="bs-sel-total-label">Итого за всё</div>
+                <div class="bs-sel-total" id="selTotal">—</div>
+                <div class="bs-sel-prepay">предоплата <span id="selPrepay">—</span></div>
+              </div>
             </div>
-          </div>
-          <div class="hold-banner">
-            <div class="hold-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div class="hold-banner">
+              <div class="hold-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="hold-text">После «Далее» слот резервируется на <strong>10 минут</strong></div>
             </div>
-            <div class="hold-text">После «Далее» слот резервируется на <strong>10 минут</strong></div>
           </div>
           <div class="bs-actions">
             <button onclick="clearAllSelections()" class="btn-ghost" title="Сбросить всё">Сброс</button>
@@ -971,20 +982,21 @@ function renderDates() {
 
   grid.innerHTML = days.map((d, i) => {
     const key        = dateKeyFor(days, i);
-    const isToday    = d.getTime() === today.getTime();
-    const isPast     = d.getTime() < today.getTime();
-    const isSel      = i === selectedDateIdx && currentFormat === 'hourly';
-    const isEventSel = currentFormat === 'event' && eventDays.has(key);
-    const hasBusy    = hasBookings(key);
-    const hasMySel   = currentFormat === 'hourly' && selections[key]?.end != null;
+    const isToday      = d.getTime() === today.getTime();
+    const isPast       = d.getTime() < today.getTime();
+    const isSel        = i === selectedDateIdx && currentFormat === 'hourly';
+    const isEventSel   = currentFormat === 'event' && eventDays.has(key);
+    const hasBusy      = hasBookings(key);
+    const isEventBlocked = currentFormat === 'event' && hasBusy && !isEventSel;
+    const hasMySel     = currentFormat === 'hourly' && selections[key]?.end != null;
     let cls = 'date-chip';
-    if (isToday)    cls += ' today';
-    if (isPast)     cls += ' past';
-    if (isSel)      cls += ' selected';
-    if (isEventSel) cls += ' event-sel';
+    if (isToday)         cls += ' today';
+    if (isPast || isEventBlocked) cls += ' past';
+    if (isSel)           cls += ' selected';
+    if (isEventSel)      cls += ' event-sel';
     if (hasMySel && !isSel) cls += ' has-sel';
     const dot = hasBusy ? `<div class="date-chip-dot"></div>` : '';
-    const click = isPast ? '' : (currentFormat === 'event' ? `onclick="toggleEventDay(${i})"` : `onclick="selectDate(${i})"`);
+    const click = (isPast || isEventBlocked) ? '' : (currentFormat === 'event' ? `onclick="toggleEventDay(${i})"` : `onclick="selectDate(${i})"`);
     return `<div class="${cls}" ${click}>
       <div class="date-chip-day">${DAY_SHORT[d.getDay()]}</div>
       <div class="date-chip-num">${d.getDate()}</div>
@@ -1002,20 +1014,21 @@ function renderMobDates() {
 
   scroll.innerHTML = days.map((d, i) => {
     const key        = dateKeyFor(days, i);
-    const isToday    = d.getTime() === today.getTime();
-    const isPast     = d.getTime() < today.getTime();
-    const isSel      = i === selectedDateIdx && currentFormat === 'hourly';
-    const hasBusy    = hasBookings(key);
-    const hasMySel   = currentFormat === 'hourly' && selections[key]?.end != null;
-    const isEventSel = currentFormat === 'event'  && eventDays.has(key);
+    const isToday      = d.getTime() === today.getTime();
+    const isPast       = d.getTime() < today.getTime();
+    const isSel        = i === selectedDateIdx && currentFormat === 'hourly';
+    const hasBusy      = hasBookings(key);
+    const isEventSel   = currentFormat === 'event'  && eventDays.has(key);
+    const isEventBlocked = currentFormat === 'event' && hasBusy && !isEventSel;
+    const hasMySel     = currentFormat === 'hourly' && selections[key]?.end != null;
     let cls = 'mob-date-chip';
-    if (isToday)    cls += ' today';
-    if (isPast)     cls += ' past';
-    if (isSel)      cls += ' selected';
-    if (hasMySel)   cls += ' has-sel';
-    if (isEventSel) cls += ' event-sel';
-    const dot = hasBusy && !isSel && !isEventSel ? `<div class="mob-date-dot"></div>` : '';
-    const click = isPast ? '' : (currentFormat === 'event' ? `toggleEventDay(${i})` : `selectDate(${i})`);
+    if (isToday)           cls += ' today';
+    if (isPast || isEventBlocked) cls += ' past';
+    if (isSel)             cls += ' selected';
+    if (hasMySel)          cls += ' has-sel';
+    if (isEventSel)        cls += ' event-sel';
+    const dot = hasBusy && !isSel && !isEventSel && !isEventBlocked ? `<div class="mob-date-dot"></div>` : '';
+    const click = (isPast || isEventBlocked) ? '' : (currentFormat === 'event' ? `toggleEventDay(${i})` : `selectDate(${i})`);
     return `<div class="${cls}" ${click ? `onclick="${click}"` : ''}>
       <div class="mob-date-day">${DAY_SHORT[d.getDay()]}</div>
       <div class="mob-date-num">${d.getDate()}</div>
@@ -1408,6 +1421,8 @@ function removeEventDay(key) {
 function toggleEventDay(dayIdx) {
   const days = getStripDates();
   const key  = dateKeyFor(days, dayIdx);
+  // Запрещаем выбор занятых дат для мероприятия
+  if (!eventDays.has(key) && hasBookings(key)) return;
   if (eventDays.has(key)) eventDays.delete(key);
   else                     eventDays.add(key);
   renderDates();
