@@ -84,6 +84,7 @@ class PaymentController extends Controller
                     'time_end'       => substr($booking->time_end, 0, 5),
                     'hall_name'      => $booking->hall->name,
                     'phone'          => $booking->client->phone,
+                    'email'          => $booking->client->email ?? '—',
                     'telegram'       => $booking->client->telegram_username ?? '—',
                     'prepayment'     => $booking->prepayment_amount,
                     'transaction_id' => $paymentId,

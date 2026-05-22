@@ -24,15 +24,15 @@ class NotificationService
     public function notifyAdminNewBooking(array $data): void
     {
         $text = "🏠 <b>Новая бронь — RoltHall</b>\n\n"
-            . "👤 <b>ФИО:</b> {$data['client_name']}\n"
-            . "📋 <b>Формат:</b> Разовая аренда\n"
-            . "📅 <b>Дата, время:</b> {$data['date']}, {$data['time_start']}–{$data['time_end']}\n"
-            . "🏛 <b>Зал:</b> {$data['hall_name']}\n"
+            . "👤 <b>Клиент:</b> {$data['client_name']}\n"
             . "📞 <b>Телефон:</b> {$data['phone']}\n"
+            . "✉️ <b>Email:</b> {$data['email']}\n"
             . "💬 <b>Телеграм:</b> @{$data['telegram']}\n\n"
-            . "✅ <b>Положение принято:</b> Да\n\n"
-            . "💰 <b>Оплачено:</b> {$data['prepayment']} RUB\n"
-            . "🔑 <b>ИД транзакции:</b> {$data['transaction_id']}";
+            . "📅 <b>Дата:</b> {$data['date']}\n"
+            . "🕐 <b>Время:</b> {$data['time_start']}–{$data['time_end']}\n"
+            . "🏛 <b>Зал:</b> {$data['hall_name']}\n\n"
+            . "💰 <b>Предоплата:</b> {$data['prepayment']} ₽\n"
+            . "🔑 <b>Транзакция:</b> <code>{$data['transaction_id']}</code>";
 
         $this->sendToAdmin($text);
     }
