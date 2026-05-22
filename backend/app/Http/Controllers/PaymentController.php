@@ -113,6 +113,45 @@ class PaymentController extends Controller
     }
 
     /**
+     * Инициализируем СБП-платёж — получаем QR payload
+     * POST /api/payment/sbp
+     */
+    public function sbp(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'amount'      => 'required|integer|min:1',
+            'order_id'    => 'required|string',
+            'description' => 'required|string|max:140',
+        ]);
+
+        // 1. Init
+        $init = $this->tbank->init([
+            'amount'      => $data['amount'] * 100,
+            'order_id'    => $data['order_id'],
+            'description' => $data['description'],
+        ]);
+
+        if (!$init['ok']) {
+            return response()->json(['ok' => false, 'error' => $init['error']], 422);
+        }
+
+        $paymentId = $init['PaymentId'];
+
+        // 2. GetQr — получаем payload для QR-кода
+        $qr = $this->tbank->getQr($paymentId, 'PAYLOAD');
+
+        if (!$qr['ok']) {
+            return response()->json(['ok' => false, 'error' => $qr['error']], 422);
+        }
+
+        return response()->json([
+            'ok'         => true,
+            'payment_id' => $paymentId,
+            'qr_payload' => $qr['QrUrl'] ?? $qr['Data'] ?? null,
+        ]);
+    }
+
+    /**
      * Тестовый платёж — открыть в браузере для проверки
      * GET /api/payment/test
      */

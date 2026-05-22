@@ -41,6 +41,22 @@ class TBankService
     }
 
     /**
+     * Генерируем QR-код для СБП
+     * DataType: PAYLOAD (ссылка для мобильного) | IMAGE (SVG)
+     */
+    public function getQr(string $paymentId, string $dataType = 'PAYLOAD'): array
+    {
+        $data = [
+            'TerminalKey' => $this->terminalKey,
+            'PaymentId'   => $paymentId,
+            'DataType'    => $dataType,
+        ];
+        $data['Token'] = $this->generateToken($data);
+
+        return $this->request('GetQr', $data);
+    }
+
+    /**
      * Проверяем статус платежа
      */
     public function getState(string $paymentId): array
