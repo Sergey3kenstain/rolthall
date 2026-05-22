@@ -232,6 +232,7 @@ nav.d-nav {
   .wg-cell.free:hover { background: rgba(255,255,255,.05); }
   .wg-cell.selected   { background: var(--accent) !important; }
   .wg-cell.booked     { background: var(--danger-bg); cursor: not-allowed; }
+  .wg-cell.wg-clickable { cursor: pointer; }
   .wgc-price { font-size: 9px; font-weight: 700; color: rgba(217,217,217,.5); }
   .wg-cell.selected .wgc-price { color: var(--charcoal); }
   .wg-cell.booked   .wgc-price { font-size: 8px; color: var(--danger); }
@@ -1160,22 +1161,45 @@ function renderWeekGrid(days) {
         cls += ' free';
         price = `${getRph(1, tiers).toLocaleString('ru')} ₽`;
       }
-      const onclick = (booked || isPast) ? '' : `onclick="wgCellClick('${key}',${h})"`;
-      html += `<div class="${cls}" ${onclick}><span class="wgc-price">${price}</span></div>`;
+      const clickable = !booked && !isPast;
+      if (clickable) cls += ' wg-clickable';
+      html += `<div class="${cls}" data-wg-key="${key}" data-wg-h="${h}"><span class="wgc-price">${price}</span></div>`;
     });
     html += '</div>';
     return html;
   }).join('');
 }
 
-function wgCellClick(dateKey, hour) {
-  // Находим индекс по dateKey — исключает off-by-one при рендере
-  const days = getStripDates();
-  selectedDateIdx = days.findIndex((_, idx) => dateKeyFor(days, idx) === dateKey);
-  if (selectedDateIdx < 0) selectedDateIdx = 0;
-  onCellClick(hour);
-  renderInfoBar();
-  renderDates();
+// Event delegation — читаем dateKey прямо из dataset элемента, нет off-by-one
+function initWgClickHandler() {
+  const container = document.getElementById('slotsContainer');
+  if (!container) return;
+  container.onclick = function(e) {
+    const cell = e.target.closest('.wg-clickable');
+    if (!cell) return;
+    const dateKey = cell.dataset.wgKey;
+    const hour    = parseInt(cell.dataset.wgH);
+    if (!dateKey || isNaN(hour)) return;
+
+    // Обновляем selectedDateIdx
+    const days = getStripDates();
+    selectedDateIdx = days.findIndex((_, idx) => dateKeyFor(days, idx) === dateKey);
+    if (selectedDateIdx < 0) return;
+
+    // 1-тап: выбор 1 часа
+    if (isBookedOn(dateKey, hour)) return;
+    const s = selections[dateKey];
+    if (s && s.start === hour && s.end === hour) {
+      delete selections[dateKey];
+    } else {
+      selections[dateKey] = { start: hour, end: hour };
+    }
+    renderSlots();
+    renderPricing();
+    updateSheet();
+    renderInfoBar();
+    renderDates();
+  };
 }
 
 function selectDateWG(idx) {
@@ -1575,6 +1599,7 @@ function goToBooking() {
 }
 
 /* ===== INIT ===== */
+initWgClickHandler();
 reloadAndRedraw();
 window.addEventListener('resize', () => renderSlots());
 </script>

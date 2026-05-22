@@ -449,9 +449,9 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
   .mob-nav { display: flex; }
   .mob-summary-bar { display: flex; }
   .mob-step-bar { display: none; }
-  .mob-back { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; font-size: 9px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: rgba(217,217,217,.4); text-decoration: none; }
+  .mob-back { display: flex; align-items: center; gap: 8px; padding: 12px 16px 4px; margin-top: 56px; font-size: 12px; font-weight: 500; letter-spacing: .06em; color: rgba(217,217,217,.4); text-decoration: none; }
   .mob-back svg { width: 14px; height: 14px; }
-  .mob-breadcrumb { display: flex; align-items: center; padding: 8px 16px 12px; gap: 0; overflow-x: auto; }
+  .mob-breadcrumb { display: flex; align-items: center; padding: 8px 16px 12px; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--accent-border); }
   .mob-breadcrumb .step-crumb { font-size: 7px; flex-shrink: 0; gap: 6px; }
   .mob-breadcrumb .step-crumb-num { width: 18px; height: 18px; font-size: 7px; }
   .mob-breadcrumb .step-crumb-sep { width: 12px; margin: 0 3px; }
@@ -524,33 +524,6 @@ function _initTg() {
   </div>
 </nav>
 
-<!-- ══ MOBILE BREADCRUMB + BACK ══ -->
-<a href="/calendar" class="mob-back">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-  Изменить даты
-</a>
-<div class="mob-breadcrumb">
-  <div class="step-crumb done">
-    <div class="step-crumb-num">✓</div>
-    Зал
-  </div>
-  <div class="step-crumb-sep"></div>
-  <div class="step-crumb done">
-    <div class="step-crumb-num">✓</div>
-    Дата и время
-  </div>
-  <div class="step-crumb-sep"></div>
-  <div class="step-crumb active">
-    <div class="step-crumb-num">3</div>
-    Контактные данные
-  </div>
-  <div class="step-crumb-sep"></div>
-  <div class="step-crumb">
-    <div class="step-crumb-num">4</div>
-    Оплата
-  </div>
-</div>
-
 <!-- ══ MOBILE SUMMARY BAR ══ -->
 <div class="mob-summary-bar">
   <img src="/images/slide 1.png" class="msb-img" alt="Зал А">
@@ -562,6 +535,21 @@ function _initTg() {
     <div class="msb-price">3 200 ₽</div>
     <div class="msb-prepay">предоплата 1 600 ₽</div>
   </div>
+</div>
+
+<!-- ══ MOBILE BREADCRUMB + BACK (после summary, перед контентом) ══ -->
+<a href="/calendar" class="mob-back">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  Изменить даты
+</a>
+<div class="mob-breadcrumb">
+  <div class="step-crumb done"><div class="step-crumb-num">✓</div>Зал</div>
+  <div class="step-crumb-sep"></div>
+  <div class="step-crumb done"><div class="step-crumb-num">✓</div>Дата</div>
+  <div class="step-crumb-sep"></div>
+  <div class="step-crumb active"><div class="step-crumb-num">3</div>Контакты</div>
+  <div class="step-crumb-sep"></div>
+  <div class="step-crumb"><div class="step-crumb-num">4</div>Оплата</div>
 </div>
 
 <!-- ══ PAGE SHELL ══ -->

@@ -172,8 +172,9 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
 .footer-nav-col, .footer-legal-col { display: flex; flex-direction: column; gap: 10px; }
 .footer-nav-col a, .footer-legal-col a { font-size: 9px; font-weight: 400; color: rgba(217,217,217,.4); text-decoration: none; letter-spacing: .06em; transition: color .2s; }
 .footer-nav-col a:hover, .footer-legal-col a:hover { color: var(--light); }
-.footer-bottom { display: flex; align-items: center; justify-content: space-between; padding: 16px 48px; border-top: 1px solid var(--accent-border); }
-.footer-copy, .footer-dev { font-size: 8px; font-weight: 300; color: rgba(217,217,217,.2); }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; border-top: 1px solid var(--accent-border); }
+.footer-copy { font-size: 8px; font-weight: 300; color: rgba(217,217,217,.2); }
+.footer-dev  { font-size: 10px; font-weight: 300; color: rgba(217,217,217,.2); }
 .footer-dev a { color: rgba(217,217,217,.35); text-decoration: none; }
 @media (max-width: 1023px) {
   .footer-top { grid-template-columns: 1fr; gap: 24px; padding: 32px 20px; }
@@ -199,7 +200,7 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
 .user-contact-row svg { width: 13px; height: 13px; color: rgba(217,217,217,.35); flex-shrink: 0; }
 .user-contact-val { font-size: 10px; font-weight: 300; color: rgba(217,217,217,.55); letter-spacing: .02em; }
 @media (max-width: 600px) {
-  .user-card { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .user-card { flex-direction: row; align-items: center; gap: 16px; }
 }
 
 /* ══ BOOKING ACTIONS ══ */
