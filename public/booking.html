@@ -472,6 +472,18 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
   .modal-actions { flex-direction: column; }
 }
 </style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+(function(){
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+  var u = tg.initDataUnsafe && tg.initDataUnsafe.user;
+  if (u) {
+    try { sessionStorage.setItem('rh_tg_user', JSON.stringify({id:u.id, username:u.username||'', first_name:u.first_name||''})); } catch(e){}
+  }
+  try { tg.ready(); tg.expand(); } catch(e){}
+})();
+</script>
 <script src="/layout.js" defer></script>
 </head>
 <body>
@@ -1003,15 +1015,11 @@ function restoreFormData() {
 
 // Init page from URL params
 document.addEventListener('DOMContentLoaded', function() {
-  // Telegram WebApp
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.ready(); tg.expand(); }
-
   initBookingPage();
   restoreFormData();
 
-  // TG-данные: сначала из контекста WebApp, иначе из sessionStorage (если пришли из /calendar)
-  const tgDirect = tg?.initDataUnsafe?.user;
+  // TG данные: из sessionStorage (сохранено в <head> выше) или напрямую
+  const tgDirect = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const tgStored = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
   const tgUser   = tgDirect || tgStored;
   if (tgUser?.username) {
