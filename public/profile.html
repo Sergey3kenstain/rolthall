@@ -180,10 +180,27 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
   .footer-bottom { padding: 12px 20px; flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
-/* ══ USER INFO ══ */
-.user-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; }
-.user-meta-item { font-size: 9px; font-weight: 300; color: rgba(217,217,217,.4); letter-spacing: .04em; }
-.user-meta-item span { color: rgba(217,217,217,.65); }
+/* ══ USER CARD ══ */
+.user-card {
+  border: 1px solid var(--accent-border); background: var(--charcoal-mid);
+  padding: 24px 28px; margin-top: 28px;
+  display: flex; align-items: center; gap: 20px;
+}
+.user-avatar {
+  width: 52px; height: 52px; border: 1px solid var(--accent-border); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: rgba(217,217,217,.4);
+}
+.user-avatar svg { width: 24px; height: 24px; }
+.user-card-info { flex: 1; }
+.user-card-name { font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 12px; letter-spacing: -.01em; }
+.user-contacts { display: flex; flex-direction: column; gap: 7px; }
+.user-contact-row { display: flex; align-items: center; gap: 10px; }
+.user-contact-row svg { width: 13px; height: 13px; color: rgba(217,217,217,.35); flex-shrink: 0; }
+.user-contact-val { font-size: 10px; font-weight: 300; color: rgba(217,217,217,.55); letter-spacing: .02em; }
+@media (max-width: 600px) {
+  .user-card { flex-direction: column; align-items: flex-start; gap: 16px; }
+}
 
 /* ══ BOOKING ACTIONS ══ */
 .booking-actions { display: flex; gap: 8px; margin-top: 10px; }
@@ -292,14 +309,11 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
 
     <!-- BOOKINGS VIEW -->
     <div id="bookingsView" style="display:none;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-        <div>
-          <div class="page-eyebrow">Личный кабинет</div>
-          <div class="page-title" id="profileName">Мои брони</div>
-          <div class="user-meta" id="userMeta"></div>
-        </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="page-eyebrow">Личный кабинет</div>
         <button onclick="doLogout()" class="btn-logout">Выйти</button>
       </div>
+      <div id="userCard"></div>
 
       <div class="section">
         <div class="info-card">
@@ -415,7 +429,7 @@ function doLogout() {
 async function showBookingsView(name, token) {
   document.getElementById('loginView').style.display    = 'none';
   document.getElementById('bookingsView').style.display = 'block';
-  document.getElementById('profileName').textContent    = name || 'Мои брони';
+  // имя отображается в user-card ниже
 
   const el = document.getElementById('bookingsList');
   el.innerHTML = '<div class="loading">Загрузка...</div>';
@@ -427,15 +441,25 @@ async function showBookingsView(name, token) {
     const data = await res.json();
     if (!data.ok) { doLogout(); return; }
 
-    // Показываем данные пользователя
-    const meta = document.getElementById('userMeta');
-    if (meta && data.user) {
+    // Карточка пользователя
+    const cardEl = document.getElementById('userCard');
+    if (cardEl && data.user) {
       const u = data.user;
-      meta.innerHTML = [
-        u.phone    ? `<span class="user-meta-item"><span>${u.phone}</span></span>` : '',
-        u.email    ? `<span class="user-meta-item"><span>${u.email}</span></span>` : '',
-        u.telegram ? `<span class="user-meta-item"><span>@${u.telegram}</span></span>` : '',
-      ].join('');
+      const row = (icon, val) => val ? `<div class="user-contact-row">${icon}<span class="user-contact-val">${val}</span></div>` : '';
+      const phoneIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.13 1 .37 1.97.72 2.9a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.09 6.09l1-1a2 2 0 0 1 2.11-.45c.93.35 1.9.59 2.9.72A2 2 0 0 1 22 16.92z"/></svg>`;
+      const tgIcon   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>`;
+      const mailIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>`;
+      cardEl.innerHTML = `<div class="user-card">
+        <div class="user-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+        <div class="user-card-info">
+          <div class="user-card-name">${data.name || '—'}</div>
+          <div class="user-contacts">
+            ${row(phoneIcon, u.phone)}
+            ${row(tgIcon,   u.telegram ? '@' + u.telegram : '')}
+            ${row(mailIcon, u.email)}
+          </div>
+        </div>
+      </div>`;
     }
 
     renderBookings(data.bookings);
