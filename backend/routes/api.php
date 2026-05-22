@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ── Admin (owner + manager) ───────────────────────────────────────────
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/halls',                    [AdminController::class, 'halls']);
+    Route::get('/halls/{id}',               [AdminController::class, 'halls']);
     Route::put('/halls/{id}',               [AdminController::class, 'updateHall']);
     Route::get('/pricing',                  [AdminController::class, 'pricing']);
     Route::put('/pricing',                  [AdminController::class, 'updatePricing']);
@@ -31,6 +32,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/analytics',                [AdminController::class, 'analytics']);
     Route::get('/clients',                  [AdminController::class, 'clients']);
     Route::get('/clients/csv',              [AdminController::class, 'clientsCsv']);
+    Route::get('/debug/log',                [AdminController::class, 'debugLog']);
 });
 
 // ── Halls ─────────────────────────────────────────────────────────────

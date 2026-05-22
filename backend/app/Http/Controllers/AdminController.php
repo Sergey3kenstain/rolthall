@@ -28,8 +28,12 @@ class AdminController extends Controller
 
     // ── Hall ──────────────────────────────────────────────────────────────
 
-    public function halls(): JsonResponse
+    public function halls(?int $id = null): JsonResponse
     {
+        if ($id) {
+            $hall = Hall::with('pricingRules')->findOrFail($id);
+            return response()->json($hall, 200, [], JSON_UNESCAPED_UNICODE);
+        }
         return response()->json(Hall::with('pricingRules')->get(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -195,6 +199,27 @@ class AdminController extends Controller
             ]);
 
         return response()->json(['ok' => true, 'clients' => $clients], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function debugLog(Request $request): JsonResponse
+    {
+        if (!$this->isOwner($request)) {
+            return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
+        }
+
+        $logPath = storage_path('logs/laravel.log');
+        if (!file_exists($logPath)) {
+            return response()->json(['ok' => true, 'lines' => []]);
+        }
+
+        $lines   = file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $last100 = array_slice($lines, -100);
+
+        return response()->json([
+            'ok'    => true,
+            'lines' => array_reverse($last100),
+            'total' => count($lines),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function clientsCsv(Request $request): Response
