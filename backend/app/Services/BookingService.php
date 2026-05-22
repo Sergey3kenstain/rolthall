@@ -66,6 +66,40 @@ class BookingService
     }
 
     /**
+     * Hold для мероприятия — цена берётся из pkg_price (не из PricingRule)
+     */
+    public function createEventHold(array $data): Booking
+    {
+        $hall       = Hall::findOrFail($data['hall_id']);
+        $dates      = $data['dates'];
+        $pkgPrice   = $data['pkg_price'];                    // ₽ за день
+        $total      = $pkgPrice * count($dates);
+        $prepayment = (int) round($total * 0.5);
+
+        return DB::transaction(function () use ($data, $hall, $dates, $total, $prepayment) {
+            $client = $this->resolveClient($data);
+
+            return Booking::create([
+                'client_id'         => $client->id,
+                'hall_id'           => $hall->id,
+                'date'              => $dates[0],
+                'time_start'        => '09:00:00',
+                'time_end'          => '22:00:00',
+                'duration_hours'    => 13,
+                'format'            => 'event',
+                'status'            => Booking::STATUS_HOLD,
+                'total_amount'      => $total,
+                'prepayment_amount' => $prepayment,
+                'hold_expires_at'   => now()->addMinutes(10),
+                'consent_offer'     => $data['consent_offer']  ?? false,
+                'consent_policy'    => $data['consent_policy'] ?? false,
+                'consent_refund'    => $data['consent_refund'] ?? false,
+                'notes'             => $data['notes'] ?? null,
+            ])->load(['hall', 'client']);
+        });
+    }
+
+    /**
      * Переводим в pending_payment и возвращаем данные для T-Bank Init
      */
     public function initPayment(Booking $booking): array

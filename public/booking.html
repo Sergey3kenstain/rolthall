@@ -941,9 +941,30 @@ async function submitBooking() {
       window.location.href = data.payment_url;
 
     } else if (BOOKING_DATA.format === 'event') {
-      // Мероприятие: пока показываем успех (интеграция оплаты аналогична)
-      // TODO: POST /api/bookings/event когда будет готов endpoint
-      openSuccess();
+      const res  = await fetch('/api/bookings/event-hold', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          hall_id:         BOOKING_DATA.hallId,
+          dates:           BOOKING_DATA.dates,
+          pkg_price:       BOOKING_DATA.pkg,
+          name, phone, email,
+          telegram:        telegram || null,
+          notes,
+          consent_offer:   true,
+          consent_policy:  true,
+          consent_refund:  true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        const msg = data?.error || data?.message || `Ошибка сервера (${res.status})`;
+        alert('Ошибка: ' + msg);
+        allBtns.forEach(b => { b.disabled = false; b.textContent = 'Оплатить'; });
+        return;
+      }
+      sessionStorage.removeItem(FORM_STORAGE_KEY);
+      window.location.href = data.payment_url;
     }
   } catch(e) {
     alert('Ошибка соединения: ' + e.message);

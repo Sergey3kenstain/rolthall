@@ -730,19 +730,19 @@ nav.d-nav {
 
       <!-- Event packages (shown when format=event) -->
       <div class="event-packages" id="eventPackages">
-        <div class="event-pkg" onclick="selectPkg(this, 100000)">
+        <div class="event-pkg" onclick="selectPkg(this, 20)">
           <div class="pkg-tag">Весь день — базовый</div>
-          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>100 000</div>
+          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>20</div>
           <div class="pkg-name">День мероприятия</div>
           <div class="pkg-desc">Аренда зала на весь день без дополнительного оборудования. Предоплата 50% при бронировании.</div>
-          <div class="pkg-prepay">Предоплата: 50 000 ₽</div>
+          <div class="pkg-prepay">Предоплата: 10 ₽</div>
         </div>
-        <div class="event-pkg" onclick="selectPkg(this, 150000)">
+        <div class="event-pkg" onclick="selectPkg(this, 30)">
           <div class="pkg-tag">Весь день — полный</div>
-          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>150 000</div>
+          <div class="pkg-price"><span style="font-size:.5em;font-weight:300;vertical-align:super;">₽</span>30</div>
           <div class="pkg-name">День со светом и звуком</div>
           <div class="pkg-desc">Профессиональный свет, звуковое оборудование, полная поддержка на весь день вашего мероприятия.</div>
-          <div class="pkg-prepay">Предоплата: 75 000 ₽</div>
+          <div class="pkg-prepay">Предоплата: 15 ₽</div>
         </div>
       </div>
 
@@ -1151,8 +1151,8 @@ function renderPricing() {
   // Event format: show event packages
   if (currentFormat === 'event') {
     pricingEl.innerHTML = [
-      { price: 100000, label: 'Весь день — базовый',   sel: selectedPkg === 100000 },
-      { price: 150000, label: 'Со светом и звуком', sel: selectedPkg === 150000 },
+      { price: 20, label: 'Весь день — базовый',   sel: selectedPkg === 20 },
+      { price: 30, label: 'Со светом и звуком', sel: selectedPkg === 30 },
     ].map(p => `<div class="pricing-row ${p.sel ? 'tier-active' : ''}">
   <div>
     <div class="pricing-range">${p.label}</div>

@@ -70,6 +70,58 @@ class BookingController extends Controller
     }
 
     /**
+     * Hold для мероприятия — принимает пакет и список дат
+     * POST /api/bookings/event-hold
+     */
+    public function eventHold(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'hall_id'        => 'required|integer|exists:halls,id',
+            'dates'          => 'required|array|min:1',
+            'dates.*'        => 'required|date|after_or_equal:today',
+            'pkg_price'      => 'required|integer|min:1',   // цена пакета за день, в рублях
+            'name'           => 'required|string|max:191',
+            'phone'          => 'required|string|max:30',
+            'email'          => 'nullable|email|max:191',
+            'telegram'       => 'nullable|string|max:100',
+            'notes'          => 'nullable|string|max:1000',
+            'consent_offer'  => 'boolean',
+            'consent_policy' => 'boolean',
+            'consent_refund' => 'boolean',
+        ]);
+
+        try {
+            $booking = $this->bookings->createEventHold($data);
+            $payData = $this->bookings->initPayment($booking);
+
+            $result = $this->tbank->init([
+                'amount'      => $payData['amount'] * 100,
+                'order_id'    => $payData['order_id'],
+                'description' => $payData['description'],
+                'email'       => $payData['email'] ?? null,
+                'phone'       => $payData['phone'] ?? null,
+            ]);
+
+            if (!$result['ok']) {
+                $booking->update(['status' => Booking::STATUS_CANCELLED]);
+                return response()->json(['ok' => false, 'error' => $result['error']], 422);
+            }
+
+            return response()->json([
+                'ok'          => true,
+                'booking_id'  => $booking->id,
+                'payment_url' => $result['PaymentURL'],
+                'expires_at'  => $booking->hold_expires_at->toISOString(),
+                'total'       => $booking->total_amount,
+                'prepayment'  => $booking->prepayment_amount,
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+
+        } catch (\RuntimeException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
      * Статус брони
      * GET /api/bookings/{id}/status
      */

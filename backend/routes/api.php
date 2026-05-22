@@ -23,7 +23,8 @@ Route::get('/halls/{hall}/availability',    [HallController::class, 'availabilit
 Route::post('/landing/booking', [LandingController::class, 'booking']);
 
 // ── Bookings ──────────────────────────────────────────────────────────
-Route::post('/bookings/hold',          [BookingController::class, 'hold']);
+Route::post('/bookings/hold',           [BookingController::class, 'hold']);
+Route::post('/bookings/event-hold',     [BookingController::class, 'eventHold']);
 Route::get('/bookings/{booking}/status',[BookingController::class, 'status']);
 Route::post('/bookings/{booking}/cancel',[BookingController::class, 'cancel']);
 
