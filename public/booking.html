@@ -689,48 +689,16 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
           </div>
         </div>
         <div class="step-block-body">
-
-          <div class="pay-method-tabs">
-            <button class="pay-tab active" onclick="setPayTab(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              Карта
-            </button>
-            <button class="pay-tab" onclick="setPayTab(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              СБП
-            </button>
-          </div>
-
-          <div class="pay-widget">
-            <div class="pay-widget-header">
-              <div class="pay-widget-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Безопасная оплата
-              </div>
-              <div class="pay-secure">SSL · PCI DSS</div>
+          <div class="notice">
+            <div class="notice-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
-            <div class="pay-body">
-              <div class="form-group">
-                <label class="form-label">Номер карты</label>
-                <input type="text" class="form-input no-icon" style="font-family:monospace;letter-spacing:.08em;" placeholder="0000 0000 0000 0000" maxlength="19">
-              </div>
-              <div class="pay-row-2">
-                <div class="form-group">
-                  <label class="form-label">Срок</label>
-                  <input type="text" class="form-input no-icon" placeholder="MM / YY" maxlength="7">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">CVV</label>
-                  <input type="password" class="form-input no-icon" placeholder="•••" maxlength="3">
-                </div>
-              </div>
-              <div class="save-card-row">
-                <input type="checkbox" id="savecard" checked>
-                <label for="savecard">Сохранить карту для быстрой оплаты</label>
-              </div>
+            <div class="notice-text">
+              После нажатия «Оплатить» вы будете перенаправлены на <strong>защищённую страницу оплаты T-Bank</strong>.<br>
+              Данные карты вводятся на стороне банка — мы их не получаем и не храним.<br>
+              Доступны: карта (Visa, MC, МИР), СБП.
             </div>
           </div>
-
         </div>
       </div>
     </div><!-- /left -->
@@ -952,7 +920,7 @@ async function submitBooking() {
     if (BOOKING_DATA.format === 'hourly') {
       const res  = await fetch('/api/bookings/hold', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           hall_id:         BOOKING_DATA.hallId,
           date:            BOOKING_DATA.date,
@@ -967,7 +935,12 @@ async function submitBooking() {
         }),
       });
       const data = await res.json();
-      if (!data.ok) { alert('Ошибка: ' + data.error); allBtns.forEach(b => { b.disabled = false; b.textContent = 'Оплатить'; }); return; }
+      if (!res.ok || !data.ok) {
+        const msg = data?.error || data?.message || `Ошибка сервера (${res.status})`;
+        alert('Ошибка: ' + msg);
+        allBtns.forEach(b => { b.disabled = false; b.textContent = 'Оплатить'; });
+        return;
+      }
       // Редирект на T-Bank
       window.location.href = data.payment_url;
 
@@ -983,7 +956,24 @@ async function submitBooking() {
 }
 
 // Init page from URL params
-document.addEventListener('DOMContentLoaded', initBookingPage);
+document.addEventListener('DOMContentLoaded', function() {
+  initBookingPage();
+
+  // Telegram mask: только @username
+  const tgInput = document.getElementById('f-telegram');
+  if (tgInput) {
+    tgInput.addEventListener('focus', function() {
+      if (!this.value) this.value = '@';
+    });
+    tgInput.addEventListener('input', function() {
+      const raw = this.value.replace(/@/g, '').replace(/[^a-zA-Z0-9_]/g, '');
+      this.value = raw ? '@' + raw : '';
+    });
+    tgInput.addEventListener('blur', function() {
+      if (this.value === '@') this.value = '';
+    });
+  }
+});
 
 // Reveal on scroll
 const ro = new IntersectionObserver(entries => {
