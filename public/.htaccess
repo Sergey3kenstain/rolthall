@@ -1,0 +1,19 @@
+<IfModule mod_rewrite.c>
+    Options -Indexes
+    RewriteEngine On
+
+    # Корень / → лендинг
+    RewriteRule ^$ index.html [L]
+
+    # Статические файлы — напрямую
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Чистые URL без .html: /calendar → calendar.html
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}.html -f
+    RewriteRule ^(.+)$ /$1.html [L]
+
+    # Всё остальное → Laravel (API, routes)
+    RewriteRule ^ index.php [L]
+</IfModule>
+AddHandler application/x-httpd-php83 .php
