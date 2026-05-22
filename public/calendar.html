@@ -597,7 +597,6 @@ nav.d-nav {
   .sel-days-list { height: 64px; overflow: auto; }
 }
 </style>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -1550,9 +1549,10 @@ function goToBooking() {
 
 /* ===== TELEGRAM WEBAPP ===== */
 const tg = window.Telegram?.WebApp;
+// Telegram нативно инжектирует window.Telegram.WebApp до загрузки страницы
 if (tg) {
-  tg.ready();
-  tg.expand();
+  try { tg.ready(); } catch(e) {}
+  try { tg.expand(); } catch(e) {}
   const u = tg.initDataUnsafe?.user;
   if (u) {
     sessionStorage.setItem('rh_tg_user', JSON.stringify({
@@ -1562,7 +1562,7 @@ if (tg) {
   // TMP DEBUG
   const dbg = document.createElement('div');
   dbg.style.cssText = 'position:fixed;bottom:80px;left:0;right:0;z-index:9999;background:rgba(0,0,0,.9);color:#50d890;font-size:9px;padding:8px 12px;font-family:monospace;word-break:break-all;line-height:1.6;';
-  dbg.innerHTML = 'platform: ' + tg.platform + '<br>initData: ' + (tg.initData ? 'OK len=' + tg.initData.length : 'EMPTY') + '<br>user: ' + JSON.stringify(u ?? null);
+  dbg.innerHTML = 'platform: '+(tg.platform||'?')+'<br>version: '+(tg.version||'?')+'<br>initData: '+(tg.initData?'OK len='+tg.initData.length:'EMPTY')+'<br>user: '+JSON.stringify(u??null);
   document.body.appendChild(dbg);
 }
 
