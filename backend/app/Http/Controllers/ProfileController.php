@@ -87,6 +87,11 @@ class ProfileController extends Controller
         return response()->json([
             'ok'       => true,
             'name'     => $user->name,
+            'user'     => [
+                'phone'    => $user->phone,
+                'email'    => $user->email,
+                'telegram' => $user->telegram_username,
+            ],
             'bookings' => $bookings,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }

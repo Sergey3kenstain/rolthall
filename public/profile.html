@@ -164,6 +164,45 @@ nav.d-nav {
 .info-card-text .info-sub   { font-size: 9px; font-weight: 300; color: rgba(217,217,217,.45); line-height: 1.7; }
 .info-card-text .info-sub a { color: rgba(217,217,217,.7); }
 
+/* ══ FOOTER (injected by layout.js) ══ */
+footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-border); margin-top: 80px; }
+.footer-top { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; padding: 48px; }
+.footer-logo svg { height: 12px; width: auto; }
+.footer-tagline { font-size: 9px; font-weight: 300; color: rgba(217,217,217,.3); margin-top: 12px; letter-spacing: .04em; }
+.footer-nav-col, .footer-legal-col { display: flex; flex-direction: column; gap: 10px; }
+.footer-nav-col a, .footer-legal-col a { font-size: 9px; font-weight: 400; color: rgba(217,217,217,.4); text-decoration: none; letter-spacing: .06em; transition: color .2s; }
+.footer-nav-col a:hover, .footer-legal-col a:hover { color: var(--light); }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; padding: 16px 48px; border-top: 1px solid var(--accent-border); }
+.footer-copy, .footer-dev { font-size: 8px; font-weight: 300; color: rgba(217,217,217,.2); }
+.footer-dev a { color: rgba(217,217,217,.35); text-decoration: none; }
+@media (max-width: 1023px) {
+  .footer-top { grid-template-columns: 1fr; gap: 24px; padding: 32px 20px; }
+  .footer-bottom { padding: 12px 20px; flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* ══ USER INFO ══ */
+.user-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; }
+.user-meta-item { font-size: 9px; font-weight: 300; color: rgba(217,217,217,.4); letter-spacing: .04em; }
+.user-meta-item span { color: rgba(217,217,217,.65); }
+
+/* ══ BOOKING ACTIONS ══ */
+.booking-actions { display: flex; gap: 8px; margin-top: 10px; }
+.btn-action {
+  font-family: var(--font); font-size: 7.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  padding: 7px 14px; border: 1px solid var(--accent-border); background: transparent;
+  color: rgba(217,217,217,.5); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+  transition: all .2s;
+}
+.btn-action:hover { border-color: rgba(255,255,255,.35); color: var(--light); }
+.btn-action.danger:hover { border-color: rgba(255,100,100,.5); color: var(--danger); }
+
+/* ══ CANCEL MODAL ══ */
+.modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-box { background: var(--charcoal-mid); border: 1px solid var(--accent-border); padding: 32px; max-width: 360px; width: 100%; }
+.modal-title { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+.modal-text  { font-size: 10px; font-weight: 300; color: rgba(217,217,217,.5); line-height: 1.7; margin-bottom: 24px; }
+.modal-btns  { display: flex; gap: 8px; }
+
 /* ══ LOGIN ══ */
 .login-card { border: 1px solid var(--accent-border); background: var(--charcoal-mid); padding: 32px; }
 .login-hint { font-size: 10px; font-weight: 300; color: rgba(217,217,217,.45); line-height: 1.7; margin-bottom: 24px; }
@@ -198,6 +237,7 @@ nav.d-nav {
   .booking-card { padding: 18px 16px; }
 }
 </style>
+<script src="/layout.js" defer></script>
 </head>
 <body>
 
@@ -252,10 +292,11 @@ nav.d-nav {
 
     <!-- BOOKINGS VIEW -->
     <div id="bookingsView" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <div>
           <div class="page-eyebrow">Личный кабинет</div>
           <div class="page-title" id="profileName">Мои брони</div>
+          <div class="user-meta" id="userMeta"></div>
         </div>
         <button onclick="doLogout()" class="btn-logout">Выйти</button>
       </div>
@@ -267,7 +308,7 @@ nav.d-nav {
           </div>
           <div class="info-card-text">
             <div class="info-title">Уведомления в Telegram</div>
-            <div class="info-sub">Напишите <a href="https://t.me/RoltHallBot" target="_blank">@RoltHallBot</a> команду /start — получайте уведомления о бронях в личку.</div>
+            <div class="info-sub">Напишите <a href="https://t.me/rolthall_bot" target="_blank">@rolthall_bot</a> команду /start — получайте уведомления о бронях в личку.</div>
           </div>
         </div>
       </div>
@@ -278,6 +319,18 @@ nav.d-nav {
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ══ CANCEL MODAL ══ -->
+<div id="cancelModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)hideCancelModal()">
+  <div class="modal-box">
+    <div class="modal-title">Отменить бронь?</div>
+    <div class="modal-text">При отмене более чем за 6 часов — предоплата возвращается. Менее 6 часов — предоплата не возвращается.</div>
+    <div class="modal-btns">
+      <button id="cancelConfirmBtn" class="btn-primary" style="background:var(--danger);color:#fff;" onclick="confirmCancel()">Да, отменить</button>
+      <button class="btn-logout" onclick="hideCancelModal()">Назад</button>
+    </div>
   </div>
 </div>
 
@@ -373,6 +426,18 @@ async function showBookingsView(name, token) {
     });
     const data = await res.json();
     if (!data.ok) { doLogout(); return; }
+
+    // Показываем данные пользователя
+    const meta = document.getElementById('userMeta');
+    if (meta && data.user) {
+      const u = data.user;
+      meta.innerHTML = [
+        u.phone    ? `<span class="user-meta-item"><span>${u.phone}</span></span>` : '',
+        u.email    ? `<span class="user-meta-item"><span>${u.email}</span></span>` : '',
+        u.telegram ? `<span class="user-meta-item"><span>@${u.telegram}</span></span>` : '',
+      ].join('');
+    }
+
     renderBookings(data.bookings);
   } catch(e) {
     el.innerHTML = '<div class="loading">Ошибка загрузки</div>';
@@ -410,15 +475,56 @@ function renderBookings(list) {
 function bookingCard(b) {
   const s   = STATUS[b.status] || { label: b.status, cls: 'badge-cancelled', dot: 'status-cancelled' };
   const fmt = b.format === 'event' ? 'Мероприятие' : 'Почасовая';
-  return `<div class="booking-card">
+  const canCancel = ['paid','confirmed','hold','pending_payment'].includes(b.status)
+    && new Date(b.date + 'T00:00:00') >= new Date(new Date().setHours(0,0,0,0));
+
+  const actions = `<div class="booking-actions">
+    ${canCancel ? `<button class="btn-action danger" onclick="showCancelModal(${b.id})">Отменить</button>` : ''}
+    <a href="tel:+79086850838" class="btn-action">Связаться</a>
+  </div>`;
+
+  return `<div class="booking-card" id="booking-${b.id}">
     <div class="booking-status-dot ${s.dot}"></div>
     <div class="booking-info">
       <div class="booking-hall">${b.hall}</div>
       <div class="booking-date">${fmtDate(b.date)} · ${b.time_start}–${b.time_end} · ${fmt}</div>
       <div class="booking-price">Оплачено: ${fmtMoney(b.prepayment)} из ${fmtMoney(b.total)}</div>
+      ${actions}
     </div>
     <span class="booking-badge ${s.cls}">${s.label}</span>
   </div>`;
+}
+
+let cancelTarget = null;
+function showCancelModal(id) {
+  cancelTarget = id;
+  document.getElementById('cancelModal').style.display = 'flex';
+}
+function hideCancelModal() {
+  cancelTarget = null;
+  document.getElementById('cancelModal').style.display = 'none';
+}
+async function confirmCancel() {
+  if (!cancelTarget) return;
+  const btn = document.getElementById('cancelConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Отменяем...';
+  try {
+    const res  = await fetch(`/api/bookings/${cancelTarget}/cancel`, {
+      method: 'POST', headers: { Accept: 'application/json' },
+    });
+    const data = await res.json();
+    hideCancelModal();
+    if (data.ok) {
+      const card = document.getElementById(`booking-${cancelTarget}`);
+      if (card) card.style.opacity = '.4';
+    } else {
+      alert(data.error || 'Ошибка отмены');
+    }
+  } catch(e) {
+    alert('Ошибка соединения');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Да, отменить';
+  }
 }
 
 // Автовход если токен уже есть
@@ -441,5 +547,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+<div id="app-footer"></div>
 </body>
 </html>

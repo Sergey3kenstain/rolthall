@@ -472,6 +472,7 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
   .modal-actions { flex-direction: column; }
 }
 </style>
+<script src="/layout.js" defer></script>
 </head>
 <body>
 
@@ -636,14 +637,14 @@ textarea.form-input { min-height: 80px; resize: vertical; padding-top: 14px; }
               </span>
               <input type="text" class="form-input" id="f-telegram" placeholder="@username">
             </div>
-            <span class="form-hint">Уведомления через @RoltHallBot</span>
+            <span class="form-hint">Уведомления через @rolthall_bot</span>
           </div>
 
           <div class="notice">
             <div class="notice-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="16" height="16"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
             </div>
-            <div class="notice-text">Уведомление с деталями придёт в <strong>@RoltHallBot</strong> сразу после оплаты</div>
+            <div class="notice-text">Уведомление с деталями придёт в <strong>@rolthall_bot</strong> сразу после оплаты</div>
           </div>
 
         </div>
@@ -1084,5 +1085,6 @@ document.getElementById('successModal').addEventListener('click', function(e) {
   }
 })();
 </script>
+<div id="app-footer"></div>
 </body>
 </html>
