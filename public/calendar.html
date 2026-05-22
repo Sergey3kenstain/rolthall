@@ -210,6 +210,9 @@ nav.d-nav {
   .wgd-head.today  .wgd-day { color: var(--success); }
   .wgd-head.today  .wgd-num { color: var(--success); }
   .wgd-head.has-sel .wgd-num { color: var(--accent); }
+  .wgd-head.event-sel { background: var(--accent) !important; }
+  .wgd-head.event-sel .wgd-day { color: rgba(30,28,36,.6); }
+  .wgd-head.event-sel .wgd-num { color: var(--charcoal); }
 
   .wg-time {
     padding: 0 10px; min-height: 52px;
@@ -511,6 +514,9 @@ nav.d-nav {
 .date-chip.has-sel .date-chip-num { color: var(--accent) !important; }
 .mob-date-chip.has-sel .mob-date-num { color: var(--accent) !important; }
 .mob-date-chip.has-sel { border-bottom-color: var(--accent) !important; }
+.mob-date-chip.event-sel { background: var(--accent) !important; border-bottom-color: var(--accent) !important; }
+.mob-date-chip.event-sel .mob-date-day,
+.mob-date-chip.event-sel .mob-date-num { color: var(--charcoal) !important; }
 
 /* ══ MOBILE OVERRIDES ══ */
 @media (max-width: 1023px) {
@@ -868,6 +874,7 @@ let weekOffset      = 0;
 let selectedDateIdx = 2;
 let currentFormat   = 'hourly'; // 'hourly' | 'event'
 let selectedPkg     = null;     // null | 100000 | 150000
+const eventDays     = new Set(); // набор dateKey выбранных дней мероприятия
 
 // Мультидневные выборы: { 'YYYY-MM-DD': { start: H, end: H|null } }
 const selections = {};
@@ -967,17 +974,20 @@ function renderMobDates() {
   const days  = getStripDates();
 
   scroll.innerHTML = days.map((d, i) => {
-    const key     = dateKeyFor(days, i);
-    const isToday = d.getTime() === today.getTime();
-    const isSel   = i === selectedDateIdx;
-    const hasBusy = bookedHours().length > 0;
-    const hasMySel = selections[key]?.end != null;
+    const key        = dateKeyFor(days, i);
+    const isToday    = d.getTime() === today.getTime();
+    const isSel      = i === selectedDateIdx && currentFormat === 'hourly';
+    const hasBusy    = bookedHours().length > 0;
+    const hasMySel   = currentFormat === 'hourly' && selections[key]?.end != null;
+    const isEventSel = currentFormat === 'event'  && eventDays.has(key);
     let cls = 'mob-date-chip';
-    if (isToday)  cls += ' today';
-    if (isSel)    cls += ' selected';
-    if (hasMySel && !isSel) cls += ' has-sel';
-    const dot = hasBusy && !isSel ? `<div class="mob-date-dot"></div>` : '';
-    return `<div class="${cls}" onclick="selectDate(${i})">
+    if (isToday)    cls += ' today';
+    if (isSel)      cls += ' selected';
+    if (hasMySel)   cls += ' has-sel';
+    if (isEventSel) cls += ' event-sel';
+    const dot = hasBusy && !isSel && !isEventSel ? `<div class="mob-date-dot"></div>` : '';
+    const click = currentFormat === 'event' ? `toggleEventDay(${i})` : `selectDate(${i})`;
+    return `<div class="${cls}" onclick="${click}">
       <div class="mob-date-day">${DAY_SHORT[d.getDay()]}</div>
       <div class="mob-date-num">${d.getDate()}</div>
       ${dot}
@@ -1047,22 +1057,28 @@ function renderWeekGrid(days) {
     const today = new Date(); today.setHours(0,0,0,0);
     hdr.innerHTML = '<div class="wg-time-corner"></div>' +
       days.map((d, i) => {
-        const key = dateKeyFor(days, i);
-        const hasSel = selections[key]?.end != null;
-        const isToday = d.getTime() === today.getTime();
+        const key        = dateKeyFor(days, i);
+        const isToday    = d.getTime() === today.getTime();
+        const isEventSel = currentFormat === 'event' && eventDays.has(key);
+        const hasSel     = currentFormat === 'hourly' && selections[key]?.end != null;
         let cls = 'wgd-head';
-        if (i === selectedDateIdx) cls += ' active';
-        if (hasSel) cls += ' has-sel';
-        if (isToday) cls += ' today';
-        return `<div class="${cls}" onclick="selectDateWG(${i})">
+        if (currentFormat === 'hourly' && i === selectedDateIdx) cls += ' active';
+        if (hasSel)     cls += ' has-sel';
+        if (isEventSel) cls += ' event-sel';
+        if (isToday)    cls += ' today';
+        const click = currentFormat === 'event'
+          ? `toggleEventDay(${i})`
+          : `selectDateWG(${i})`;
+        return `<div class="${cls}" onclick="${click}">
   <span class="wgd-day">${DAY_SHORT[d.getDay()]}</span>
   <span class="wgd-num">${d.getDate()}</span>
 </div>`;
       }).join('');
   }
 
-  // Slot rows
+  // Slot rows — только для почасового режима
   const container = document.getElementById('slotsContainer');
+  if (currentFormat === 'event') { container.innerHTML = ''; return; }
   container.innerHTML = HOURS.map(h => {
     let html = `<div class="wg-row"><div class="wg-time">${pad(h)}:00</div>`;
     days.forEach((d, i) => {
@@ -1199,32 +1215,37 @@ function updateEventSheet(emptyId, selId, listId, totalId, prepayId) {
   const full  = document.getElementById(selId);
   if (!empty || !full) return;
 
-  if (!selectedPkg) {
+  if (!selectedPkg || eventDays.size === 0) {
     empty.style.display = 'block'; full.style.display = 'none'; return;
   }
 
-  const days    = getStripDates();
-  const date    = days[selectedDateIdx];
-  const dayName = DAY_SHORT[date.getDay()];
-  const dLabel  = `${dayName} ${date.getDate()} ${MONTH_NAMES[date.getMonth()]}`;
-  const pkgName = selectedPkg === 100000 ? 'День мероприятия — базовый' : 'День со светом и звуком';
-  const prepay  = Math.round(selectedPkg * 0.5);
+  const pkgName    = selectedPkg === 100000 ? 'Базовый' : 'Со светом и звуком';
+  const totalAmt   = selectedPkg * eventDays.size;
+  const prepay     = Math.round(totalAmt * 0.5);
+  const MONTH_SHORT = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 
   empty.style.display = 'none';
   full.style.display  = 'block';
 
+  // Сортируем дни
+  const sortedDays = [...eventDays].sort();
   const listEl = document.getElementById(listId);
-  if (listEl) listEl.innerHTML = `<div class="sel-day-item">
+  if (listEl) listEl.innerHTML = sortedDays.map(key => {
+    const d = new Date(key + 'T00:00:00');
+    const label = `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
+    return `<div class="sel-day-item">
   <div style="flex:1;">
-    <div class="sel-day-label">${dLabel}</div>
+    <div class="sel-day-label">${label}</div>
     <div class="sel-day-time">${pkgName}</div>
   </div>
   <div class="sel-day-price">${selectedPkg.toLocaleString('ru')} ₽</div>
+  <button class="sel-day-remove" onclick="removeEventDay('${key}')">✕</button>
 </div>`;
+  }).join('');
 
   const tEl = document.getElementById(totalId);
   const pEl = document.getElementById(prepayId);
-  if (tEl) tEl.textContent = `${selectedPkg.toLocaleString('ru')} ₽`;
+  if (tEl) tEl.textContent = `${totalAmt.toLocaleString('ru')} ₽`;
   if (pEl) pEl.textContent = `${prepay.toLocaleString('ru')} ₽`;
 }
 function updateSheetEl(emptyId, startId, selId, startLblId, listId, totalId, prepayId) {
@@ -1320,28 +1341,43 @@ function setFormat(format, btn) {
     }
   });
 
-  const slotsScroll  = document.querySelector('.slots-scroll');
-  const eventPkgs    = document.getElementById('eventPackages');
-  const wgHeader     = document.getElementById('wgHeader');
-  const weekNavBar   = document.querySelector('.week-nav-bar');
+  const slotsScroll = document.querySelector('.slots-scroll');
+  const eventPkgs   = document.getElementById('eventPackages');
 
   if (format === 'event') {
     if (slotsScroll) slotsScroll.style.display = 'none';
     if (eventPkgs)   eventPkgs.classList.add('show');
-    if (wgHeader)    wgHeader.style.display = 'none';
-    if (weekNavBar)  weekNavBar.style.display = 'none';
-    // Clear hourly selections
+    // Clear hourly selections, keep eventDays
     Object.keys(selections).forEach(k => delete selections[k]);
   } else {
     if (slotsScroll) slotsScroll.style.display = '';
     if (eventPkgs)   eventPkgs.classList.remove('show');
-    if (wgHeader)    wgHeader.style.display = '';
-    if (weekNavBar)  weekNavBar.style.display = '';
+    // Clear event days
+    eventDays.clear();
+    selectedPkg = null;
   }
 
   renderPricing();
   updateSheet();
   if (format === 'hourly') renderSlots();
+}
+
+function removeEventDay(key) {
+  eventDays.delete(key);
+  renderDates(); renderMobDates();
+  if (window.innerWidth >= 1024) renderWeekGrid(getStripDates());
+  updateSheet();
+}
+
+function toggleEventDay(dayIdx) {
+  const days = getStripDates();
+  const key  = dateKeyFor(days, dayIdx);
+  if (eventDays.has(key)) eventDays.delete(key);
+  else                     eventDays.add(key);
+  renderDates();
+  renderMobDates();
+  renderWeekGrid(days); // обновляем header
+  updateSheet();
 }
 
 function selectPkg(el, price) {
