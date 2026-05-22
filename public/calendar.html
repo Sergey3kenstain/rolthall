@@ -597,6 +597,7 @@ nav.d-nav {
   .sel-days-list { height: 64px; overflow: auto; }
 }
 </style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -1549,22 +1550,33 @@ function goToBooking() {
 
 /* ===== TELEGRAM WEBAPP ===== */
 const tg = window.Telegram?.WebApp;
-// Telegram нативно инжектирует window.Telegram.WebApp до загрузки страницы
-if (tg) {
-  try { tg.ready(); } catch(e) {}
-  try { tg.expand(); } catch(e) {}
-  const u = tg.initDataUnsafe?.user;
-  if (u) {
-    sessionStorage.setItem('rh_tg_user', JSON.stringify({
-      id: u.id, username: u.username || '', first_name: u.first_name || '',
-    }));
-  }
-  // TMP DEBUG
+// TMP DEBUG — показываем всё включая URL и hash
+(function() {
   const dbg = document.createElement('div');
-  dbg.style.cssText = 'position:fixed;bottom:80px;left:0;right:0;z-index:9999;background:rgba(0,0,0,.9);color:#50d890;font-size:9px;padding:8px 12px;font-family:monospace;word-break:break-all;line-height:1.6;';
-  dbg.innerHTML = 'platform: '+(tg.platform||'?')+'<br>version: '+(tg.version||'?')+'<br>initData: '+(tg.initData?'OK len='+tg.initData.length:'EMPTY')+'<br>user: '+JSON.stringify(u??null);
+  dbg.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,.95);color:#50d890;font-size:8px;padding:8px 10px;font-family:monospace;word-break:break-all;line-height:1.7;max-height:40vh;overflow-y:auto;';
+  const tgObj = window.Telegram?.WebApp;
+  const u     = tgObj?.initDataUnsafe?.user;
+  if (tgObj) {
+    try { tgObj.ready(); } catch(e) {}
+    try { tgObj.expand(); } catch(e) {}
+    if (u) sessionStorage.setItem('rh_tg_user', JSON.stringify({ id:u.id, username:u.username||'', first_name:u.first_name||'' }));
+  }
+  dbg.innerHTML = [
+    'TG obj: '    + (tgObj ? 'YES' : 'NO'),
+    'platform: '  + (tgObj?.platform  || '—'),
+    'version: '   + (tgObj?.version   || '—'),
+    'initData: '  + (tgObj?.initData  ? 'OK len='+tgObj.initData.length : 'EMPTY'),
+    'user: '      + JSON.stringify(u ?? null),
+    'hash: '      + (location.hash ? location.hash.slice(0,60) : 'EMPTY'),
+    'search: '    + (location.search || 'EMPTY'),
+  ].join('<br>');
   document.body.appendChild(dbg);
-}
+  // Обновляем через 1с (на случай async-инициализации)
+  setTimeout(() => {
+    const u2 = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    dbg.innerHTML += '<br>--- after 1s ---<br>user: ' + JSON.stringify(u2??null) + '<br>initData: ' + (window.Telegram?.WebApp?.initData ? 'OK' : 'EMPTY');
+  }, 1000);
+})();
 
 /* ===== INIT ===== */
 reloadAndRedraw();
