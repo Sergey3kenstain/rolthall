@@ -196,6 +196,7 @@ nav.d-nav {
     cursor: pointer; transition: background .15s;
   }
   .wgd-head:hover { background: rgba(255,255,255,.04); }
+  .wgd-head.past { opacity: .3; cursor: not-allowed; pointer-events: none; }
   .wgd-head.active { background: rgba(255,255,255,.07); }
   .wgd-day {
     display: block; font-size: 6.5px; font-weight: 700; letter-spacing: .1em;
@@ -341,6 +342,7 @@ nav.d-nav {
   position: relative;
 }
 .date-chip:hover { background: rgba(255,255,255,.04); }
+.date-chip.past { opacity: .3; cursor: not-allowed; pointer-events: none; }
 .date-chip.today .date-chip-day { color: var(--success); }
 .date-chip.today .date-chip-num { color: var(--success); }
 .date-chip.selected { background: var(--accent); border-color: var(--accent); }
@@ -563,6 +565,7 @@ nav.d-nav {
     font-family: var(--font); background: transparent; border-bottom: 2px solid transparent;
   }
   .mob-date-chip.selected { background: rgba(255,255,255,.08); border-bottom-color: var(--accent); }
+  .mob-date-chip.past { opacity: .3; cursor: not-allowed; pointer-events: none; }
   .mob-date-chip.today .mob-date-day { color: var(--success); }
   .mob-date-chip.today .mob-date-num { color: var(--success); }
   .mob-date-chip.selected .mob-date-day { color: rgba(217,217,217,.6); }
@@ -866,7 +869,7 @@ const DAY_SHORT   = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 /* ===== STATE ===== */
 let currentHall     = 'a';
 let weekOffset      = 0;
-let selectedDateIdx = 2;
+let selectedDateIdx = 0;
 let currentFormat   = 'hourly'; // 'hourly' | 'event'
 let selectedPkg     = null;     // null | 100000 | 150000
 const eventDays     = new Set(); // набор dateKey выбранных дней мероприятия
@@ -886,7 +889,7 @@ function curSelEnd()   { return curSel()?.end   ?? null; }
 /* ===== HELPERS ===== */
 function getStripDates() {
   const base = new Date();
-  base.setDate(base.getDate() + weekOffset * 7 - 1);
+  base.setDate(base.getDate() + weekOffset * 7);
   const days = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(base);
@@ -949,15 +952,18 @@ function renderDates() {
   grid.innerHTML = days.map((d, i) => {
     const key     = dateKeyFor(days, i);
     const isToday = d.getTime() === today.getTime();
+    const isPast  = d.getTime() < today.getTime();
     const isSel   = i === selectedDateIdx;
     const hasBusy = bookedHours().length > 0;
     const hasMySel = selections[key]?.end != null;
     let cls = 'date-chip';
     if (isToday)  cls += ' today';
+    if (isPast)   cls += ' past';
     if (isSel)    cls += ' selected';
     if (hasMySel && !isSel) cls += ' has-sel';
     const dot = hasBusy ? `<div class="date-chip-dot"></div>` : '';
-    return `<div class="${cls}" onclick="selectDate(${i})">
+    const click = isPast ? '' : `onclick="selectDate(${i})"`;
+    return `<div class="${cls}" ${click}>
       <div class="date-chip-day">${DAY_SHORT[d.getDay()]}</div>
       <div class="date-chip-num">${d.getDate()}</div>
       ${dot}
@@ -975,18 +981,20 @@ function renderMobDates() {
   scroll.innerHTML = days.map((d, i) => {
     const key        = dateKeyFor(days, i);
     const isToday    = d.getTime() === today.getTime();
+    const isPast     = d.getTime() < today.getTime();
     const isSel      = i === selectedDateIdx && currentFormat === 'hourly';
     const hasBusy    = bookedHours().length > 0;
     const hasMySel   = currentFormat === 'hourly' && selections[key]?.end != null;
     const isEventSel = currentFormat === 'event'  && eventDays.has(key);
     let cls = 'mob-date-chip';
     if (isToday)    cls += ' today';
+    if (isPast)     cls += ' past';
     if (isSel)      cls += ' selected';
     if (hasMySel)   cls += ' has-sel';
     if (isEventSel) cls += ' event-sel';
     const dot = hasBusy && !isSel && !isEventSel ? `<div class="mob-date-dot"></div>` : '';
-    const click = currentFormat === 'event' ? `toggleEventDay(${i})` : `selectDate(${i})`;
-    return `<div class="${cls}" onclick="${click}">
+    const click = isPast ? '' : (currentFormat === 'event' ? `toggleEventDay(${i})` : `selectDate(${i})`);
+    return `<div class="${cls}" ${click ? `onclick="${click}"` : ''}>
       <div class="mob-date-day">${DAY_SHORT[d.getDay()]}</div>
       <div class="mob-date-num">${d.getDate()}</div>
       ${dot}
@@ -1058,6 +1066,7 @@ function renderWeekGrid(days) {
       days.map((d, i) => {
         const key        = dateKeyFor(days, i);
         const isToday    = d.getTime() === today.getTime();
+        const isPast     = d.getTime() < today.getTime();
         const isEventSel = currentFormat === 'event' && eventDays.has(key);
         const hasSel     = currentFormat === 'hourly' && selections[key]?.end != null;
         let cls = 'wgd-head';
@@ -1065,10 +1074,11 @@ function renderWeekGrid(days) {
         if (hasSel)     cls += ' has-sel';
         if (isEventSel) cls += ' event-sel';
         if (isToday)    cls += ' today';
-        const click = currentFormat === 'event'
+        if (isPast)     cls += ' past';
+        const click = isPast ? '' : (currentFormat === 'event'
           ? `toggleEventDay(${i})`
-          : `selectDateWG(${i})`;
-        return `<div class="${cls}" onclick="${click}">
+          : `selectDateWG(${i})`);
+        return `<div class="${cls}" ${click ? `onclick="${click}"` : ''}>
   <span class="wgd-day">${DAY_SHORT[d.getDay()]}</span>
   <span class="wgd-num">${d.getDate()}</span>
 </div>`;
@@ -1080,9 +1090,11 @@ function renderWeekGrid(days) {
   if (currentFormat === 'event') { container.innerHTML = ''; return; }
   container.innerHTML = HOURS.map(h => {
     let html = `<div class="wg-row"><div class="wg-time">${pad(h)}:00</div>`;
+    const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
     days.forEach((d, i) => {
       const key    = dateKeyFor(days, i);
       const sel    = selections[key];
+      const isPast = d.getTime() < todayMidnight.getTime();
       const booked = (BOOKED_BY_HALL[currentHall] || []).includes(h);
       const tiers  = getTiers(d);
       let cellSel = false, isStartD = false;
@@ -1092,7 +1104,9 @@ function renderWeekGrid(days) {
       }
       let cls = 'wg-cell';
       let price = '';
-      if (booked) {
+      if (isPast) {
+        cls += ' booked'; price = '';
+      } else if (booked) {
         cls += ' booked'; price = 'Занято';
       } else if (cellSel) {
         cls += ' selected';
@@ -1103,7 +1117,7 @@ function renderWeekGrid(days) {
         cls += ' free';
         price = `${getRph(1, tiers).toLocaleString('ru')} ₽`;
       }
-      const onclick = booked ? '' : `onclick="wgCellClick(${i},${h})"`;
+      const onclick = (booked || isPast) ? '' : `onclick="wgCellClick(${i},${h})"`;
       html += `<div class="${cls}" ${onclick}><span class="wgc-price">${price}</span></div>`;
     });
     html += '</div>';
