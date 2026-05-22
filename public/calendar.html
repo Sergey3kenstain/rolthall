@@ -105,9 +105,9 @@ nav.d-nav {
 /* Desktop sidebar */
 .format-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
 .format-tab {
-  font-family: var(--font); font-size: 8px; font-weight: 700;
+  font-family: var(--font); font-size: 10px; font-weight: 700;
   letter-spacing: .12em; text-transform: uppercase;
-  padding: 12px 8px; text-align: center;
+  padding: 18px 8px; text-align: center;
   border: 1px solid var(--accent-border);
   background: transparent; color: rgba(217,217,217,.4); cursor: pointer;
   transition: all .2s;
@@ -284,7 +284,6 @@ nav.d-nav {
   min-height: 0;
   overflow: hidden;
   border-top: 1px solid var(--accent-border);
-  margin-top: 24px;
 }
 
 /* ══ SIDE PANEL ══ */
@@ -627,10 +626,6 @@ nav.d-nav {
 <!-- ══ PAGE SHELL ══ -->
 <div class="page-shell">
 
-  <!-- Desktop header -->
-  <div class="page-header">
-    <div class="section-label">02 — Расписание</div>
-  </div>
 
   <!-- ══ MOBILE: format tabs ══ -->
   <div class="mob-format-tabs">
@@ -697,7 +692,7 @@ nav.d-nav {
               </div>
             </div>
             <div class="bs-actions" style="margin-top:12px;">
-              <button onclick="clearAllSelections()" class="btn-ghost">✕ Всё</button>
+              <button onclick="clearAllSelections()" class="btn-ghost">Сброс</button>
               <a href="booking.html" class="btn-primary">Далее →</a>
             </div>
           </div>
@@ -806,7 +801,7 @@ nav.d-nav {
             <div class="hold-text">После «Далее» слот резервируется на <strong>10 минут</strong></div>
           </div>
           <div class="bs-actions">
-            <button onclick="clearAllSelections()" class="btn-ghost" title="Сбросить всё">✕ Всё</button>
+            <button onclick="clearAllSelections()" class="btn-ghost" title="Сбросить всё">Сброс</button>
             <a href="booking.html" class="btn-primary">Далее →</a>
           </div>
         </div>
