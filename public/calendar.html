@@ -98,6 +98,7 @@ nav.d-nav {
 .page-header {
   padding: 32px 48px 0;
   display: flex; align-items: center; gap: 20px;
+  flex-shrink: 0;
 }
 .section-label {
   font-size: 8px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase;
@@ -110,6 +111,7 @@ nav.d-nav {
 .cal-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
+  grid-template-rows: 1fr;     /* KEY: даёт grid-items определённую высоту */
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -122,7 +124,7 @@ nav.d-nav {
   border-right: 1px solid var(--accent-border);
   display: flex; flex-direction: column;
   overflow-y: auto;
-  height: 100%;
+  min-height: 0;
 }
 .side-section {
   border-bottom: 1px solid var(--accent-border);
@@ -210,7 +212,6 @@ nav.d-nav {
   display: flex; flex-direction: column;
   overflow: hidden;
   min-height: 0;
-  height: 100%;
 }
 
 /* Info bar */
@@ -420,6 +421,7 @@ nav.d-nav {
   .info-bar-title { font-size: 12px; }
   .slot-time { width: 48px; font-size: 7.5px; }
   .slot-cell { min-height: 48px; padding: 6px 8px; }
+  .hold-banner { padding: 4px 16px; }
 
   .bottom-sheet {
     position: fixed;
