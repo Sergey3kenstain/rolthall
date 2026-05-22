@@ -98,6 +98,118 @@ nav.d-nav {
 .mob-hall-tabs,
 .mob-date-strip { display: none; }
 
+/* ══ WEEK GRID — desktop only ══ */
+.week-nav-bar { display: none; }
+.wg-header    { display: none; }
+.wg-row       { display: none; }
+#desktopSheetWrap { display: none; }
+
+@media (min-width: 1024px) {
+  /* Week nav bar above the grid */
+  .week-nav-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 24px; flex-shrink: 0;
+    border-bottom: 1px solid var(--accent-border);
+    background: var(--charcoal-mid);
+  }
+  .wnb-btn {
+    width: 28px; height: 28px; background: transparent;
+    border: 1px solid var(--accent-border);
+    color: rgba(217,217,217,.5); font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: border-color .2s, color .2s;
+  }
+  .wnb-btn:hover { border-color: rgba(255,255,255,.4); color: var(--accent); }
+  .wnb-label {
+    flex: 1; font-size: 9px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: rgba(217,217,217,.45); text-align: center;
+  }
+
+  /* Week grid */
+  .wg-header {
+    display: grid;
+    grid-template-columns: 52px repeat(7, minmax(0, 6vw));
+    position: sticky; top: 0; z-index: 5; flex-shrink: 0;
+    background: var(--charcoal-mid);
+    border-bottom: 1px solid var(--accent-border);
+  }
+  .wg-row {
+    display: grid;
+    grid-template-columns: 52px repeat(7, minmax(0, 6vw));
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .wg-time-corner { border-right: 1px solid rgba(255,255,255,.06); }
+  .wgd-head {
+    padding: 9px 4px; text-align: center;
+    border-right: 1px solid rgba(255,255,255,.06);
+    cursor: pointer; transition: background .15s;
+  }
+  .wgd-head:hover { background: rgba(255,255,255,.04); }
+  .wgd-head.active { background: rgba(255,255,255,.07); }
+  .wgd-day {
+    display: block; font-size: 6.5px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: rgba(217,217,217,.3);
+  }
+  .wgd-num {
+    display: block; font-size: 13px; font-weight: 800;
+    color: rgba(217,217,217,.65); margin-top: 2px;
+  }
+  .wgd-head.active .wgd-num { color: var(--accent); }
+  .wgd-head.active .wgd-day { color: rgba(217,217,217,.6); }
+  .wgd-head.today  .wgd-day { color: var(--success); }
+  .wgd-head.today  .wgd-num { color: var(--success); }
+  .wgd-head.has-sel .wgd-num { color: var(--accent); }
+
+  .wg-time {
+    padding: 0 10px; min-height: 52px;
+    display: flex; align-items: center; justify-content: flex-end;
+    font-size: 8px; letter-spacing: .05em; color: rgba(217,217,217,.25);
+    border-right: 1px solid rgba(255,255,255,.06);
+    background: var(--charcoal-mid);
+  }
+  .wg-cell {
+    min-height: 52px; max-width: 6vw;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid rgba(255,255,255,.06);
+    cursor: pointer; transition: background .1s; padding: 4px;
+    text-align: center; position: relative;
+  }
+  .wg-cell.free:hover { background: rgba(255,255,255,.05); }
+  .wg-cell.selected   { background: var(--accent) !important; }
+  .wg-cell.booked     { background: var(--danger-bg); cursor: not-allowed; }
+  .wgc-price { font-size: 9px; font-weight: 700; color: rgba(217,217,217,.5); }
+  .wg-cell.selected .wgc-price { color: var(--charcoal); }
+  .wg-cell.booked   .wgc-price { font-size: 8px; color: var(--danger); }
+  .wg-cell.sel-start-d::after {
+    content: ''; position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: 5px; height: 5px; border-radius: 50%; background: var(--charcoal);
+  }
+
+  /* Sidebar: hide date picker, show bottom sheet */
+  .side-date-picker { display: none !important; }
+  #desktopSheetWrap {
+    display: block;
+    border-top: 1px solid var(--accent-border);
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  /* Hide mobile bottom-sheet, info-bar (replaced by week nav) */
+  .cal-main > .bottom-sheet { display: none !important; }
+  .info-bar { display: none; }
+
+  /* sel-days-list desktop */
+  .sel-days-list { height: 96px; overflow: auto; }
+
+  /* Header: match index.html scrolled style */
+  nav.d-nav {
+    background: rgba(30,28,36,.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--accent-border);
+  }
+  .d-nav-links a { opacity: .55; }
+}
+
 /* ══ PAGE HEADER (desktop) ══ */
 .page-header {
   padding: 32px 48px 0;
@@ -554,8 +666,8 @@ nav.d-nav {
         </div>
       </div>
 
-      <!-- Date picker -->
-      <div class="side-section">
+      <!-- Date picker (hidden on desktop, replaced by week nav bar) -->
+      <div class="side-section side-date-picker">
         <div class="date-nav-row">
           <button class="date-nav-btn" onclick="shiftWeek(-1)">‹</button>
           <div class="date-nav-label" id="weekLabel">Май 2026</div>
@@ -570,12 +682,52 @@ nav.d-nav {
         <div id="pricingTable" class="pricing-rows"></div>
       </div>
 
+      <!-- Desktop bottom sheet (inside sidebar, shown only on desktop) -->
+      <div id="desktopSheetWrap">
+        <div class="bottom-sheet" style="position:static;background:var(--charcoal-deep);border-top:none;padding:18px;">
+          <div id="dstateEmpty" class="bs-empty">
+            <div class="bs-empty-title">Выберите время</div>
+            <div class="bs-empty-sub">Нажмите на слот</div>
+          </div>
+          <div id="dstateStart" class="bs-starting" style="display:none;">
+            <div style="font-size:10px;font-weight:600;color:rgba(217,217,217,.5);margin-bottom:10px;">Начало: <span id="dstartLabel">—</span></div>
+            <button onclick="clearSelection()" class="btn-ghost" style="width:100%;padding:10px;">Сбросить</button>
+          </div>
+          <div id="dstateSelected" class="bs-selected" style="display:none;">
+            <div class="sel-days-list" id="dselDaysList"></div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);">
+              <div>
+                <div class="bs-sel-total-label">Итого</div>
+                <div class="bs-sel-total" id="dselTotal">—</div>
+                <div class="bs-sel-prepay">предоплата <span id="dselPrepay">—</span></div>
+              </div>
+            </div>
+            <div class="bs-actions" style="margin-top:12px;">
+              <button onclick="clearAllSelections()" class="btn-ghost">✕ Всё</button>
+              <a href="booking.html" class="btn-primary">Далее →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /cal-side -->
 
     <!-- MAIN PANEL -->
     <div class="cal-main">
 
-      <!-- Info bar -->
+      <!-- Week nav bar (desktop only, replaces info-bar) -->
+      <div class="week-nav-bar">
+        <button class="wnb-btn" onclick="shiftWeek(-1)">‹</button>
+        <div class="wnb-label" id="weekLabelMain">Май 2026</div>
+        <button class="wnb-btn" onclick="shiftWeek(1)">›</button>
+      </div>
+
+      <!-- Week grid header (day columns, desktop only) -->
+      <div class="wg-header" id="wgHeader">
+        <div class="wg-time-corner"></div>
+      </div>
+
+      <!-- Info bar (mobile only) -->
       <div class="info-bar">
         <div>
           <div class="info-bar-title" id="hallDateLabel">Зал А · Ср 14 мая</div>
@@ -827,38 +979,38 @@ function renderMobDates() {
 
 /* ===== RENDER SLOTS ===== */
 function renderSlots() {
-  const container = document.getElementById('slotsContainer');
-  const days  = getStripDates();
-  const date  = days[selectedDateIdx];
-  const tiers = getTiers(date);
+  const days = getStripDates();
+  if (window.innerWidth >= 1024) {
+    renderWeekGrid(days);
+  } else {
+    renderDaySlots(days[selectedDateIdx]);
+  }
+}
 
+function renderDaySlots(date) {
+  const container = document.getElementById('slotsContainer');
+  const tiers = getTiers(date);
   container.innerHTML = HOURS.map(h => {
     const booked   = isBooked(h);
     const selected = isSelected(h);
     const isStart  = h === curSelStart();
     const isEnd    = h === curSelEnd();
-
-    let cellCls  = 'slot-cell';
+    let cellCls = 'slot-cell';
     let mainHtml = '', subHtml = '';
-
     if (booked) {
-      cellCls  += ' booked';
-      mainHtml = 'Занято';
+      cellCls += ' booked'; mainHtml = 'Занято';
     } else if (selected) {
       const s   = curSel();
-      const dur = s?.end !== null ? s.end - s.start + 1 : 1;
-      const rph = getRph(dur, tiers);
+      const dur = s?.end != null ? s.end - s.start + 1 : 1;
       cellCls  += ' selected';
       if (isStart) cellCls += ' sel-start';
-      mainHtml = `${rph.toLocaleString('ru')} ₽`;
+      mainHtml = `${getRph(dur, tiers).toLocaleString('ru')} ₽`;
       subHtml  = isStart ? 'начало' : (isEnd ? 'конец' : '·');
     } else {
       cellCls  += ' free';
-      const rph = getRph(1, tiers);
-      mainHtml  = `${rph.toLocaleString('ru')} ₽`;
+      mainHtml  = `${getRph(1, tiers).toLocaleString('ru')} ₽`;
       subHtml   = 'свободно';
     }
-
     const onclick = booked ? '' : `onclick="onCellClick(${h})"`;
     return `<div class="slot-row">
   <div class="slot-time">${pad(h)}:00</div>
@@ -868,6 +1020,90 @@ function renderSlots() {
   </div>
 </div>`;
   }).join('');
+}
+
+function renderWeekGrid(days) {
+  // Update week nav label
+  const lbl = document.getElementById('weekLabelMain');
+  if (lbl) {
+    const months = [...new Set(days.map(d => d.getMonth()))];
+    const yr = days[0].getFullYear();
+    lbl.textContent = months.length === 1
+      ? `${MONTH_FULL[months[0]]} ${yr}`
+      : `${MONTH_NAMES[months[0]]} – ${MONTH_NAMES[months[1]]} ${yr}`;
+  }
+
+  // Day headers
+  const hdr = document.getElementById('wgHeader');
+  if (hdr) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    hdr.innerHTML = '<div class="wg-time-corner"></div>' +
+      days.map((d, i) => {
+        const key = dateKeyFor(days, i);
+        const hasSel = selections[key]?.end != null;
+        const isToday = d.getTime() === today.getTime();
+        let cls = 'wgd-head';
+        if (i === selectedDateIdx) cls += ' active';
+        if (hasSel) cls += ' has-sel';
+        if (isToday) cls += ' today';
+        return `<div class="${cls}" onclick="selectDateWG(${i})">
+  <span class="wgd-day">${DAY_SHORT[d.getDay()]}</span>
+  <span class="wgd-num">${d.getDate()}</span>
+</div>`;
+      }).join('');
+  }
+
+  // Slot rows
+  const container = document.getElementById('slotsContainer');
+  container.innerHTML = HOURS.map(h => {
+    let html = `<div class="wg-row"><div class="wg-time">${pad(h)}:00</div>`;
+    days.forEach((d, i) => {
+      const key    = dateKeyFor(days, i);
+      const sel    = selections[key];
+      const booked = (BOOKED_BY_HALL[currentHall] || []).includes(h);
+      const tiers  = getTiers(d);
+      let cellSel = false, isStartD = false;
+      if (sel?.start != null) {
+        if (sel.end != null) cellSel = h >= sel.start && h <= sel.end;
+        else { cellSel = h === sel.start; isStartD = true; }
+      }
+      let cls = 'wg-cell';
+      let price = '';
+      if (booked) {
+        cls += ' booked'; price = 'Занято';
+      } else if (cellSel) {
+        cls += ' selected';
+        if (isStartD) cls += ' sel-start-d';
+        const dur = sel.end != null ? sel.end - sel.start + 1 : 1;
+        price = `${getRph(dur, tiers).toLocaleString('ru')} ₽`;
+      } else {
+        cls += ' free';
+        price = `${getRph(1, tiers).toLocaleString('ru')} ₽`;
+      }
+      const onclick = booked ? '' : `onclick="wgCellClick(${i},${h})"`;
+      html += `<div class="${cls}" ${onclick}><span class="wgc-price">${price}</span></div>`;
+    });
+    html += '</div>';
+    return html;
+  }).join('');
+}
+
+function wgCellClick(dayIdx, hour) {
+  selectedDateIdx = dayIdx;
+  onCellClick(hour);
+  // Also update info bar and date grid
+  renderInfoBar();
+  renderDates();
+}
+
+function selectDateWG(idx) {
+  selectedDateIdx = idx;
+  renderInfoBar();
+  renderDates();
+  renderMobDates();
+  updateSheet();
+  // Highlight the active column
+  document.querySelectorAll('.wgd-head').forEach((h, i) => h.classList.toggle('active', i === idx));
 }
 
 /* ===== RENDER PRICING TABLE ===== */
@@ -924,10 +1160,16 @@ function renderInfoBar() {
 }
 
 /* ===== UPDATE BOTTOM SHEET ===== */
+// Обновляет и мобайл и десктоп варианты
 function updateSheet() {
-  const empty    = document.getElementById('stateEmpty');
-  const starting = document.getElementById('stateStart');
-  const full     = document.getElementById('stateSelected');
+  updateSheetEl('stateEmpty','stateStart','stateSelected','startLabel','selDaysList','selTotal','selPrepay');
+  updateSheetEl('dstateEmpty','dstateStart','dstateSelected','dstartLabel','dselDaysList','dselTotal','dselPrepay');
+}
+function updateSheetEl(emptyId, startId, selId, startLblId, listId, totalId, prepayId) {
+  const empty    = document.getElementById(emptyId);
+  const starting = document.getElementById(startId);
+  const full     = document.getElementById(selId);
+  if (!empty) return;
 
   // Полные выборы (у которых есть и start и end)
   const completeSels = Object.entries(selections)
@@ -941,7 +1183,7 @@ function updateSheet() {
     empty.style.display    = 'none';
     starting.style.display = 'block';
     full.style.display     = completeSels.length > 0 ? 'block' : 'none';
-    const sl = document.getElementById('startLabel');
+    const sl = document.getElementById(startLblId);
     if (sl) sl.textContent = `${pad(s.start)}:00`;
     if (completeSels.length > 0) renderSelList(completeSels, full);
     return;
@@ -986,13 +1228,13 @@ function renderSelList(completeSels, fullEl) {
 </div>`;
   }).join('');
 
-  const listEl = document.getElementById('selDaysList');
+  const listEl = document.getElementById(listId);
   if (listEl) listEl.innerHTML = listHtml;
 
   const prepay = Math.round(grandTotal / 2);
   const get = id => document.getElementById(id);
-  if (get('selTotal'))  get('selTotal').textContent  = `${grandTotal.toLocaleString('ru')} ₽`;
-  if (get('selPrepay')) get('selPrepay').textContent  = `${prepay.toLocaleString('ru')} ₽`;
+  if (get(totalId))  get(totalId).textContent  = `${grandTotal.toLocaleString('ru')} ₽`;
+  if (get(prepayId)) get(prepayId).textContent  = `${prepay.toLocaleString('ru')} ₽`;
 }
 
 function removeDay(dateKey) {
@@ -1073,6 +1315,7 @@ function shiftWeek(dir) {
 
 /* ===== INIT ===== */
 redraw();
+window.addEventListener('resize', () => renderSlots());
 </script>
 </body>
 </html>
