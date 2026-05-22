@@ -205,6 +205,8 @@ nav.d-nav {
 
   /* sel-days-list desktop */
   .sel-days-list { height: 96px; overflow: auto; }
+  .sel-day-time  { margin-top: 6px; }
+  .bs-sel-total  { margin: .3em; }
 
   /* Header already matches index.html in base styles */
 }
@@ -579,10 +581,10 @@ nav.d-nav {
     <a href="calendar.html" class="active">Расписание</a>
     <a href="tariffs.html">Тарифы</a>
     <a href="profile.html">Кабинет</a>
+    <a href="profile.html" class="d-nav-account">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+    </a>
   </div>
-  <a href="profile.html" class="d-nav-account">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
-  </a>
 </nav>
 
 <!-- ══ PAGE SHELL ══ -->
@@ -1219,8 +1221,8 @@ function renderSelList(completeSels, fullEl, listId, totalId, prepayId) {
 
     return `<div class="sel-day-item">
   <div style="flex:1;">
-    <div class="sel-day-label">${hall.name} · ${dateLabel}</div>
-    <div class="sel-day-time">${timeLabel} · ${rph.toLocaleString('ru')} ₽/ч</div>
+    <div class="sel-day-label">${dateLabel}</div>
+    <div class="sel-day-time">${timeLabel}</div>
   </div>
   <div class="sel-day-price">${amount.toLocaleString('ru')} ₽</div>
   <button class="sel-day-remove" onclick="removeDay('${dateKey}')">✕</button>
