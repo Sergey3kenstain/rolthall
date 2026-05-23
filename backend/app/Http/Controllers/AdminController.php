@@ -355,4 +355,130 @@ class AdminController extends Controller
             'Content-Disposition' => 'attachment; filename="clients_' . now()->format('Y-m-d') . '.csv"',
         ]);
     }
+
+    // ── All Bookings (full list with filters) ────────────────────────────
+
+    public function allBookings(Request $request): JsonResponse
+    {
+        $query = Booking::with(['hall', 'client'])
+            ->orderByDesc('date')
+            ->orderByDesc('time_start');
+
+        if ($request->query('status')) {
+            $query->where('status', $request->query('status'));
+        }
+        if ($request->query('hall')) {
+            $query->whereHas('hall', fn($q) => $q->where('name', $request->query('hall')));
+        }
+        if ($request->query('from')) {
+            $query->whereDate('date', '>=', $request->query('from'));
+        }
+        if ($request->query('to')) {
+            $query->whereDate('date', '<=', $request->query('to'));
+        }
+
+        $list = $query->limit(500)->get()->map(fn($b) => [
+            'id'                => $b->id,
+            'hall'              => $b->hall?->name,
+            'client_name'       => $b->client?->name,
+            'client_phone'      => $b->client?->phone,
+            'date'              => $b->date instanceof \Carbon\Carbon ? $b->date->format('Y-m-d') : $b->date,
+            'time_start'        => substr($b->time_start, 0, 5),
+            'time_end'          => substr($b->time_end, 0, 5),
+            'format'            => $b->format,
+            'status'            => $b->status,
+            'total_amount'      => $b->total_amount,
+            'prepayment_amount' => $b->prepayment_amount,
+        ]);
+
+        return response()->json(['ok' => true, 'data' => $list], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // ── Heatmap ──────────────────────────────────────────────────────────
+
+    public function heatmap(Request $request): JsonResponse
+    {
+        $query = Booking::with('hall')
+            ->whereNotIn('status', ['cancelled', 'draft'])
+            ->whereDate('date', '>=', now()->subMonths(3));
+
+        if ($request->query('hall')) {
+            $query->whereHas('hall', fn($q) => $q->where('name', $request->query('hall')));
+        }
+
+        $bookings = $query->get(['date', 'time_start', 'time_end']);
+        $heatmap  = [];
+        $max      = 0;
+
+        foreach ($bookings as $b) {
+            $dow = (int) Carbon::parse($b->date)->dayOfWeekIso - 1; // 0=Mon, 6=Sun
+            [$hStart] = explode(':', $b->time_start);
+            [$hEnd]   = explode(':', $b->time_end);
+            for ($h = (int)$hStart; $h < (int)$hEnd; $h++) {
+                $heatmap[$h][$dow] = ($heatmap[$h][$dow] ?? 0) + 1;
+                if ($heatmap[$h][$dow] > $max) $max = $heatmap[$h][$dow];
+            }
+        }
+
+        // Populate hall select options
+        $halls = Hall::pluck('name');
+
+        return response()->json(['ok' => true, 'heatmap' => $heatmap, 'max' => $max, 'halls' => $halls], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // ── Action Log (stub — log table not yet implemented) ───────────────
+
+    public function actionLog(Request $request): JsonResponse
+    {
+        // TODO: implement action_logs table migration and model
+        return response()->json(['ok' => true, 'data' => []], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // ── Users / Roles ────────────────────────────────────────────────────
+
+    public function users(Request $request): JsonResponse
+    {
+        $users = User::with('roles')->orderBy('name')->get()->map(fn($u) => [
+            'id'             => $u->id,
+            'name'           => $u->name,
+            'email'          => $u->email,
+            'phone'          => $u->phone,
+            'role'           => $u->getRoleNames()->first(),
+            'is_blacklisted' => (bool) optional($u->client)->is_blacklisted,
+            'is_active'      => (bool) ($u->is_active ?? true),
+        ]);
+
+        return response()->json(['ok' => true, 'data' => $users], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function updateUser(Request $request, int $id): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $data = $request->validate([
+            'is_blacklisted' => 'sometimes|boolean',
+            'is_active'      => 'sometimes|boolean',
+        ]);
+
+        if (isset($data['is_blacklisted']) && $user->client) {
+            $user->client->update(['is_blacklisted' => $data['is_blacklisted']]);
+        }
+        if (isset($data['is_active'])) {
+            $user->update(['is_active' => $data['is_active']]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function setUserRole(Request $request, int $id): JsonResponse
+    {
+        if (!$this->isOwner($request)) {
+            return response()->json(['ok' => false, 'error' => 'Forbidden'], 403);
+        }
+
+        $data = $request->validate(['role' => 'required|string|in:developer,owner,admin,client']);
+        $user = User::findOrFail($id);
+        $user->syncRoles([$data['role']]);
+
+        return response()->json(['ok' => true]);
+    }
 }

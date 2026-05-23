@@ -370,6 +370,10 @@ select.inp option{background:var(--bg-2);}
   .month-strip{gap:4px;}
   .ll-stats{display:flex;flex-wrap:wrap;gap:10px;padding:14px 16px;}
   .ll-stats .stat-card{max-width:calc(25% - 8px);flex:1;}
+  .sec-head{padding:36px 16px 36px;}
+  .hall-thumb{width:9vw;min-height:9vw;}
+  .hall-body{padding:24px 14px;}
+  .hall-card{min-width:33%;}
 }
 /* ── Block-dates toggle ── */
 .block-toggle{display:flex;align-items:center;gap:7px;margin-left:auto;cursor:pointer;user-select:none;}
@@ -389,10 +393,55 @@ select.inp option{background:var(--bg-2);}
 
 @media(max-width:480px){
   .hall-thumb{width:32vw;flex-shrink:0;object-fit:cover;display:block;background:var(--bg-2);height:100%;min-height:42vw;}
-  .status-pill{position:absolute;right:2.5em;top:10.5em;}
   .hall-body{flex:1;padding:36px 20px 0 20px;min-width:0;}
+  .hall-footer{border-top:none;background:none;}
   .sec-head{padding:16px 16px 36px;display:flex;align-items:center;justify-content:space-between;}
 }
+
+/* ═══════════════════════════════════════
+   ALL-BOOKINGS / LOG TABLE
+═══════════════════════════════════════ */
+.ab-table{width:100%;border-collapse:collapse;font-size:.72rem;min-width:640px;}
+.ab-table th{font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
+.ab-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.ab-table tbody tr:hover{background:rgba(255,255,255,.025);}
+.ab-table tbody tr:last-child td{border-bottom:none;}
+
+/* ═══════════════════════════════════════
+   STATUS BADGE (table)
+═══════════════════════════════════════ */
+.st-badge{display:inline-block;font-size:.58rem;font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap;}
+.st-badge.ok{background:var(--success-bg);color:var(--success);}
+.st-badge.warn{background:var(--warning-bg);color:var(--warning);}
+.st-badge.info{background:rgba(55,111,255,.14);color:#7ea8ff;}
+.st-badge.err{background:var(--danger-bg);color:var(--danger);}
+.st-badge.gray{background:rgba(255,255,255,.07);color:var(--text-muted);}
+
+/* ═══════════════════════════════════════
+   HEATMAP
+═══════════════════════════════════════ */
+.hm-table{border-collapse:collapse;font-size:.65rem;}
+.hm-table th{font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);padding:5px 8px;text-align:center;}
+.hm-table th:first-child{text-align:left;}
+.hm-table td{padding:3px;text-align:center;}
+.hm-cell{width:36px;height:24px;border-radius:5px;display:inline-block;cursor:default;transition:opacity .12s;}
+.hm-cell:hover{opacity:.75;}
+.hm-table td:first-child{font-size:.62rem;color:var(--text-muted);padding:3px 8px 3px 0;white-space:nowrap;text-align:left;}
+.hm-legend{width:22px;height:14px;border-radius:3px;}
+
+/* ═══════════════════════════════════════
+   BLACKLIST / ROLES CARDS
+═══════════════════════════════════════ */
+.bl-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r-lg);}
+.bl-info{flex:1;min-width:0;}
+.bl-name{font-size:.82rem;font-weight:700;}
+.bl-reason{font-size:.65rem;color:var(--text-dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.role-card{padding:16px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r-lg);}
+.role-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.role-card-name{font-size:.82rem;font-weight:700;}
+.role-card-email{font-size:.65rem;color:var(--text-muted);margin-top:2px;}
+.role-select{font-family:var(--font);font-size:.68rem;background:rgba(55,111,255,.1);color:#7ea8ff;border:1px solid rgba(55,111,255,.3);border-radius:var(--r);padding:4px 8px;cursor:pointer;outline:none;}
+.role-select option{background:var(--bg-2);color:var(--text);}
 </style>
 </head>
 <body>
@@ -407,7 +456,7 @@ select.inp option{background:var(--bg-2);}
 <!-- ══ SIDEBAR (desktop) ══ -->
 <aside class="ll-side">
   <div class="ll-side-logo">
-    <svg style="max-width:15vw;height:19px;display:block"><use href="#rh-logo"/></svg>
+    <svg><use href="#rh-logo"/></svg>
   </div>
   <div class="ll-side-user">
     <div class="avatar" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0;" id="side-av"><span id="side-av-init">АИ</span></div>
@@ -426,6 +475,22 @@ select.inp option{background:var(--bg-2);}
     </button>
     <button class="snav-link" onclick="switchTab('halls',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Залы
+    </button>
+    <div class="snav-lbl" id="snav-lbl-manage" style="display:none;">Управление</div>
+    <button class="snav-link snav-role-any" onclick="switchTab('all-bookings',this)" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>Все брони
+    </button>
+    <button class="snav-link snav-role-any" onclick="switchTab('heatmap',this)" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Хитмап
+    </button>
+    <button class="snav-link snav-role-owner-dev" onclick="switchTab('log',this)" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Лог действий
+    </button>
+    <button class="snav-link snav-role-any" onclick="switchTab('blacklist',this)" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Чёрный список
+    </button>
+    <button class="snav-link snav-role-dev" onclick="switchTab('roles',this)" style="display:none;" id="snav-roles">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Роли и доступы
     </button>
     <div class="snav-lbl">Настройки</div>
     <button class="snav-link" onclick="switchTab('profile',this)">
@@ -448,7 +513,7 @@ select.inp option{background:var(--bg-2);}
     <a href="#" class="nav-logo">
       <svg style="height:14px;width:auto;display:block" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></svg>
     </a>
-    <button class="nav-account" id="nav-acct-btn" onclick="openLogin()" title="Личный кабинет">
+    <button class="nav-account" id="nav-acct-btn" onclick="onNavAccountClick()" title="Личный кабинет">
       <svg class="nav-acct-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
       <img id="nav-av-img" src="" alt="">
       <span class="av-initials" id="nav-av-init">АИ</span>
@@ -597,7 +662,7 @@ select.inp option{background:var(--bg-2);}
         <div class="sec-title">Мои залы</div>
         <button class="btn btn-w btn-sm" onclick="openHallModal(null)">+ Добавить</button>
       </div>
-      <div style="padding:0 16px 16px;">
+      <div id="halls-grid" style="padding:0 16px 16px;">
         <div class="hall-card" onclick="openHallModal('a')">
           <img src="../uploads/image 1.png" alt="Зал А" class="hall-thumb">
           <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
@@ -739,6 +804,126 @@ select.inp option{background:var(--bg-2);}
       </div>
     </div><!-- /notifications -->
 
+    <!-- ══ TAB: ВСЕ БРОНИ ══ -->
+    <div id="tab-all-bookings" class="ll-tab">
+      <div class="sec-head">
+        <div class="sec-title">Все брони</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAllBookings()">Обновить</button>
+      </div>
+      <!-- Filters -->
+      <div style="padding:0 16px 12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <select class="inp" id="abf-status" onchange="renderAllBookings()" style="flex:1;min-width:110px;font-size:.7rem;padding:7px 10px;">
+          <option value="">Все статусы</option>
+          <option value="draft">Черновик</option>
+          <option value="hold">Холд</option>
+          <option value="pending_payment">Ожидает оплаты</option>
+          <option value="paid">Оплачена</option>
+          <option value="confirmed">Подтверждена</option>
+          <option value="completed">Завершена</option>
+          <option value="cancelled">Отменена</option>
+        </select>
+        <select class="inp" id="abf-hall" onchange="renderAllBookings()" style="flex:1;min-width:110px;font-size:.7rem;padding:7px 10px;">
+          <option value="">Все залы</option>
+        </select>
+        <input type="date" class="inp" id="abf-from" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
+        <input type="date" class="inp" id="abf-to" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
+      </div>
+      <div style="margin:0 16px 16px;overflow-x:auto;">
+        <table class="ab-table" id="ab-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Клиент</th><th>Зал</th><th>Дата</th><th>Время</th><th>Формат</th><th>Статус</th><th>Итого</th><th>Предоплата</th>
+            </tr>
+          </thead>
+          <tbody id="ab-tbody"></tbody>
+        </table>
+        <div class="empty" id="ab-empty" style="display:none;">
+          <div class="empty-title">Броней не найдено</div>
+          <div class="empty-sub">Измените фильтры</div>
+        </div>
+      </div>
+    </div><!-- /all-bookings -->
+
+    <!-- ══ TAB: ХИТМАП ══ -->
+    <div id="tab-heatmap" class="ll-tab">
+      <div class="sec-head">
+        <div class="sec-title">Хитмап загруженности</div>
+        <select class="inp" id="hm-hall" onchange="renderHeatmap()" style="font-size:.7rem;padding:7px 10px;width:auto;">
+          <option value="">Все залы</option>
+        </select>
+      </div>
+      <div style="padding:0 16px 16px;overflow-x:auto;">
+        <div style="font-size:.6rem;color:var(--text-dim);margin-bottom:10px;">Популярность слотов по часам и дням недели. Цвет — доля занятых слотов.</div>
+        <table class="hm-table" id="hm-table">
+          <thead>
+            <tr>
+              <th>Час</th><th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
+            </tr>
+          </thead>
+          <tbody id="hm-tbody"></tbody>
+        </table>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+          <div style="font-size:.6rem;color:var(--text-dim);">Мало</div>
+          <div style="display:flex;gap:3px;">
+            <div class="hm-legend" style="background:rgba(55,111,255,.08)"></div>
+            <div class="hm-legend" style="background:rgba(55,111,255,.25)"></div>
+            <div class="hm-legend" style="background:rgba(55,111,255,.45)"></div>
+            <div class="hm-legend" style="background:rgba(55,111,255,.65)"></div>
+            <div class="hm-legend" style="background:rgba(55,111,255,.85)"></div>
+          </div>
+          <div style="font-size:.6rem;color:var(--text-dim);">Много</div>
+        </div>
+      </div>
+    </div><!-- /heatmap -->
+
+    <!-- ══ TAB: ЛОГ ДЕЙСТВИЙ ══ -->
+    <div id="tab-log" class="ll-tab">
+      <div class="sec-head">
+        <div class="sec-title">Лог действий</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadActionLog()">Обновить</button>
+      </div>
+      <div style="padding:0 16px 16px;overflow-x:auto;">
+        <table class="ab-table" id="log-table">
+          <thead>
+            <tr>
+              <th>Время</th><th>Пользователь</th><th>Роль</th><th>Действие</th><th>Объект</th><th>IP</th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody"></tbody>
+        </table>
+        <div class="empty" id="log-empty" style="display:none;">
+          <div class="empty-title">Лог пуст</div>
+        </div>
+      </div>
+    </div><!-- /log -->
+
+    <!-- ══ TAB: ЧЁРНЫЙ СПИСОК ══ -->
+    <div id="tab-blacklist" class="ll-tab">
+      <div class="sec-head">
+        <div class="sec-title">Чёрный список</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadBlacklist()">Обновить</button>
+      </div>
+      <div style="font-size:.65rem;color:var(--text-dim);padding:0 16px 12px;line-height:1.6;">Заблокированные клиенты не могут совершать брони и входить в профиль.</div>
+      <div id="bl-list" style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="empty" id="bl-empty" style="display:none;">
+        <div class="empty-title">Чёрный список пуст</div>
+        <div class="empty-sub">Заблокированных клиентов нет</div>
+      </div>
+    </div><!-- /blacklist -->
+
+    <!-- ══ TAB: РОЛИ И ДОСТУПЫ ══ -->
+    <div id="tab-roles" class="ll-tab">
+      <div class="sec-head">
+        <div class="sec-title">Роли и доступы</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadRoles()">Обновить</button>
+      </div>
+      <div style="font-size:.65rem;color:var(--text-dim);padding:0 16px 12px;line-height:1.6;">Управление ролями пользователей: developer, owner, admin, client.</div>
+      <div id="roles-grid" style="padding:0 16px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;"></div>
+      <div class="empty" id="roles-empty" style="display:none;">
+        <div class="empty-title">Нет пользователей</div>
+      </div>
+    </div><!-- /roles -->
+
     </div><!-- /app-content -->
   </div><!-- /page-content -->
 
@@ -791,6 +976,23 @@ select.inp option{background:var(--bg-2);}
     <div class="modal-foot">
       <button class="btn btn-ghost btn-md" onclick="closeModal('login-modal')" style="flex:1;">Отмена</button>
       <button class="btn btn-w btn-md" onclick="doLogin()" style="flex:2;">Войти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: ВЫХОД
+═══════════════════════════════════════ -->
+<div id="logout-modal" class="modal-ov" onclick="if(event.target===this)closeModal('logout-modal')">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div><div class="modal-title" id="logout-modal-name">Выход</div><div class="modal-sub">Вы уверены, что хотите выйти?</div></div>
+      <button class="modal-close" onclick="closeModal('logout-modal')">✕</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('logout-modal')" style="flex:1;">Нет</button>
+      <button class="btn btn-danger btn-md" onclick="logout();closeModal('logout-modal')" style="flex:1;">Да, выйти</button>
     </div>
   </div>
 </div>
@@ -1209,6 +1411,17 @@ async function deleteCard(key, idx) {
 ══════════════════════════════════════ */
 let isLoggedIn = false;
 
+function onNavAccountClick() {
+  if (isLoggedIn) {
+    const name = document.getElementById('side-name')?.textContent?.trim() || '';
+    const el = document.getElementById('logout-modal-name');
+    if (el && name) el.textContent = name;
+    openModal('logout-modal');
+  } else {
+    openLogin();
+  }
+}
+
 function openLogin() {
   if (isLoggedIn) { switchTab('profile', null); return; }
   // TG WebApp auto-match
@@ -1243,6 +1456,8 @@ async function doLogin() {
     const u = data.user || {};
     const initials = (u.name || 'АИ').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     setLoggedIn(initials, null);
+    const role = (u.roles && u.roles[0]) || u.role;
+    if (role) applyRoleNav(role);
     loadDashboard();
   } catch(e) {
     alert(e.message || 'Не удалось войти');
@@ -1583,6 +1798,299 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 renderChart();
 renderStrip();
 
+/* ══════════════════════════════════════
+   ROLE-BASED NAV VISIBILITY
+══════════════════════════════════════ */
+let currentUserRole = null;
+
+function applyRoleNav(role) {
+  currentUserRole = role;
+  const isOwnerOrDev = ['owner','developer'].includes(role);
+  const isDev = role === 'developer';
+  const isAny = ['owner','developer','admin'].includes(role);
+
+  if (isAny) {
+    document.getElementById('snav-lbl-manage').style.display = '';
+    document.querySelectorAll('.snav-role-any').forEach(el => el.style.display = '');
+  }
+  if (isOwnerOrDev) {
+    document.querySelectorAll('.snav-role-owner-dev').forEach(el => el.style.display = '');
+  }
+  if (isDev) {
+    document.querySelectorAll('.snav-role-dev').forEach(el => el.style.display = '');
+  }
+}
+
+/* ══════════════════════════════════════
+   ALL BOOKINGS TAB
+══════════════════════════════════════ */
+let _allBookings = [];
+
+const AB_STATUS_LABELS = {
+  draft:'Черновик', hold:'Холд', pending_payment:'Ожидает оплаты',
+  paid:'Оплачена', confirmed:'Подтверждена', completed:'Завершена', cancelled:'Отменена',
+};
+const AB_STATUS_CLASS = {
+  draft:'gray', hold:'info', pending_payment:'warn',
+  paid:'ok', confirmed:'ok', completed:'ok', cancelled:'err',
+};
+const AB_FMT = { single:'Почасовая', event:'Мероприятие' };
+
+async function loadAllBookings() {
+  if (!authToken) return;
+  const data = await apiFetch('/admin/bookings/all');
+  if (data && Array.isArray(data.data)) {
+    _allBookings = data.data;
+    // Populate hall filter
+    const halls = [...new Set(_allBookings.map(b => b.hall).filter(Boolean))];
+    const sel = document.getElementById('abf-hall');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Все залы</option>' + halls.map(h => `<option value="${h}">${h}</option>`).join('');
+    sel.value = cur;
+  }
+  renderAllBookings();
+}
+
+function renderAllBookings() {
+  const statusF = document.getElementById('abf-status')?.value || '';
+  const hallF   = document.getElementById('abf-hall')?.value || '';
+  const fromF   = document.getElementById('abf-from')?.value || '';
+  const toF     = document.getElementById('abf-to')?.value || '';
+
+  let rows = _allBookings.filter(b => {
+    if (statusF && b.status !== statusF) return false;
+    if (hallF && b.hall !== hallF) return false;
+    if (fromF && b.date < fromF) return false;
+    if (toF && b.date > toF) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('ab-tbody');
+  const empty = document.getElementById('ab-empty');
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map(b => {
+    const cls = AB_STATUS_CLASS[b.status] || 'gray';
+    const lbl = AB_STATUS_LABELS[b.status] || b.status;
+    const fmt = AB_FMT[b.format] || b.format;
+    return `<tr>
+      <td style="color:var(--text-dim);">#${b.id}</td>
+      <td style="font-weight:600;">${b.client_name || '—'}</td>
+      <td>${b.hall || '—'}</td>
+      <td>${b.date || '—'}</td>
+      <td style="white-space:nowrap;">${(b.time_start||'').slice(0,5)}–${(b.time_end||'').slice(0,5)}</td>
+      <td>${fmt}</td>
+      <td><span class="st-badge ${cls}">${lbl}</span></td>
+      <td style="white-space:nowrap;">${(b.total_amount||0).toLocaleString('ru')} ₽</td>
+      <td style="white-space:nowrap;">${(b.prepayment_amount||0).toLocaleString('ru')} ₽</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   HEATMAP TAB
+══════════════════════════════════════ */
+async function loadHeatmap() {
+  if (!authToken) return;
+  const hallVal = document.getElementById('hm-hall')?.value || '';
+  const q = hallVal ? `?hall=${encodeURIComponent(hallVal)}` : '';
+  const data = await apiFetch('/admin/heatmap' + q);
+  if (data && data.heatmap) {
+    // Populate hall select once
+    if (data.halls && Array.isArray(data.halls)) {
+      const sel = document.getElementById('hm-hall');
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">Все залы</option>' + data.halls.map(h => `<option value="${h}">${h}</option>`).join('');
+      if (cur) sel.value = cur;
+    }
+    renderHeatmap(data.heatmap, data.max || 1);
+  } else {
+    renderHeatmapMock();
+  }
+}
+
+function renderHeatmap(heatmap, maxVal) {
+  const tbody = document.getElementById('hm-tbody');
+  if (!tbody) return;
+  const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  tbody.innerHTML = '';
+  for (let h = 8; h <= 22; h++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${h}:00</td>` + DAYS.map((d, di) => {
+      const val = heatmap?.[h]?.[di] || 0;
+      const pct = maxVal > 0 ? val / maxVal : 0;
+      const alpha = Math.round(pct * 77) + 8;
+      const title = `${d} ${h}:00 — ${val} бр.`;
+      return `<td><div class="hm-cell" style="background:rgba(55,111,255,${(pct*.77+.08).toFixed(2)})" title="${title}"></div></td>`;
+    }).join('');
+    tbody.appendChild(tr);
+  }
+  // Also populate hall select
+  if (heatmap && document.getElementById('hm-hall').children.length === 1) {
+    // will be populated on first load
+  }
+}
+
+function renderHeatmapMock() {
+  const mock = {};
+  for (let h = 8; h <= 22; h++) {
+    mock[h] = {};
+    for (let d = 0; d < 7; d++) {
+      // Simulate: weekends busier, evenings busier
+      const dayFactor = d >= 5 ? 1.5 : 1;
+      const hourFactor = h >= 17 ? 1.4 : h >= 10 ? 0.8 : 0.3;
+      mock[h][d] = Math.round(Math.random() * 10 * dayFactor * hourFactor);
+    }
+  }
+  const allVals = Object.values(mock).flatMap(row => Object.values(row));
+  renderHeatmap(mock, Math.max(...allVals, 1));
+}
+
+/* ══════════════════════════════════════
+   ACTION LOG TAB
+══════════════════════════════════════ */
+async function loadActionLog() {
+  if (!authToken) return;
+  const data = await apiFetch('/admin/log?limit=100');
+  const tbody = document.getElementById('log-tbody');
+  const empty = document.getElementById('log-empty');
+  if (!data || !Array.isArray(data.data) || !data.data.length) {
+    if (tbody) tbody.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  tbody.innerHTML = data.data.map(entry => {
+    const dt = new Date(entry.created_at);
+    const time = dt.toLocaleString('ru', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<tr>
+      <td style="white-space:nowrap;color:var(--text-dim);">${time}</td>
+      <td>${entry.user_name || '—'}</td>
+      <td><span class="st-badge info">${entry.role || '—'}</span></td>
+      <td>${entry.action || '—'}</td>
+      <td style="color:var(--text-muted);">${entry.subject || '—'}</td>
+      <td style="font-family:monospace;font-size:.62rem;color:var(--text-dim);">${entry.ip || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   BLACKLIST TAB
+══════════════════════════════════════ */
+async function loadBlacklist() {
+  if (!authToken) return;
+  const data = await apiFetch('/admin/clients?blacklisted=1');
+  const list  = document.getElementById('bl-list');
+  const empty = document.getElementById('bl-empty');
+  const clients = data?.data || [];
+  if (!clients.length) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = clients.map(c => `
+    <div class="bl-card" id="bl-card-${c.id}">
+      <div class="avatar" style="width:38px;height:38px;flex-shrink:0;">${(c.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+      <div class="bl-info">
+        <div class="bl-name">${c.name||'—'}</div>
+        <div class="bl-reason">${c.blacklist_reason || 'Причина не указана'}</div>
+        <div style="font-size:.6rem;color:var(--text-dim);margin-top:2px;">${c.phone||''} ${c.email ? '· '+c.email : ''}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="unblockClient(${c.id})">Разблокировать</button>
+    </div>
+  `).join('');
+}
+
+async function unblockClient(id) {
+  if (!confirm('Разблокировать клиента?')) return;
+  const res = await apiFetch(`/admin/clients/${id}`, { method:'PUT', body: JSON.stringify({ is_blacklisted: false }) });
+  if (res && res.ok !== false) {
+    const card = document.getElementById('bl-card-' + id);
+    if (card) card.remove();
+    if (!document.getElementById('bl-list').children.length) {
+      document.getElementById('bl-empty').style.display = '';
+    }
+  } else {
+    alert('Ошибка при разблокировке');
+  }
+}
+
+/* ══════════════════════════════════════
+   ROLES TAB
+══════════════════════════════════════ */
+const ROLE_OPTIONS = ['developer','owner','admin','client'];
+
+async function loadRoles() {
+  if (!authToken) return;
+  const data = await apiFetch('/admin/users');
+  const grid  = document.getElementById('roles-grid');
+  const empty = document.getElementById('roles-empty');
+  const users = data?.data || [];
+  if (!users.length) {
+    grid.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = users.map(u => {
+    const initials = (u.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const roleOpts = ROLE_OPTIONS.map(r => `<option value="${r}"${r===u.role?' selected':''}>${r}</option>`).join('');
+    return `<div class="role-card">
+      <div class="role-card-head">
+        <div class="avatar" style="width:38px;height:38px;flex-shrink:0;">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="role-card-name">${u.name||'—'}</div>
+          <div class="role-card-email">${u.email||''}</div>
+        </div>
+        <select class="role-select" onchange="setUserRole(${u.id},this.value)">${roleOpts}</select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <label class="toggle-sw" style="flex-shrink:0;"><input type="checkbox" ${u.is_blacklisted?'checked':''} onchange="toggleUserBlacklist(${u.id},this.checked)"><span class="toggle-track"></span></label>
+          <span style="font-size:.68rem;color:var(--text-muted);">В чёрном списке</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <label class="toggle-sw" style="flex-shrink:0;"><input type="checkbox" ${u.is_active!==false?'checked':''} onchange="toggleUserActive(${u.id},this.checked)"><span class="toggle-track"></span></label>
+          <span style="font-size:.68rem;color:var(--text-muted);">Активен</span>
+        </label>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function setUserRole(userId, role) {
+  await apiFetch(`/admin/users/${userId}/role`, { method:'PUT', body: JSON.stringify({ role }) });
+}
+
+async function toggleUserBlacklist(userId, val) {
+  await apiFetch(`/admin/users/${userId}`, { method:'PUT', body: JSON.stringify({ is_blacklisted: val }) });
+}
+
+async function toggleUserActive(userId, val) {
+  await apiFetch(`/admin/users/${userId}`, { method:'PUT', body: JSON.stringify({ is_active: val }) });
+}
+
+/* ══════════════════════════════════════
+   switchTab override — trigger load on first open
+══════════════════════════════════════ */
+const _switchTabOrig = switchTab;
+const _tabLoaded = {};
+function switchTab(id, triggerEl) {
+  _switchTabOrig(id, triggerEl);
+  if (_tabLoaded[id]) return;
+  _tabLoaded[id] = true;
+  if (id === 'all-bookings') loadAllBookings();
+  if (id === 'heatmap') { renderHeatmapMock(); loadHeatmap(); }
+  if (id === 'log') loadActionLog();
+  if (id === 'blacklist') loadBlacklist();
+  if (id === 'roles') loadRoles();
+}
+
 // Auto-restore session from token
 (async () => {
   if (!authToken) return;
@@ -1591,6 +2099,8 @@ renderStrip();
     isLoggedIn = true;
     const initials = (me.name || 'АИ').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     setLoggedIn(initials, null);
+    const meRole = (me.roles && me.roles[0]) || me.role;
+    if (meRole) applyRoleNav(meRole);
     loadDashboard();
   } else {
     authToken = null;

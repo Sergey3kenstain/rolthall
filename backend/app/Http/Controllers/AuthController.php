@@ -66,9 +66,11 @@ class AuthController extends Controller
             'ok'    => true,
             'token' => $token,
             'user'  => [
+                'id'    => $user->id,
                 'name'  => $user->name,
                 'email' => $user->email,
                 'role'  => $user->getRoleNames()->first(),
+                'roles' => $user->getRoleNames()->values()->all(),
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
@@ -91,9 +93,12 @@ class AuthController extends Controller
     {
         $user = $request->user();
         return response()->json([
-            'ok'   => true,
-            'name' => $user->name,
-            'role' => $user->getRoleNames()->first(),
+            'ok'    => true,
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'role'  => $user->getRoleNames()->first(),
+            'roles' => $user->getRoleNames()->values()->all(),
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

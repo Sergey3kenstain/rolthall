@@ -32,6 +32,15 @@ class ProfileController extends Controller
             ], 404);
         }
 
+        // Проверка чёрного списка
+        $client = $user->client;
+        if ($client && $client->is_blacklisted) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Доступ ограничен. Обратитесь к администратору.',
+            ], 403);
+        }
+
         // Простой токен — хэш id+phone+email, достаточно для MVP
         $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
 
