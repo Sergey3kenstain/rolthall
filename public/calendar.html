@@ -1186,12 +1186,27 @@ function initWgClickHandler() {
     selectedDateIdx = days.findIndex((_, idx) => dateKeyFor(days, idx) === dateKey);
     if (selectedDateIdx < 0) return;
 
-    // 1-тап: выбор 1 часа
     if (isBookedOn(dateKey, hour)) return;
     const s = selections[dateKey];
-    if (s && s.start === hour && s.end === hour) {
+
+    if (!s) {
+      // Нет выбора — выбираем 1 час
+      selections[dateKey] = { start: hour, end: hour };
+    } else if (s.start === hour && s.end === hour) {
+      // Тот же 1 час — снимаем
       delete selections[dateKey];
+    } else if (hour < s.start) {
+      // Расширяем влево — проверяем нет ли занятых часов
+      let blocked = false;
+      for (let h = hour; h < s.start; h++) { if (isBookedOn(dateKey, h)) { blocked = true; break; } }
+      selections[dateKey] = blocked ? { start: hour, end: hour } : { start: hour, end: s.end };
+    } else if (hour > s.end) {
+      // Расширяем вправо
+      let blocked = false;
+      for (let h = s.end + 1; h <= hour; h++) { if (isBookedOn(dateKey, h)) { blocked = true; break; } }
+      selections[dateKey] = blocked ? { start: hour, end: hour } : { start: s.start, end: hour };
     } else {
+      // Тап внутри или на край диапазона — новый выбор
       selections[dateKey] = { start: hour, end: hour };
     }
     renderSlots();
@@ -1494,11 +1509,20 @@ function onCellClick(hour) {
   const key = curDateKey();
   const s   = selections[key];
 
-  // 1 тап = выбрать этот 1 час. Повторный тап на тот же час = снять выбор.
-  if (s && s.start === hour && s.end === hour) {
-    delete selections[key]; // снимаем выбор
+  if (!s) {
+    selections[key] = { start: hour, end: hour };
+  } else if (s.start === hour && s.end === hour) {
+    delete selections[key];
+  } else if (hour < s.start) {
+    let blocked = false;
+    for (let h = hour; h < s.start; h++) { if (isBooked(h)) { blocked = true; break; } }
+    selections[key] = blocked ? { start: hour, end: hour } : { start: hour, end: s.end };
+  } else if (hour > s.end) {
+    let blocked = false;
+    for (let h = s.end + 1; h <= hour; h++) { if (isBooked(h)) { blocked = true; break; } }
+    selections[key] = blocked ? { start: hour, end: hour } : { start: s.start, end: hour };
   } else {
-    selections[key] = { start: hour, end: hour }; // 1 час всегда
+    selections[key] = { start: hour, end: hour };
   }
   renderSlots();
   renderPricing();
