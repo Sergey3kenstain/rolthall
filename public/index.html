@@ -260,6 +260,8 @@ section { padding: 120px 48px; }
   padding:5px 12px; display:flex; align-items:center; gap:5px;
 }
 .badge-success { background:rgba(40,160,80,.2); border:1px solid rgba(40,200,90,.3); color:#6fda9f; }
+.badge-busy    { background:rgba(255,80,80,.15); border:1px solid rgba(255,80,80,.3); color:#f87171; }
+.dot-busy      { background:#f87171; box-shadow: 0 0 6px #f87171; }
 .status-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
 .dot-success { background:#50d890; box-shadow:0 0 6px #50d890; }
 .hall-photo-info {
@@ -671,7 +673,7 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
           <div class="cdot" onclick="carGo(event,'a',2)"></div>
         </div>
         <div class="hall-photo-badges">
-          <span class="badge badge-success"><span class="status-dot dot-success"></span> Свободен</span>
+          <span class="badge badge-success" id="hallAvailBadge"><span class="status-dot dot-success" id="hallAvailDot"></span> <span id="hallAvailText">…</span></span>
         </div>
         <div class="hall-photo-info">
           <div class="hall-area">346 м²</div>
@@ -1080,6 +1082,38 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') lbPrev();
   if (e.key === 'ArrowRight') lbNext();
 });
+
+// ── Реальная загруженность зала ──────────────────────────────────────
+(async function checkHallAvail() {
+  const badge = document.getElementById('hallAvailBadge');
+  const dot   = document.getElementById('hallAvailDot');
+  const text  = document.getElementById('hallAvailText');
+  if (!badge) return;
+
+  const pad = n => String(n).padStart(2, '0');
+  const now  = new Date();
+  const date = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const hour = now.getHours();
+
+  try {
+    const res  = await fetch(`/api/halls/1/availability?date=${date}`);
+    const data = await res.json();
+    const slot = (data.slots || []).find(s => s.hour === hour);
+    const busy = slot ? slot.booked : false;
+
+    if (busy) {
+      badge.className = 'badge badge-busy';
+      dot.className   = 'status-dot dot-busy';
+      text.textContent = 'Занято';
+    } else {
+      badge.className = 'badge badge-success';
+      dot.className   = 'status-dot dot-success';
+      text.textContent = 'Свободен';
+    }
+  } catch(e) {
+    text.textContent = 'Свободен'; // fallback
+  }
+})();
 </script>
 </body>
 </html>
