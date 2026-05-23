@@ -427,8 +427,10 @@ function initEmailMask(el) {
 }
 
 async function doLogin() {
-  const phone = document.getElementById('lPhone').value.trim();
-  const email = document.getElementById('lEmail').value.trim();
+  const rawPhone = document.getElementById('lPhone').value.trim();
+  const digits   = rawPhone.replace(/\D/g, '');
+  const phone    = digits.length === 11 ? '+' + digits : rawPhone;
+  const email    = document.getElementById('lEmail').value.trim();
   const err   = document.getElementById('loginError');
   const btn   = document.getElementById('loginBtn');
 
