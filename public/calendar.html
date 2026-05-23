@@ -1190,24 +1190,19 @@ function initWgClickHandler() {
     const s = selections[dateKey];
 
     if (!s) {
-      // Нет выбора — выбираем 1 час
-      selections[dateKey] = { start: hour, end: hour };
+      selections[dateKey] = { start: hour, end: hour };                    // нет выбора → 1 час
     } else if (s.start === hour && s.end === hour) {
-      // Тот же 1 час — снимаем
-      delete selections[dateKey];
+      delete selections[dateKey];                                            // тот же 1 час → снять
+    } else if (hour === s.start && s.end > s.start) {
+      selections[dateKey] = { start: s.start + 1, end: s.end };            // убрать первый
+    } else if (hour === s.end && s.start < s.end) {
+      selections[dateKey] = { start: s.start, end: s.end - 1 };            // убрать последний
     } else if (hour < s.start) {
-      // Расширяем влево — проверяем нет ли занятых часов
-      let blocked = false;
-      for (let h = hour; h < s.start; h++) { if (isBookedOn(dateKey, h)) { blocked = true; break; } }
-      selections[dateKey] = blocked ? { start: hour, end: hour } : { start: hour, end: s.end };
+      selections[dateKey] = { start: hour, end: s.end };                    // добавить перед началом
     } else if (hour > s.end) {
-      // Расширяем вправо
-      let blocked = false;
-      for (let h = s.end + 1; h <= hour; h++) { if (isBookedOn(dateKey, h)) { blocked = true; break; } }
-      selections[dateKey] = blocked ? { start: hour, end: hour } : { start: s.start, end: hour };
+      selections[dateKey] = { start: s.start, end: hour };                  // добавить после конца
     } else {
-      // Тап внутри или на край диапазона — новый выбор
-      selections[dateKey] = { start: hour, end: hour };
+      selections[dateKey] = { start: hour, end: hour };                    // внутри → начать новый
     }
     renderSlots();
     renderPricing();
@@ -1513,14 +1508,14 @@ function onCellClick(hour) {
     selections[key] = { start: hour, end: hour };
   } else if (s.start === hour && s.end === hour) {
     delete selections[key];
+  } else if (hour === s.start && s.end > s.start) {
+    selections[key] = { start: s.start + 1, end: s.end };
+  } else if (hour === s.end && s.start < s.end) {
+    selections[key] = { start: s.start, end: s.end - 1 };
   } else if (hour < s.start) {
-    let blocked = false;
-    for (let h = hour; h < s.start; h++) { if (isBooked(h)) { blocked = true; break; } }
-    selections[key] = blocked ? { start: hour, end: hour } : { start: hour, end: s.end };
+    selections[key] = { start: hour, end: s.end };
   } else if (hour > s.end) {
-    let blocked = false;
-    for (let h = s.end + 1; h <= hour; h++) { if (isBooked(h)) { blocked = true; break; } }
-    selections[key] = blocked ? { start: hour, end: hour } : { start: s.start, end: hour };
+    selections[key] = { start: s.start, end: hour };
   } else {
     selections[key] = { start: hour, end: hour };
   }
