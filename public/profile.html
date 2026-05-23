@@ -384,6 +384,48 @@ function fmtMoney(n) { return Number(n).toLocaleString('ru') + ' ₽'; }
 
 const TOKEN_KEY = 'rh_profile_token';
 
+// ── Phone mask: +7 (XXX) XXX-XX-XX ──
+function initPhoneMask(el) {
+  function fmt(raw) {
+    let d = raw.replace(/\D/g, '');
+    if (d.startsWith('8')) d = '7' + d.slice(1);
+    if (!d.startsWith('7')) d = '7' + d;
+    d = d.slice(0, 11);
+    let s = '+7';
+    if (d.length > 1) s += ' (' + d.slice(1, 4);
+    if (d.length >= 4) s += ')';
+    if (d.length > 4) s += ' ' + d.slice(4, 7);
+    if (d.length > 7) s += '-' + d.slice(7, 9);
+    if (d.length > 9) s += '-' + d.slice(9, 11);
+    return s;
+  }
+  el.addEventListener('focus', () => { if (!el.value) el.value = '+7'; });
+  el.addEventListener('blur',  () => { if (el.value === '+7') el.value = ''; });
+  el.addEventListener('input', function() {
+    const pos = this.selectionStart;
+    const prev = this.value;
+    this.value = fmt(this.value);
+    // сохраняем позицию курсора
+    const diff = this.value.length - prev.length;
+    this.setSelectionRange(pos + diff, pos + diff);
+  });
+  el.addEventListener('keydown', function(e) {
+    if (e.key === 'Backspace' && (this.value === '+7' || this.value === '+7 (')) {
+      e.preventDefault();
+      this.value = '';
+    }
+  });
+}
+
+// ── Email validation visual ──
+function initEmailMask(el) {
+  el.addEventListener('blur', () => {
+    const ok = !el.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value);
+    el.style.borderColor = ok ? '' : 'rgba(255,100,100,.6)';
+  });
+  el.addEventListener('focus', () => { el.style.borderColor = ''; });
+}
+
 async function doLogin() {
   const phone = document.getElementById('lPhone').value.trim();
   const email = document.getElementById('lEmail').value.trim();
@@ -567,9 +609,10 @@ if (saved) showBookingsView('', saved);
 
 // Enter в полях входа
 document.addEventListener('DOMContentLoaded', () => {
-  ['lPhone','lEmail'].forEach(id =>
-    document.getElementById(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
-  );
+  const phoneEl = document.getElementById('lPhone');
+  const emailEl = document.getElementById('lEmail');
+  if (phoneEl) { initPhoneMask(phoneEl); phoneEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); }); }
+  if (emailEl) { initEmailMask(emailEl); emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); }); }
   // Подставляем телефон из формы бронирования если был
   const form = sessionStorage.getItem('rh_booking_form');
   if (form && !saved) {
