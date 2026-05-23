@@ -10,7 +10,8 @@ class Client extends Model
 {
     protected $fillable = [
         'user_id', 'name', 'phone', 'email', 'telegram_username',
-        'is_blacklisted', 'blacklist_reason', 'bookings_count', 'total_paid',
+        'avatar_url', 'is_blacklisted', 'blacklist_reason',
+        'admin_note', 'bookings_count', 'total_paid',
     ];
 
     protected $casts = [

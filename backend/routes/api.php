@@ -32,6 +32,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/analytics',                [AdminController::class, 'analytics']);
     Route::get('/clients',                  [AdminController::class, 'clients']);
     Route::get('/clients/csv',              [AdminController::class, 'clientsCsv']);
+    Route::get('/clients/{id}',             [AdminController::class, 'client']);
+    Route::put('/clients/{id}',             [AdminController::class, 'updateClient']);
+    Route::delete('/clients/{id}',          [AdminController::class, 'deleteClient']);
+    Route::post('/clients/{id}/note',       [AdminController::class, 'updateClientNote']);
     Route::get('/debug/log',                [AdminController::class, 'debugLog']);
 });
 

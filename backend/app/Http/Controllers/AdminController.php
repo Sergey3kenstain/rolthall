@@ -183,22 +183,114 @@ class AdminController extends Controller
             return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
         }
 
-        $clients = Client::with('user')
-            ->withCount('bookings')
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn($c) => [
-                'id'          => $c->id,
-                'name'        => $c->name,
-                'phone'       => $c->phone,
-                'email'       => $c->email,
-                'telegram'    => $c->telegram_username,
-                'bookings'    => $c->bookings_count,
-                'total_paid'  => $c->total_paid,
-                'created_at'  => $c->created_at->format('Y-m-d'),
-            ]);
+        $search = $request->query('q');
+
+        $query = Client::with('user')->withCount('bookings')->orderByDesc('created_at');
+
+        if ($search) {
+            $q = '%' . $search . '%';
+            $query->where(function ($w) use ($q) {
+                $w->where('name', 'like', $q)
+                  ->orWhere('phone', 'like', $q)
+                  ->orWhere('telegram_username', 'like', $q)
+                  ->orWhere('email', 'like', $q);
+            });
+        }
+
+        $clients = $query->get()->map(function ($c) {
+            $lastBooking = $c->bookings()->orderByDesc('date')->value('date');
+            return [
+                'id'              => $c->id,
+                'name'            => $c->name,
+                'phone'           => $c->phone,
+                'email'           => $c->email,
+                'telegram'        => $c->telegram_username,
+                'avatar_url'      => $c->avatar_url,
+                'bookings'        => $c->bookings_count,
+                'total_paid'      => $c->total_paid,
+                'last_booking'    => $lastBooking,
+                'is_blacklisted'  => $c->is_blacklisted,
+                'created_at'      => $c->created_at->format('Y-m-d'),
+            ];
+        });
 
         return response()->json(['ok' => true, 'clients' => $clients], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function client(Request $request, int $id): JsonResponse
+    {
+        if (!$this->isOwner($request)) {
+            return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
+        }
+
+        $c = Client::with(['user', 'bookings.hall'])->findOrFail($id);
+
+        $bookings = $c->bookings->sortByDesc('date')->map(fn($b) => [
+            'id'          => $b->id,
+            'hall'        => $b->hall?->name ?? 'Зал',
+            'date'        => $b->date,
+            'time_start'  => substr($b->time_start, 0, 5),
+            'time_end'    => substr($b->time_end,   0, 5),
+            'format'      => $b->format,
+            'status'      => $b->status,
+            'total'       => $b->total_amount,
+            'prepayment'  => $b->prepayment_amount,
+        ])->values();
+
+        return response()->json([
+            'ok'     => true,
+            'client' => [
+                'id'             => $c->id,
+                'name'           => $c->name,
+                'phone'          => $c->phone,
+                'email'          => $c->email,
+                'telegram'       => $c->telegram_username,
+                'avatar_url'     => $c->avatar_url,
+                'admin_note'     => $c->admin_note,
+                'is_blacklisted' => $c->is_blacklisted,
+                'bookings_count' => $c->bookings_count,
+                'total_paid'     => $c->total_paid,
+                'created_at'     => $c->created_at->format('Y-m-d'),
+            ],
+            'bookings' => $bookings,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function updateClient(Request $request, int $id): JsonResponse
+    {
+        if (!$this->isOwner($request)) {
+            return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
+        }
+
+        $c = Client::findOrFail($id);
+        $c->fill($request->only(['name', 'phone', 'email', 'telegram_username', 'is_blacklisted', 'blacklist_reason']));
+        $c->save();
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function updateClientNote(Request $request, int $id): JsonResponse
+    {
+        if (!$this->isOwner($request)) {
+            return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
+        }
+
+        $c = Client::findOrFail($id);
+        $c->admin_note = $request->input('note', '');
+        $c->save();
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function deleteClient(Request $request, int $id): JsonResponse
+    {
+        if (!$this->isOwner($request)) {
+            return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
+        }
+
+        Client::findOrFail($id)->delete();
+
+        return response()->json(['ok' => true]);
     }
 
     public function debugFrontendReceive(Request $request): \Illuminate\Http\Response
@@ -236,22 +328,27 @@ class AdminController extends Controller
             abort(403);
         }
 
-        $clients = Client::with('user')->withCount('bookings')->orderByDesc('created_at')->get();
+        $clients = Client::withCount('bookings')->orderByDesc('created_at')->get();
 
-        $rows = ["Имя,Телефон,Email,Telegram,Брони,Оплачено,Дата регистрации"];
+        $esc = fn($v) => '"' . str_replace('"', '""', (string)($v ?? '')) . '"';
+
+        $rows = ["ID,Аватар,Имя,Телефон,Email,Telegram,Брони,Оплачено (руб),Последняя бронь"];
         foreach ($clients as $c) {
+            $lastBooking = $c->bookings()->orderByDesc('date')->value('date') ?? '';
             $rows[] = implode(',', [
-                '"' . str_replace('"', '""', $c->name)  . '"',
-                $c->phone,
-                $c->email,
-                $c->telegram_username ?? '',
+                $c->id,
+                $esc($c->avatar_url),
+                $esc($c->name),
+                $esc($c->phone),
+                $esc($c->email),
+                $esc($c->telegram_username),
                 $c->bookings_count,
                 $c->total_paid,
-                $c->created_at->format('Y-m-d'),
+                $lastBooking,
             ]);
         }
 
-        $csv = "\xEF\xBB\xBF" . implode("\n", $rows); // UTF-8 BOM для Excel
+        $csv = "\xEF\xBB\xBF" . implode("\n", $rows);
 
         return response($csv, 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',

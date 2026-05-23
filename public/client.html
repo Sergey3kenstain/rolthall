@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1e1c24">
+<title>Карточка клиента — ROLTHALL</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1e1c24;--bg-2:#26232e;--bg-3:#2E2B35;
+  --border:rgba(255,255,255,0.09);--text:#D9D9D9;
+  --text-muted:rgba(217,217,217,.55);--text-dim:rgba(217,217,217,.35);
+  --accent:#376FFF;--success:#2ECC71;--success-bg:rgba(46,204,113,.12);
+  --warning:#F39C12;--warning-bg:rgba(243,156,18,.12);
+  --danger:#E74C3C;--danger-bg:rgba(231,76,60,.12);
+  --font:'Unbounded',sans-serif;--r:8px;--r-lg:12px;--r-xl:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;min-height:100vh;}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:rgba(217,217,217,.2);border-radius:2px;}
+
+/* ── TOPBAR ── */
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:0 24px;
+  height:60px;background:var(--bg-2);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-back{
+  display:flex;align-items:center;gap:7px;color:var(--text-muted);font-size:.75rem;font-weight:600;
+  cursor:pointer;background:none;border:none;padding:7px 10px 7px 6px;border-radius:var(--r);
+  transition:color .15s,background .15s;
+}
+.topbar-back:hover{color:var(--text);background:rgba(255,255,255,.05);}
+.topbar-back svg{width:16px;height:16px;}
+.topbar-title{font-size:.9rem;font-weight:700;letter-spacing:-.01em;}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;}
+
+/* ── LAYOUT ── */
+.page{max-width:1000px;margin:0 auto;padding:28px 24px 60px;}
+.page-grid{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start;}
+@media(max-width:768px){.page-grid{grid-template-columns:1fr;}.page{padding:16px 16px 60px;}.topbar{padding:0 16px;}}
+
+/* ── CARD ── */
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-xl);}
+.card-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:.82rem;font-weight:700;}
+.card-body{padding:20px;}
+
+/* ── AVATAR ── */
+.client-av-lg{
+  width:72px;height:72px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#376FFF,#9B59B6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;font-weight:700;color:#fff;overflow:hidden;margin:0 auto 16px;
+}
+.client-av-lg img{width:100%;height:100%;object-fit:cover;}
+
+/* ── FIELDS ── */
+.field-row{margin-bottom:14px;}
+.field-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:5px;}
+.field-val{font-size:.82rem;font-weight:600;color:var(--text);}
+.field-val a{color:var(--accent);}
+.field-input{
+  width:100%;font-family:var(--font);font-size:.8rem;color:var(--text);
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:var(--r);padding:9px 12px;outline:none;transition:border-color .2s;
+}
+.field-input:focus{border-color:rgba(255,255,255,.35);}
+.field-input::placeholder{color:var(--text-dim);}
+textarea.field-input{resize:vertical;min-height:80px;line-height:1.6;}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:100px;letter-spacing:.04em;}
+.badge-success{background:var(--success-bg);color:var(--success);}
+.badge-warning{background:var(--warning-bg);color:var(--warning);}
+.badge-danger {background:var(--danger-bg);color:var(--danger);}
+.badge-accent {background:rgba(55,111,255,.15);color:#7ea8ff;}
+.badge-gray   {background:rgba(255,255,255,.07);color:var(--text-muted);}
+
+/* ── BTNS ── */
+.btn{font-family:var(--font);font-size:.75rem;font-weight:600;padding:9px 18px;border-radius:var(--r);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;letter-spacing:.04em;}
+.btn-primary{background:#fff;color:#1e1c24;}.btn-primary:hover{opacity:.88;}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{background:rgba(255,255,255,.1);}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(231,76,60,.2);}.btn-danger:hover{background:rgba(231,76,60,.2);}
+.btn-sm{padding:6px 14px;font-size:.7rem;}
+.btn svg{width:13px;height:13px;}
+
+/* ── STATS ROW ── */
+.stats-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.stat-pill{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;flex:1;min-width:100px;}
+.stat-pill-val{font-size:1.1rem;font-weight:800;letter-spacing:-.03em;}
+.stat-pill-label{font-size:.62rem;color:var(--text-dim);margin-top:3px;}
+
+/* ── BOOKING CARDS ── */
+.booking-cards-grid{display:flex;flex-direction:column;gap:10px;}
+.booking-card{
+  border-radius:16px;overflow:hidden;
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  min-height:120px;display:flex;flex-direction:column;justify-content:space-between;
+  padding:14px 14px 12px;color:#fff;
+}
+.booking-card.st-ok    {background-image:url('/card/succes.svg');}
+.booking-card.st-pend  {background-image:url('/card/time.svg');}
+.booking-card.st-hold  {background-image:url('/card/hold.svg');}
+.booking-card.st-cancel{background-image:url('/card/cancel.svg');opacity:.75;}
+.bc-top{display:flex;flex-direction:column;gap:2px;}
+.bc-hall  {font-size:.75rem;font-weight:700;opacity:.95;}
+.bc-time  {font-size:.65rem;opacity:.7;}
+.bc-amount{font-size:1rem;font-weight:800;letter-spacing:-.03em;margin-top:5px;}
+.bc-bottom{display:flex;align-items:flex-end;justify-content:space-between;}
+.bc-date  {font-size:.65rem;font-weight:600;opacity:.8;}
+.bc-fmt   {font-size:.62rem;opacity:.55;}
+
+/* ── NOTE ── */
+.note-section{margin-top:8px;}
+.note-badge{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);background:rgba(255,255,255,.06);border-radius:4px;padding:2px 7px;display:inline-block;margin-bottom:8px;}
+
+/* ── CONFIRM OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(10,9,14,.85);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:24px;}
+.overlay.open{display:flex;}
+.overlay-box{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-xl);padding:28px;max-width:380px;width:100%;}
+.overlay-title{font-size:.9rem;font-weight:700;margin-bottom:10px;}
+.overlay-text{font-size:.78rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px;}
+.overlay-btns{display:flex;gap:10px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="topbar-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Клиенты
+  </button>
+  <div class="topbar-title" id="pageTitle">Загрузка…</div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" id="editBtn" onclick="toggleEdit()">Редактировать</button>
+    <button class="btn btn-danger btn-sm" onclick="openDeleteConfirm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Удалить
+    </button>
+  </div>
+</div>
+
+<div class="page">
+  <div id="loadingState" style="text-align:center;padding:80px;color:var(--text-dim);font-size:.8rem;">Загрузка…</div>
+  <div id="mainContent" style="display:none;">
+
+    <div class="page-grid">
+
+      <!-- LEFT: client info -->
+      <div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-body" style="text-align:center;padding-bottom:10px;">
+            <div class="client-av-lg" id="avEl"></div>
+            <div style="font-size:.95rem;font-weight:700;margin-bottom:6px;" id="clientNameDisplay"></div>
+            <div id="clientBadges" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;"></div>
+          </div>
+          <!-- VIEW mode -->
+          <div id="viewMode" class="card-body" style="padding-top:0;">
+            <div class="field-row"><div class="field-label">Телефон</div><div class="field-val" id="vPhone">—</div></div>
+            <div class="field-row"><div class="field-label">Email</div><div class="field-val" id="vEmail">—</div></div>
+            <div class="field-row"><div class="field-label">Telegram</div><div class="field-val" id="vTelegram">—</div></div>
+            <div class="field-row"><div class="field-label">Клиент с</div><div class="field-val" id="vCreated">—</div></div>
+          </div>
+          <!-- EDIT mode -->
+          <div id="editMode" class="card-body" style="padding-top:0;display:none;">
+            <div class="field-row"><div class="field-label">Имя</div><input class="field-input" id="eName" placeholder="Полное имя"></div>
+            <div class="field-row"><div class="field-label">Телефон</div><input class="field-input" id="ePhone" placeholder="+7 (___) ___-__-__" type="tel"></div>
+            <div class="field-row"><div class="field-label">Email</div><input class="field-input" id="eEmail" placeholder="email@example.com" type="email"></div>
+            <div class="field-row"><div class="field-label">Telegram</div><input class="field-input" id="eTelegram" placeholder="@username"></div>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <button class="btn btn-primary btn-sm" onclick="saveEdit()">Сохранить</button>
+              <button class="btn btn-ghost btn-sm" onclick="cancelEdit()">Отмена</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin note -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Заметка</div>
+            <span class="note-badge">Только для admin</span>
+          </div>
+          <div class="card-body">
+            <textarea class="field-input" id="adminNote" placeholder="Внутренние заметки о клиенте…" rows="4" oninput="scheduleNoteSave()"></textarea>
+            <div id="noteSaveStatus" style="font-size:.65rem;color:var(--text-dim);margin-top:6px;min-height:14px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: stats + bookings -->
+      <div>
+        <div class="stats-row" id="statsRow"></div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">Брони</div></div>
+          <div class="card-body">
+            <div class="booking-cards-grid" id="bookingsList">
+              <div style="text-align:center;padding:30px;color:var(--text-dim);font-size:.78rem;">Нет броней</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="overlay" id="deleteOverlay" onclick="if(event.target===this)closeDeleteConfirm()">
+  <div class="overlay-box">
+    <div class="overlay-title">Удалить клиента?</div>
+    <div class="overlay-text" id="deleteText">Это действие нельзя отменить. Все брони клиента также будут удалены.</div>
+    <div class="overlay-btns">
+      <button class="btn btn-danger" id="deleteConfirmBtn" onclick="confirmDelete()">Да, удалить</button>
+      <button class="btn btn-ghost" onclick="closeDeleteConfirm()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOKEN = localStorage.getItem('rh_token');
+const id    = new URLSearchParams(location.search).get('id');
+let clientData = null;
+let editMode = false;
+
+function apiFetch(url, opts={}) {
+  return fetch(url, {
+    ...opts,
+    headers: { Authorization:'Bearer '+TOKEN, Accept:'application/json', 'Content-Type':'application/json', ...(opts.headers||{}) }
+  }).then(r => r.json());
+}
+
+const STATUS_MAP = {
+  paid:'st-ok', confirmed:'st-ok', completed:'st-ok',
+  hold:'st-hold', pending_payment:'st-pend', draft:'st-pend', cancelled:'st-cancel'
+};
+const STATUS_LABEL = {
+  paid:'Оплачено', confirmed:'Подтверждено', completed:'Завершено',
+  hold:'Резерв', pending_payment:'Ожидает', draft:'Черновик', cancelled:'Отменено'
+};
+const MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+function fmtDate(s){ const d=new Date(s+'T00:00:00'); return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
+function fmtMoney(n){ return Number(n).toLocaleString('ru')+' ₽'; }
+
+async function load() {
+  if (!id) { document.getElementById('loadingState').textContent = 'Клиент не указан'; return; }
+  const data = await apiFetch('/api/admin/clients/'+id);
+  if (!data.ok) { document.getElementById('loadingState').textContent = 'Ошибка загрузки'; return; }
+
+  clientData = data.client;
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('mainContent').style.display  = 'block';
+
+  render(clientData, data.bookings);
+}
+
+function render(c, bookings) {
+  document.title = (c.name||'Клиент') + ' — ROLTHALL';
+  document.getElementById('pageTitle').textContent = c.name || '—';
+
+  // Avatar
+  const initials = (c.name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const avEl = document.getElementById('avEl');
+  avEl.innerHTML = c.avatar_url ? `<img src="${c.avatar_url}" alt="">` : initials;
+
+  document.getElementById('clientNameDisplay').textContent = c.name || '—';
+
+  // Badges
+  const badges = [];
+  if (c.is_blacklisted) badges.push(`<span class="badge badge-danger">Заблокирован</span>`);
+  badges.push(`<span class="badge badge-gray">${c.bookings_count} броней</span>`);
+  document.getElementById('clientBadges').innerHTML = badges.join('');
+
+  // View fields
+  document.getElementById('vPhone').innerHTML    = c.phone    ? `<a href="tel:${c.phone}">${c.phone}</a>` : '—';
+  document.getElementById('vEmail').innerHTML    = c.email    ? `<a href="mailto:${c.email}">${c.email}</a>` : '—';
+  document.getElementById('vTelegram').innerHTML = c.telegram ? `<a href="https://t.me/${c.telegram.replace('@','')}" target="_blank">@${c.telegram.replace('@','')}</a>` : '—';
+  document.getElementById('vCreated').textContent = c.created_at ? fmtDate(c.created_at) : '—';
+
+  // Admin note
+  document.getElementById('adminNote').value = c.admin_note || '';
+
+  // Stats
+  const totalPaid = bookings.filter(b=>['paid','confirmed','completed'].includes(b.status)).reduce((s,b)=>s+Number(b.prepayment||0),0);
+  const lastB = bookings.filter(b=>b.status!=='cancelled').sort((a,b)=>b.date.localeCompare(a.date))[0];
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-pill"><div class="stat-pill-val">${c.bookings_count}</div><div class="stat-pill-label">Всего броней</div></div>
+    <div class="stat-pill"><div class="stat-pill-val">${fmtMoney(c.total_paid||0)}</div><div class="stat-pill-label">Оплачено</div></div>
+    <div class="stat-pill"><div class="stat-pill-val">${lastB ? fmtDate(lastB.date) : '—'}</div><div class="stat-pill-label">Последняя бронь</div></div>
+  `;
+
+  // Bookings
+  if (!bookings.length) return;
+  const [hs,ms] = '00:00'.split(':');
+  document.getElementById('bookingsList').innerHTML = bookings.map(b => {
+    const cls = STATUS_MAP[b.status] || 'st-pend';
+    const ts  = (b.time_start||'').slice(0,5);
+    const te  = (b.time_end  ||'').slice(0,5);
+    const [h1] = ts.split(':').map(Number);
+    const [h2] = te.split(':').map(Number);
+    const dur = Math.max(0, h2-h1);
+    const fmt = b.format==='event'?'Мероприятие':'Почасовая';
+    return `<div class="booking-card ${cls}">
+      <div class="bc-top">
+        <span class="bc-hall">${b.hall} · ${dur} ч</span>
+        <span class="bc-time">${ts} – ${te}</span>
+        <span class="bc-amount">${fmtMoney(b.total||0)}</span>
+      </div>
+      <div class="bc-bottom">
+        <div><div class="bc-date">${fmtDate(b.date)}</div><div class="bc-fmt">${fmt}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Edit ──
+function toggleEdit() {
+  editMode = !editMode;
+  document.getElementById('viewMode').style.display = editMode ? 'none' : '';
+  document.getElementById('editMode').style.display = editMode ? '' : 'none';
+  document.getElementById('editBtn').textContent    = editMode ? 'Просмотр' : 'Редактировать';
+  if (editMode && clientData) {
+    document.getElementById('eName').value     = clientData.name    || '';
+    document.getElementById('ePhone').value    = clientData.phone   || '';
+    document.getElementById('eEmail').value    = clientData.email   || '';
+    document.getElementById('eTelegram').value = clientData.telegram|| '';
+  }
+}
+function cancelEdit() { editMode = false; toggleEdit(); }
+
+async function saveEdit() {
+  const body = {
+    name:               document.getElementById('eName').value.trim(),
+    phone:              document.getElementById('ePhone').value.trim(),
+    email:              document.getElementById('eEmail').value.trim(),
+    telegram_username:  document.getElementById('eTelegram').value.trim().replace(/^@/,''),
+  };
+  const res = await apiFetch('/api/admin/clients/'+id, { method:'PUT', body:JSON.stringify(body) });
+  if (res.ok) {
+    Object.assign(clientData, body);
+    clientData.telegram = body.telegram_username;
+    render(clientData, []);
+    const reload = await apiFetch('/api/admin/clients/'+id);
+    if (reload.ok) render(reload.client, reload.bookings);
+    cancelEdit();
+  } else {
+    alert(res.error || 'Ошибка сохранения');
+  }
+}
+
+// ── Note ──
+let noteTimer;
+function scheduleNoteSave() {
+  clearTimeout(noteTimer);
+  document.getElementById('noteSaveStatus').textContent = 'Печатаете…';
+  noteTimer = setTimeout(saveNote, 1200);
+}
+async function saveNote() {
+  const note = document.getElementById('adminNote').value;
+  const res  = await apiFetch('/api/admin/clients/'+id+'/note', { method:'POST', body:JSON.stringify({note}) });
+  document.getElementById('noteSaveStatus').textContent = res.ok ? 'Сохранено' : 'Ошибка';
+  setTimeout(()=>{ document.getElementById('noteSaveStatus').textContent=''; }, 2000);
+}
+
+// ── Delete ──
+function openDeleteConfirm()  { document.getElementById('deleteOverlay').classList.add('open'); }
+function closeDeleteConfirm() { document.getElementById('deleteOverlay').classList.remove('open'); }
+async function confirmDelete() {
+  const btn = document.getElementById('deleteConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Удаляем…';
+  const res = await apiFetch('/api/admin/clients/'+id, { method:'DELETE' });
+  if (res.ok) {
+    location.href = '/admin.html';
+  } else {
+    alert(res.error || 'Ошибка удаления');
+    btn.disabled = false; btn.textContent = 'Да, удалить';
+  }
+}
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1e1c24">
+<title>Арендодатель — ROLTHALL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════ */
+:root {
+  --bg:          #1e1c24;
+  --bg-2:        #26232e;
+  --bg-3:        #2E2B35;
+  --border:      rgba(255,255,255,0.09);
+  --text:        #D9D9D9;
+  --text-muted:  rgba(217,217,217,0.55);
+  --text-dim:    rgba(217,217,217,0.35);
+  --accent:      #376FFF;
+  --accent-w:    #ffffff;
+  --success:     #2ECC71;
+  --success-bg:  rgba(46,204,113,0.12);
+  --warning:     #F39C12;
+  --warning-bg:  rgba(243,156,18,0.12);
+  --danger:      #E74C3C;
+  --danger-bg:   rgba(231,76,60,0.12);
+  --font:        'Unbounded', sans-serif;
+  --r:           10px;
+  --r-lg:        14px;
+  --r-xl:        18px;
+  --nav-h:       64px;
+  --header-h:    54px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{font-family:var(--font);}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(217,217,217,.18);border-radius:2px;}
+
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+.ll-wrap{display:flex;min-height:100vh;}
+.ll-side{display:none;width:240px;flex-shrink:0;background:var(--bg-2);border-right:1px solid var(--border);flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+@media(min-width:1024px){
+  .ll-side{display:flex;}
+  .mob-top,.bottom-nav{display:none!important;}
+  .app-shell{padding-top:0;}
+  .page-content{padding-bottom:24px;}
+}
+.app-shell{flex:1;display:flex;flex-direction:column;min-width:0;padding-top:var(--header-h);}
+@media(min-width:1024px){.app-shell{padding-top:0;}}
+.page-content{flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));}
+
+/* ═══════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════ */
+.ll-side-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border);}
+.ll-side-logo svg{height:19px;width:auto;}
+.ll-side-logo .sub{font-size:.58rem;color:var(--text-dim);margin-top:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;}
+.ll-side-nav{padding:10px;flex:1;}
+.snav-lbl{padding:14px 8px 5px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);}
+.snav-link{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--r);margin-bottom:2px;color:var(--text-muted);font-size:.78rem;font-weight:500;transition:all .15s;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;}
+.snav-link svg{width:14px;height:14px;flex-shrink:0;}
+.snav-link:hover{background:rgba(255,255,255,.05);color:var(--text);}
+.snav-link.active{background:rgba(255,255,255,.07);color:var(--accent-w);}
+.ll-side-foot{padding:14px;border-top:1px solid var(--border);}
+
+
+/* ═══════════════════════════════════════
+   BOTTOM NAV
+═══════════════════════════════════════ */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(30,28,36,.97);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;align-items:stretch;justify-content:space-around;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);}
+.nav-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex:1;padding:8px 4px;color:rgba(217,217,217,.38);background:transparent;border:none;font-family:var(--font);cursor:pointer;transition:color .2s;}
+.nav-tab svg{width:20px;height:20px;}
+.nav-tab span{font-size:.6rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;}
+.nav-tab.active{color:#fff;}
+
+/* ═══════════════════════════════════════
+   TABS
+═══════════════════════════════════════ */
+.ll-tab{display:none;}
+.ll-tab.active{display:block;}
+
+/* ═══════════════════════════════════════
+   CARD / SURFACE
+═══════════════════════════════════════ */
+.card{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r-lg);}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);}
+.card-title{font-size:.8rem;font-weight:700;letter-spacing:-.01em;}
+
+/* ═══════════════════════════════════════
+   STAT CARDS
+═══════════════════════════════════════ */
+.ll-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px;}
+.stat-card{padding:14px 12px;}
+.stat-icon{width:28px;height:28px;margin-bottom:10px;color:rgba(217,217,217,.35);}
+.stat-icon svg{width:100%;height:100%;}
+.stat-val{font-size:1.15rem;font-weight:800;letter-spacing:-.02em;color:var(--accent-w);}
+.stat-lbl{font-size:.65rem;color:var(--text-muted);margin-top:3px;}
+.stat-chg{font-size:.62rem;margin-top:5px;font-weight:600;}
+.stat-chg.up{color:var(--success);}
+.stat-chg.dn{color:var(--warning);}
+
+/* ═══════════════════════════════════════
+   MINI BAR CHART
+═══════════════════════════════════════ */
+.mini-chart{height:88px;display:flex;align-items:flex-end;gap:4px;padding:20px 0 0;}
+.mini-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;}
+.bar-val{font-size:.48rem;color:var(--text-dim);margin-bottom:3px;white-space:nowrap;letter-spacing:0;}
+.mini-bar-inner{width:100%;border-radius:3px 3px 0 0;background:rgba(217,217,217,.18);transition:background .15s;cursor:pointer;min-height:4px;}
+.mini-bar-wrap:hover .mini-bar-inner,.mini-bar-wrap.active .mini-bar-inner{background:rgba(217,217,217,.55);}
+.mini-bar-wrap.active .bar-val{color:var(--text-muted);}
+
+/* ═══════════════════════════════════════
+   OCCUPANCY BARS
+═══════════════════════════════════════ */
+.occ-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.occ-row:last-child{margin-bottom:0;}
+.occ-lbl{font-size:.72rem;color:var(--text-muted);width:42px;flex-shrink:0;}
+.occ-track{flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.occ-fill{height:100%;border-radius:4px;background:rgba(217,217,217,.45);}
+.occ-pct{font-size:.65rem;font-weight:700;color:var(--text-muted);width:32px;text-align:right;}
+
+/* ═══════════════════════════════════════
+   DATE STRIP
+═══════════════════════════════════════ */
+.date-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.date-strip::-webkit-scrollbar{display:none;}
+.ds-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:6px 10px;border-radius:10px;cursor:pointer;border:1.5px solid transparent;min-width:44px;transition:all .18s;}
+.ds-chip:hover{background:rgba(255,255,255,.05);}
+.ds-chip.today{border-color:var(--border);}
+.ds-chip.sel{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);}
+.ds-day{font-size:.56rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;}
+.ds-num{font-size:.9rem;font-weight:800;margin-top:1px;}
+.ds-chip.sel .ds-day,.ds-chip.sel .ds-num{color:var(--accent-w);}
+.ds-chip.today .ds-day,.ds-chip.today .ds-num{color:var(--accent);}
+.ds-dot{width:4px;height:4px;border-radius:50%;background:rgba(217,217,217,.35);margin-top:3px;}
+.ds-nav-btn{flex-shrink:0;width:34px;height:34px;border-radius:10px;background:var(--bg-3);border:1px solid var(--border);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;align-self:center;transition:background .15s;line-height:1;}
+.ds-nav-btn:hover{background:rgba(255,255,255,.06);}
+
+/* ═══════════════════════════════════════
+   BOOKING ITEMS
+═══════════════════════════════════════ */
+.booking-item{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .14s;cursor:pointer;}
+.booking-item:last-child{border-bottom:none;}
+.booking-item:active{background:rgba(255,255,255,.03);}
+.bi-time{flex-shrink:0;width:50px;text-align:center;background:var(--bg-2);border-radius:8px;padding:5px 4px;}
+.bi-time-s{font-size:.78rem;font-weight:700;}
+.bi-time-e{font-size:.58rem;color:var(--text-dim);margin-top:1px;}
+.bi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.bi-body{flex:1;min-width:0;}
+.bi-name{font-size:.8rem;font-weight:600;}
+.bi-meta{font-size:.65rem;color:var(--text-muted);margin-top:2px;}
+.bi-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.bi-amount{font-size:.75rem;font-weight:700;color:rgba(217,217,217,.7);}
+
+/* ═══════════════════════════════════════
+   HALL CARD
+═══════════════════════════════════════ */
+.hall-card{display:flex;background:var(--bg-3);border-radius:var(--r-lg);border:1px solid var(--border);overflow:hidden;margin-bottom:10px;cursor:pointer;transition:border-color .2s;}
+.hall-card:hover{border-color:rgba(255,255,255,.2);}
+.hall-thumb{width:96px;flex-shrink:0;object-fit:cover;display:block;background:var(--bg-2);height:100%;min-height:96px;}
+.hall-body{flex:1;padding:11px 13px;min-width:0;}
+.hall-name{font-size:.85rem;font-weight:700;}
+.hall-meta{font-size:.66rem;color:var(--text-muted);margin-top:3px;}
+.hall-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.hall-tag{font-size:.58rem;padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.06);color:var(--text-dim);}
+.hall-footer{display:flex;align-items:center;gap:8px;padding:8px 13px;border-top:1px solid var(--border);background:var(--bg-2);}
+.status-pill{display:flex;align-items:center;gap:4px;font-family:var(--font);font-size:.64rem;font-weight:700;padding:4px 10px;border-radius:100px;cursor:pointer;border:none;transition:all .18s;}
+.status-pill.on{background:var(--success-bg);color:var(--success);}
+.status-pill.off{background:rgba(255,255,255,.06);color:var(--text-dim);}
+.status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ═══════════════════════════════════════
+   QUICK ACTIONS
+═══════════════════════════════════════ */
+.qa-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .14s;}
+.qa-row:last-child{border-bottom:none;}
+.qa-row:hover{background:rgba(255,255,255,.03);}
+.qa-icon{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);color:var(--text-muted);}
+.qa-icon svg{width:15px;height:15px;}
+.qa-label{font-size:.8rem;font-weight:600;}
+.qa-sub{font-size:.65rem;color:var(--text-muted);margin-top:2px;}
+.qa-arr{color:var(--text-dim);font-size:.8rem;margin-left:auto;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   BADGES
+═══════════════════════════════════════ */
+.badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--font);font-size:.6rem;font-weight:600;padding:3px 8px;border-radius:100px;}
+.bdg-ok{background:var(--success-bg);color:var(--success);}
+.bdg-warn{background:var(--warning-bg);color:var(--warning);}
+.bdg-err{background:var(--danger-bg);color:var(--danger);}
+.bdg-gray{background:rgba(255,255,255,.07);color:var(--text-muted);}
+.bdg-blue{background:rgba(55,111,255,.14);color:#7ea8ff;}
+
+/* ═══════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════ */
+.btn{font-family:var(--font);font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;}
+.btn-lg{font-size:.72rem;padding:14px 28px;}
+.btn-md{font-size:.72rem;padding:10px 18px;}
+.btn-sm{font-size:.66rem;padding:6px 13px;}
+.btn-w{background:var(--accent-w);color:var(--bg);border-radius:var(--r);}
+.btn-w:hover{opacity:.88;}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);border-radius:var(--r);}
+.btn-ghost:hover{background:rgba(255,255,255,.09);}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(231,76,60,.2);border-radius:var(--r);}
+.btn-full{width:100%;}
+
+/* ═══════════════════════════════════════
+   FORM
+═══════════════════════════════════════ */
+.form-lbl{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);display:block;margin-bottom:6px;}
+.inp{width:100%;font-family:var(--font);font-size:.8rem;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;outline:none;transition:border-color .2s;appearance:none;}
+.inp:focus{border-color:rgba(255,255,255,.3);}
+.inp::placeholder{color:var(--text-dim);}
+textarea.inp{resize:vertical;min-height:72px;}
+select.inp option{background:var(--bg-2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-divider{height:1px;background:var(--border);margin:4px 0;}
+
+/* ═══════════════════════════════════════
+   PHOTO UPLOAD
+═══════════════════════════════════════ */
+.photo-upload-zone{border:1px dashed rgba(255,255,255,.2);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;}
+.photo-upload-zone:hover{border-color:rgba(255,255,255,.4);}
+.photo-upload-zone svg{width:22px;height:22px;color:var(--text-dim);margin:0 auto 8px;}
+.photo-upload-label{font-size:.72rem;color:var(--text-muted);}
+.photo-upload-sub{font-size:.62rem;color:var(--text-dim);margin-top:3px;}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.photo-thumb{position:relative;border-radius:var(--r);overflow:hidden;aspect-ratio:1;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.photo-thumb-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(10,9,14,.75);border:none;color:#fff;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.photo-cover-badge{position:absolute;bottom:4px;left:4px;font-size:.5rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(10,9,14,.75);color:rgba(217,217,217,.7);padding:2px 5px;border-radius:4px;}
+.photo-thumb.drag-over{outline:2px dashed rgba(255,255,255,.5);outline-offset:-2px;}
+
+/* ═══════════════════════════════════════
+   TARIFF TABLE
+═══════════════════════════════════════ */
+.tariff-table{width:100%;border-collapse:collapse;}
+.tariff-table th{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;}
+.tariff-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tariff-table tr:last-child td{border-bottom:none;}
+.tariff-table td:first-child{font-size:.72rem;color:var(--text-muted);}
+.tariff-inp{width:100%;font-family:var(--font);font-size:.75rem;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:5px 8px;outline:none;text-align:right;}
+.tariff-inp:focus{border-color:rgba(255,255,255,.3);}
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+.modal-ov{position:fixed;inset:0;background:rgba(10,9,14,.82);backdrop-filter:blur(10px);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.13);margin:12px auto 4px;flex-shrink:0;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.modal-title{font-size:.88rem;font-weight:700;}
+.modal-sub{font-size:.62rem;color:var(--text-dim);margin-top:2px;}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:1rem;cursor:pointer;padding:4px;line-height:1;}
+.modal-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;}
+.modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   AVATAR
+═══════════════════════════════════════ */
+.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;font-size:.7rem;background:rgba(255,255,255,.12);border:1px solid var(--border);}
+
+/* ═══════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════ */
+.sec-head{padding:14px 16px 6px;display:flex;align-items:center;justify-content:space-between;}
+.sec-title{font-size:.8rem;font-weight:700;letter-spacing:-.01em;}
+
+/* ═══════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════ */
+.empty{text-align:center;padding:48px 24px;color:var(--text-dim);}
+.empty svg{width:32px;height:32px;margin:0 auto 12px;opacity:.35;}
+.empty-title{font-size:.82rem;font-weight:600;color:var(--text-muted);}
+.empty-sub{font-size:.72rem;margin-top:4px;line-height:1.6;}
+
+/* ═══════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════ */
+.notif-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+.toggle-sw{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0;}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid var(--border);transition:background .2s;cursor:pointer;}
+.toggle-track::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;}
+.toggle-sw input:checked + .toggle-track{background:rgba(55,111,255,.6);border-color:rgba(55,111,255,.4);}
+.toggle-sw input:checked + .toggle-track::after{transform:translateX(16px);}
+
+/* ═══════════════════════════════════════
+   MOBILE HEADER (mob-top — как на сайте)
+═══════════════════════════════════════ */
+.mob-top{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:var(--bg);border-bottom:1px solid var(--border);}
+.nav-logo{display:flex;align-items:center;line-height:0;}
+.nav-account{width:36px;height:36px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .2s;background:transparent;cursor:pointer;position:relative;overflow:hidden;}
+.nav-account:hover{border-color:rgba(255,255,255,.3);color:var(--text);}
+.nav-account.logged-in{border-color:rgba(55,111,255,.55);box-shadow:0 0 0 3px rgba(55,111,255,.14),0 0 12px rgba(55,111,255,.2);}
+.nav-account.logged-in .nav-acct-icon{opacity:0;}
+.nav-account.logged-in img{display:block;}
+.nav-account.logged-in .av-initials{display:flex;}
+.nav-acct-icon{width:16px;height:16px;transition:opacity .2s;}
+.nav-account img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;position:absolute;inset:0;}
+.nav-account .av-initials{display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;background:rgba(55,111,255,.4);}
+
+/* ═══════════════════════════════════════
+   BOOKING CARDS (new card style)
+═══════════════════════════════════════ */
+.booking-card{border-radius:18px;overflow:hidden;margin-bottom:12px;cursor:pointer;background-size:cover;background-position:center;background-repeat:no-repeat;min-height:140px;display:flex;flex-direction:column;justify-content:space-between;padding:16px 16px 14px;color:#fff;transition:transform .12s,opacity .2s;}
+.booking-card:active{transform:scale(.98);}
+.booking-card.st-ok      {background-image:url('card/succes.svg');}
+.booking-card.st-pend    {background-image:url('card/time.svg');}
+.booking-card.st-hold    {background-image:url('card/hold.svg');}
+.booking-card.st-cancel  {background-image:url('card/cancel.svg');}
+.booking-card.st-deleted {background-image:url('card/delete.svg');opacity:.75;}
+.bc-top{text-align:right;}
+.bc-hall{font-size:.68rem;font-weight:500;opacity:.82;display:block;}
+.bc-time{font-size:1.15rem;font-weight:800;letter-spacing:-.02em;display:block;line-height:1.15;}
+.bc-amount{font-size:.88rem;font-weight:700;display:block;margin-top:2px;}
+.bc-bottom{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.bc-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);flex-shrink:0;}
+.bc-info{flex:1;min-width:0;}
+.bc-name{font-size:.82rem;font-weight:700;}
+.bc-contact{font-size:.62rem;opacity:.85;margin-top:1px;}
+.bc-del{background:none;border:none;cursor:pointer;padding:4px;opacity:.65;flex-shrink:0;transition:opacity .15s;display:flex;align-items:center;}
+.bc-del:hover{opacity:1;}
+.booking-cards-grid{display:flex;flex-wrap:wrap;gap:12px;}
+.booking-card{width:100%;margin-bottom:0;}
+@media(min-width:1024px){
+  .booking-card{max-width:calc(25% - 9px);}
+}
+
+/* ═══════════════════════════════════════
+   MONTH STRIP
+═══════════════════════════════════════ */
+.month-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;padding:8px 12px 10px;-webkit-overflow-scrolling:touch;}
+.month-strip::-webkit-scrollbar{display:none;}
+.month-strip .ds-chip{scroll-snap-align:center;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   ANALYTICS FILTER
+═══════════════════════════════════════ */
+.filter-wrap{position:relative;}
+.filter-popup{position:absolute;top:calc(100% + 8px);right:0;z-index:50;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;min-width:260px;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.filter-popup.open{display:block;}
+
+/* ═══════════════════════════════════════
+   SIDEBAR USER BLOCK
+═══════════════════════════════════════ */
+.ll-side-user{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(min-width:1024px){
+  .modal-ov{align-items:center;}
+  .modal{border-radius:var(--r-xl);max-height:88vh;}
+  .app-content{padding:24px;max-width:100%;}
+  .mob-top .nav-logo svg{height:14px;}
+  .month-strip{gap:4px;}
+  .ll-stats{display:flex;flex-wrap:wrap;gap:10px;padding:14px 16px;}
+  .ll-stats .stat-card{max-width:calc(25% - 8px);flex:1;}
+}
+</style>
+</head>
+<body>
+
+<!-- SVG LOGO SYMBOL -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="rh-logo" viewBox="0 0 1280 71"><g><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g></symbol>
+</svg>
+
+<div class="ll-wrap">
+
+<!-- ══ SIDEBAR (desktop) ══ -->
+<aside class="ll-side">
+  <div class="ll-side-logo">
+    <svg style="max-width:15vw;height:19px;display:block"><use href="#rh-logo"/></svg>
+  </div>
+  <div class="ll-side-user">
+    <div class="avatar" style="width:32px;height:32px;font-size:.72rem;flex-shrink:0;" id="side-av"><span id="side-av-init">АИ</span></div>
+    <div style="min-width:0;">
+      <div style="font-size:.76rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="side-name">Артём И.</div>
+      <div style="font-size:.6rem;color:var(--text-muted);">Арендодатель</div>
+    </div>
+  </div>
+  <nav class="ll-side-nav">
+    <div class="snav-lbl">Обзор</div>
+    <button class="snav-link active" onclick="switchTab('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Аналитика
+    </button>
+    <button class="snav-link" onclick="switchTab('bookings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Брони
+    </button>
+    <button class="snav-link" onclick="switchTab('halls',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Залы
+    </button>
+    <div class="snav-lbl">Настройки</div>
+    <button class="snav-link" onclick="switchTab('profile',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Профиль
+    </button>
+    <button class="snav-link" onclick="switchTab('telegram',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Telegram
+    </button>
+    <button class="snav-link" onclick="switchTab('notifications',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Уведомления
+    </button>
+  </nav>
+</aside>
+
+<!-- ══ APP SHELL ══ -->
+<div class="app-shell">
+
+  <!-- MOBILE HEADER (mob-top) -->
+  <header class="mob-top" id="mobTop">
+    <a href="#" class="nav-logo">
+      <svg style="height:14px;width:auto;display:block" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></svg>
+    </a>
+    <button class="nav-account" id="nav-acct-btn" onclick="openLogin()" title="Личный кабинет">
+      <svg class="nav-acct-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+      <img id="nav-av-img" src="" alt="">
+      <span class="av-initials" id="nav-av-init">АИ</span>
+    </button>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <div class="page-content">
+    <div class="app-content">
+
+    <!-- ══ TAB: АНАЛИТИКА ══ -->
+    <div id="tab-dashboard" class="ll-tab active">
+
+      <!-- Period filter -->
+      <div style="padding:14px 16px 0;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:.8rem;font-weight:700;" id="dash-period-lbl">1–31 мая 2026</div>
+        <div class="filter-wrap">
+          <button class="btn btn-ghost btn-sm" onclick="toggleFilterPopup(event)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Период
+          </button>
+          <div class="filter-popup" id="filter-popup">
+            <div style="font-size:.62rem;color:var(--text-dim);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Выберите период</div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-lbl">От</label><input type="date" class="inp" id="filter-from" value="2026-05-01"></div>
+              <div class="form-group"><label class="form-lbl">До</label><input type="date" class="inp" id="filter-to" value="2026-05-31"></div>
+            </div>
+            <button class="btn btn-w btn-sm btn-full" style="margin-top:10px;" onclick="applyFilter()">Применить</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="ll-stats">
+        <div class="card stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          <div class="stat-val">142 400 ₽</div>
+          <div class="stat-lbl">Выручка / май</div>
+          <div class="stat-chg up">↑ +18%</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <div class="stat-val">38</div>
+          <div class="stat-lbl">Броней / май</div>
+          <div class="stat-chg up">↑ +8</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="9" height="9" rx="1"/><rect x="13" y="2" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg></div>
+          <div class="stat-val">72%</div>
+          <div class="stat-lbl">Загрузка залов</div>
+          <div class="stat-chg up">↑ +11%</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div class="stat-val">24</div>
+          <div class="stat-lbl">Клиентов</div>
+          <div class="stat-chg up">↑ +5</div>
+        </div>
+      </div>
+
+      <!-- Revenue chart -->
+      <div style="padding:0 16px 14px;">
+        <div class="card" style="padding:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:.78rem;font-weight:700;">Выручка · неделя</div>
+            <span style="font-size:.65rem;color:var(--text-dim);">7–13 мая</span>
+          </div>
+          <div class="mini-chart" id="revenue-chart"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:.56rem;color:var(--text-dim);" id="chart-days"></div>
+        </div>
+      </div>
+
+      <!-- Occupancy -->
+      <div style="padding:0 16px 14px;">
+        <div class="card" style="padding:14px;">
+          <div style="font-size:.78rem;font-weight:700;margin-bottom:12px;">Загрузка залов · май</div>
+          <div class="occ-row"><div class="occ-lbl">Зал А</div><div class="occ-track"><div class="occ-fill" style="width:85%"></div></div><div class="occ-pct">85%</div></div>
+          <div class="occ-row"><div class="occ-lbl">Зал Б</div><div class="occ-track"><div class="occ-fill" style="width:63%"></div></div><div class="occ-pct">63%</div></div>
+          <div class="occ-row"><div class="occ-lbl">Зал В</div><div class="occ-track"><div class="occ-fill" style="width:71%"></div></div><div class="occ-pct">71%</div></div>
+          <div class="occ-row"><div class="occ-lbl">Зал Г</div><div class="occ-track"><div class="occ-fill" style="width:40%"></div></div><div class="occ-pct">40%</div></div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="sec-head"><div class="sec-title">Быстрые действия</div></div>
+      <div style="margin:0 16px 16px;">
+        <div class="card" style="overflow:hidden;">
+          <div class="qa-row" onclick="switchTab('bookings',null)">
+            <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+            <div><div class="qa-label">Посмотреть брони</div><div class="qa-sub">Список на сегодня и будущие даты</div></div>
+            <span class="badge bdg-warn">3</span>
+            <span class="qa-arr">›</span>
+          </div>
+          <div class="qa-row" onclick="openHallModal('a')">
+            <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg></div>
+            <div><div class="qa-label">Параметры зала</div><div class="qa-sub">Инфо, фото и тарифы</div></div>
+            <span class="qa-arr">›</span>
+          </div>
+          <div class="qa-row" onclick="switchTab('telegram',null)">
+            <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+            <div><div class="qa-label">Telegram-бот</div><div class="qa-sub">@RoltHallBot · подключён</div></div>
+            <span class="qa-arr">›</span>
+          </div>
+          <div class="qa-row">
+            <div class="qa-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+            <div><div class="qa-label">Уведомления</div><div class="qa-sub">Настройка каналов и событий</div></div>
+            <span class="qa-arr">›</span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ══ TAB: БРОНИ ══ -->
+    <div id="tab-bookings" class="ll-tab">
+      <div style="position:sticky;top:0;z-index:10;background:var(--bg-2);border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px 0;">
+          <button class="ds-nav-btn" onclick="shiftMonth(-1)">‹</button>
+          <div style="font-size:.8rem;font-weight:700;flex:1;text-align:center;" id="month-lbl"></div>
+          <button class="ds-nav-btn" onclick="shiftMonth(1)">›</button>
+        </div>
+        <div class="month-strip" id="date-strip"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px;">
+        <div>
+          <div style="font-size:.82rem;font-weight:700;" id="sel-date-lbl"></div>
+          <div style="font-size:.66rem;color:var(--text-dim);margin-top:2px;" id="bookings-count"></div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <span class="badge bdg-ok" id="stat-ok" style="display:none;"></span>
+          <span class="badge bdg-warn" id="stat-pend" style="display:none;"></span>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="booking-cards-grid" id="bookings-list"></div>
+        <div id="bookings-empty" class="empty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <div class="empty-title">Броней нет</div>
+          <div class="empty-sub">На выбранную дату нет бронирований</div>
+        </div>
+      </div>
+    </div><!-- /bookings -->
+
+    <!-- ══ TAB: ЗАЛЫ ══ -->
+    <div id="tab-halls" class="ll-tab">
+      <div class="sec-head">
+        <div class="sec-title">Мои залы</div>
+        <button class="btn btn-w btn-sm" onclick="openHallModal(null)">+ Добавить</button>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="hall-card" onclick="openHallModal('a')">
+          <img src="../uploads/image 1.png" alt="Зал А" class="hall-thumb">
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+            <div class="hall-body">
+              <div class="hall-name">Зал А</div>
+              <div class="hall-meta">160 м² · до 80 чел</div>
+              <div class="hall-tags"><span class="hall-tag">Зеркала</span><span class="hall-tag">Звук</span><span class="hall-tag">Сцена</span></div>
+            </div>
+            <div class="hall-footer">
+              <button class="status-pill on" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Активен</button>
+              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал А')">Блок дат</button>
+            </div>
+          </div>
+        </div>
+        <div class="hall-card" onclick="openHallModal('b')">
+          <img src="../uploads/image 3.png" alt="Зал Б" class="hall-thumb">
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+            <div class="hall-body">
+              <div class="hall-name">Зал Б</div>
+              <div class="hall-meta">65 м² · до 30 чел</div>
+              <div class="hall-tags"><span class="hall-tag">Зеркала</span><span class="hall-tag">Свет</span></div>
+            </div>
+            <div class="hall-footer">
+              <button class="status-pill on" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Активен</button>
+              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал Б')">Блок дат</button>
+            </div>
+          </div>
+        </div>
+        <div class="hall-card" onclick="openHallModal('c')">
+          <img src="../uploads/image 2.png" alt="Зал В" class="hall-thumb">
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+            <div class="hall-body">
+              <div class="hall-name">Зал В</div>
+              <div class="hall-meta">60 м² · до 25 чел</div>
+              <div class="hall-tags"><span class="hall-tag">Маты</span><span class="hall-tag">Wi-Fi</span></div>
+            </div>
+            <div class="hall-footer">
+              <button class="status-pill on" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Активен</button>
+              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал В')">Блок дат</button>
+            </div>
+          </div>
+        </div>
+        <div class="hall-card" onclick="openHallModal('d')">
+          <img src="../uploads/image 2.png" alt="Зал Г" class="hall-thumb">
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+            <div class="hall-body">
+              <div class="hall-name">Зал Г</div>
+              <div class="hall-meta">15 м² · до 8 чел</div>
+              <div class="hall-tags"><span class="hall-tag">Доска</span><span class="hall-tag">Wi-Fi</span></div>
+            </div>
+            <div class="hall-footer">
+              <button class="status-pill off" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Отключён</button>
+              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал Г')">Блок дат</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /halls -->
+
+    <!-- ══ TAB: ПРОФИЛЬ ══ -->
+    <div id="tab-profile" class="ll-tab">
+      <div style="padding:14px 16px 6px;"><div class="sec-title">Профиль</div></div>
+      <div style="margin:0 16px 14px;">
+        <div class="card" style="overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);">
+            <div class="avatar" style="width:48px;height:48px;font-size:.9rem;cursor:pointer;" onclick="triggerAvatarUpload()" title="Сменить фото">
+              <span id="profile-initials">АИ</span>
+              <img id="profile-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+            </div>
+            <div>
+              <div style="font-size:.88rem;font-weight:700;" id="profile-name-lbl">Артём Иванченко</div>
+              <div style="font-size:.65rem;color:var(--text-muted);margin-top:2px;">Арендодатель</div>
+            </div>
+            <input type="file" id="avatar-file" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
+          </div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+            <div class="form-group"><label class="form-lbl">Имя и фамилия</label><input type="text" class="inp" value="Артём Иванченко" id="profile-fullname"></div>
+            <div class="form-group"><label class="form-lbl">Телефон</label><input type="tel" class="inp" value="+7 (904) 994-39-54" id="profile-phone"></div>
+            <div class="form-group"><label class="form-lbl">Email</label><input type="email" class="inp" value="artem@rolthall.ru"></div>
+            <div class="form-group"><label class="form-lbl">Telegram</label><input type="text" class="inp" value="@artem_rolthall"></div>
+            <button class="btn btn-w btn-md btn-full">Сохранить</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <button class="btn btn-danger btn-md btn-full" onclick="logout()">Выйти из аккаунта</button>
+      </div>
+    </div><!-- /profile -->
+
+    <!-- ══ TAB: TELEGRAM ══ -->
+    <div id="tab-telegram" class="ll-tab">
+      <div style="padding:14px 16px 6px;"><div class="sec-title">Telegram-бот</div></div>
+      <div style="margin:0 16px 14px;">
+        <div class="card" style="overflow:hidden;">
+          <div style="padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:var(--success-bg);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="font-size:.72rem;color:var(--success);">Бот подключён и активен</span>
+          </div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+            <div class="form-group"><label class="form-lbl">Bot Token</label><input type="text" class="inp" id="tg-token-inline" placeholder="7823041596:AAHxK2mTq9wLpE4nZcRbDsYoFvJiWgNuXl8"></div>
+            <div class="form-group"><label class="form-lbl">Admin Chat ID</label><input type="text" class="inp" id="tg-chat-inline" placeholder="-1002048316794"></div>
+            <div class="form-group"><label class="form-lbl">Thread ID (топик группы)</label><input type="text" class="inp" id="tg-thread-inline" placeholder="312"></div>
+            <div style="font-size:.62rem;color:var(--text-dim);line-height:1.7;">Webhook проксируется через Cloudflare Worker.<br>Изменение токена требует перерегистрации webhook.</div>
+            <button class="btn btn-w btn-md btn-full">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /telegram -->
+
+    <!-- ══ TAB: УВЕДОМЛЕНИЯ ══ -->
+    <div id="tab-notifications" class="ll-tab">
+      <div style="padding:14px 16px 6px;"><div class="sec-title">Уведомления</div></div>
+      <div style="margin:0 16px 10px;"><div style="font-size:.68rem;color:var(--text-dim);line-height:1.6;">Системные уведомления — кто и при каком событии получает сообщение в Telegram.</div></div>
+      <div style="margin:0 16px 16px;">
+        <div class="card" style="overflow:hidden;">
+          <div style="padding:0 16px;">
+            <div class="notif-row">
+              <div><div class="qa-label">Новая бронь</div><div class="qa-sub">→ в чат администраторов</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="notif-row">
+              <div><div class="qa-label">Бронь подтверждена</div><div class="qa-sub">→ клиенту (когда Admin подтвердил)</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="notif-row">
+              <div><div class="qa-label">Отмена брони</div><div class="qa-sub">→ клиенту</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="notif-row">
+              <div><div class="qa-label">Оплата получена</div><div class="qa-sub">→ в чат админов + клиенту</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="notif-row" style="border-bottom:none;">
+              <div><div class="qa-label">Напоминание за 3 ч</div><div class="qa-sub">→ клиенту перед началом аренды</div></div>
+              <label class="toggle-sw"><input type="checkbox"><span class="toggle-track"></span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /notifications -->
+
+    </div><!-- /app-content -->
+  </div><!-- /page-content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" id="btn-dashboard" onclick="switchTab('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Аналитика</span>
+    </button>
+    <button class="nav-tab" id="btn-bookings" onclick="switchTab('bookings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span>Брони</span>
+    </button>
+    <button class="nav-tab" id="btn-halls" onclick="switchTab('halls',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      <span>Залы</span>
+    </button>
+    <button class="nav-tab" id="btn-profile" onclick="switchTab('profile',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Профиль</span>
+    </button>
+  </nav>
+
+</div><!-- /app-shell -->
+</div><!-- /ll-wrap -->
+
+<!-- ═══════════════════════════════════════
+     MODAL: LOGIN
+═══════════════════════════════════════ -->
+<div id="login-modal" class="modal-ov" onclick="if(event.target===this)closeModal('login-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div><div class="modal-title">Вход в аккаунт</div></div>
+      <button class="modal-close" onclick="closeModal('login-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-lbl">Телефон</label>
+        <input type="tel" class="inp" id="login-phone" placeholder="+7 (___) ___-__-__" oninput="phoneMask(this)">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Пароль</label>
+        <input type="password" class="inp" id="login-pass" placeholder="••••••••">
+      </div>
+      <div id="login-tg-hint" style="display:none;padding:10px 12px;background:rgba(55,111,255,.08);border:1px solid rgba(55,111,255,.2);border-radius:var(--r);font-size:.68rem;color:rgba(217,217,217,.65);">
+        Определён Telegram-аккаунт. Телефон и пароль подтянуты автоматически.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('login-modal')" style="flex:1;">Отмена</button>
+      <button class="btn btn-w btn-md" onclick="doLogin()" style="flex:2;">Войти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: ПАРАМЕТРЫ ЗАЛА
+═══════════════════════════════════════ -->
+<div id="hall-modal" class="modal-ov" onclick="if(event.target===this)closeModal('hall-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="hall-modal-title">Параметры зала</div>
+        <div class="modal-sub" id="hall-modal-sub">Зал А</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('hall-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Основная инфо -->
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);">Основная информация</div>
+      <div class="form-group"><label class="form-lbl">Название *</label><input type="text" class="inp" id="hall-name" placeholder="Зал А"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Площадь м²</label><input type="number" class="inp" id="hall-area" placeholder="160"></div>
+        <div class="form-group"><label class="form-lbl">Вместимость</label><input type="number" class="inp" id="hall-cap" placeholder="80"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Описание</label><textarea class="inp" id="hall-desc" placeholder="Танцевальный зал..."></textarea></div>
+      <div class="form-group"><label class="form-lbl">Удобства (через запятую)</label><input type="text" class="inp" id="hall-amenities" placeholder="Зеркала, Звук, Сцена"></div>
+      <div class="form-group">
+        <label class="form-lbl">Статус</label>
+        <select class="inp" id="hall-status"><option value="1">Активен</option><option value="0">Отключён</option></select>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- Фото -->
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);">Фотографии</div>
+      <div class="photo-upload-zone" onclick="document.getElementById('hall-photos-inp').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="photo-upload-label">Загрузить фото</div>
+        <div class="photo-upload-sub">JPG, PNG до 1 МБ · первое фото = обложка</div>
+        <input type="file" id="hall-photos-inp" multiple accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+      </div>
+      <div class="photo-grid" id="photo-grid"></div>
+
+      <div class="form-divider"></div>
+
+      <!-- Тарифы: почасовая -->
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);">Почасовая аренда (₽ / час)</div>
+      <table class="tariff-table">
+        <thead>
+          <tr><th>День</th><th>Формат</th><th>₽ / час</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Будни</td>
+            <td style="font-size:.68rem;color:var(--text-dim);">Тренировки / практика</td>
+            <td><input class="tariff-inp" type="number" value="3500" id="t-wd-train"></td>
+          </tr>
+          <tr>
+            <td>Выходные</td>
+            <td style="font-size:.68rem;color:var(--text-dim);">Тренировки / практика</td>
+            <td><input class="tariff-inp" type="number" value="5000" id="t-we-train"></td>
+          </tr>
+          <tr>
+            <td>Будни</td>
+            <td style="font-size:.68rem;color:var(--text-dim);">Мероприятия (до 30 чел.)</td>
+            <td><input class="tariff-inp" type="number" value="10000" id="t-wd-event"></td>
+          </tr>
+          <tr>
+            <td>Выходные</td>
+            <td style="font-size:.68rem;color:var(--text-dim);">Мероприятия / мастер-класс</td>
+            <td><input class="tariff-inp" type="number" value="15000" id="t-we-event"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Тарифы: весь день -->
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-top:4px;">Аренда на весь день (₽)</div>
+      <table class="tariff-table">
+        <thead>
+          <tr><th>Пакет</th><th>Описание</th><th>₽</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Базовый</td>
+            <td style="font-size:.68rem;color:var(--text-dim);">Без оборудования</td>
+            <td><input class="tariff-inp" type="number" value="100000" id="t-day-base"></td>
+          </tr>
+          <tr>
+            <td>Полный</td>
+            <td style="font-size:.68rem;color:var(--text-dim);">Свет + звук весь день</td>
+            <td><input class="tariff-inp" type="number" value="150000" id="t-day-full"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="font-size:.6rem;color:var(--text-dim);line-height:1.6;margin-top:4px;">Почасовая: предоплата 100% · Весь день: предоплата 50% · Hold: 10 минут</div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('hall-modal')" style="flex:1;">Отмена</button>
+      <button class="btn btn-w btn-md" onclick="saveHall()" style="flex:2;">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: TELEGRAM ИНТЕГРАЦИЯ
+═══════════════════════════════════════ -->
+<div id="tg-modal" class="modal-ov" onclick="if(event.target===this)closeModal('tg-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Telegram-бот</div>
+        <div class="modal-sub">Интеграция @RoltHallBot</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('tg-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="padding:10px 12px;background:var(--success-bg);border:1px solid rgba(46,204,113,.2);border-radius:var(--r);display:flex;align-items:center;gap:10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.75a19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 6.18 2 2 0 014.11 4h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6l.96-.95a2 2 0 012.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0122 20v-.08z"/></svg>
+        <span style="font-size:.72rem;color:var(--success);">Бот подключён и активен</span>
+      </div>
+      <div class="form-group"><label class="form-lbl">Bot Token</label><input type="text" class="inp" id="tg-token" placeholder="7823041596:AAHxK2mTq9wLpE4nZcRbDsYoFvJiWgNuXl8"></div>
+      <div class="form-group"><label class="form-lbl">Admin Chat ID</label><input type="text" class="inp" id="tg-chat" placeholder="-1002048316794"></div>
+      <div class="form-group"><label class="form-lbl">Thread ID (топик группы)</label><input type="text" class="inp" id="tg-thread" placeholder="312"></div>
+      <div style="font-size:.62rem;color:var(--text-dim);line-height:1.7;">Webhook проксируется через Cloudflare Worker.<br>Изменение токена требует перерегистрации webhook.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('tg-modal')" style="flex:1;">Отмена</button>
+      <button class="btn btn-w btn-md" onclick="saveTg()" style="flex:2;">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: БЛОКИРОВКА ДАТ
+═══════════════════════════════════════ -->
+<div id="block-modal" class="modal-ov" onclick="if(event.target===this)closeModal('block-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Блокировка дат</div>
+        <div class="modal-sub" id="block-modal-sub">Зал А</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('block-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Дата начала</label><input type="date" class="inp" id="block-from"></div>
+        <div class="form-group"><label class="form-lbl">Дата конца</label><input type="date" class="inp" id="block-to"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Причина (необязательно)</label><input type="text" class="inp" id="block-reason" placeholder="Ремонт, закрытие..."></div>
+      <div style="font-size:.62rem;color:var(--text-dim);">В заблокированные даты бронирование через сайт недоступно.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" onclick="closeModal('block-modal')" style="flex:1;">Отмена</button>
+      <button class="btn btn-w btn-md" onclick="saveBlock()" style="flex:2;">Заблокировать</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   API
+══════════════════════════════════════ */
+const API_BASE = 'https://hall.roltworld.com/api';
+let authToken = localStorage.getItem('rh_token') || null;
+
+function apiHeaders() {
+  const h = {'Content-Type':'application/json','Accept':'application/json'};
+  if (authToken) h['Authorization'] = 'Bearer ' + authToken;
+  return h;
+}
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API_BASE + path, { headers: apiHeaders(), ...opts });
+  if (res.status === 401) { authToken = null; localStorage.removeItem('rh_token'); return null; }
+  return res.json();
+}
+
+// Status → card class mapping
+const STATUS_MAP = {
+  paid:            'ok',
+  confirmed:       'ok',
+  completed:       'ok',
+  hold:            'hold',
+  pending_payment: 'pend',
+  draft:           'pend',
+  cancelled:       'cancel',
+};
+
+/* ══════════════════════════════════════
+   MOCK DATA (fallback when not logged in)
+══════════════════════════════════════ */
+const MONTHS = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const WDAYS  = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+const REVENUE = [
+  {day:'Пн', val:14200},
+  {day:'Вт', val:19800},
+  {day:'Ср', val:11600},
+  {day:'Чт', val:28400},
+  {day:'Пт', val:35000},
+  {day:'Сб', val:24600},
+  {day:'Вс', val:18800},
+];
+
+const MOCK_BOOKINGS = {
+  '2026-05-13':[
+    {s:'09:00',e:'11:00',name:'Иванов Иван',   hall:'А',h:2,amt:7000, st:'ok',  phone:'+7 (916) 234-11-78',tg:'@ivan_dance'},
+    {s:'11:00',e:'15:00',name:'Петрова Мария', hall:'В',h:4,amt:14000,st:'ok',  phone:'+7 (903) 871-44-02',tg:'@petrovam'},
+    {s:'14:00',e:'18:00',name:'Сидоров С.',    hall:'Б',h:4,amt:14000,st:'pend',phone:'+7 (925) 003-56-90',tg:null},
+    {s:'19:00',e:'23:00',name:'Козлова Анна',  hall:'А',h:4,amt:20000,st:'hold',phone:'+7 (999) 451-88-12',tg:'@ann_kozl'},
+  ],
+  '2026-05-14':[
+    {s:'10:00',e:'14:00',name:'Миронова Е.',   hall:'А',h:4,amt:14000,st:'ok',  phone:'+7 (985) 116-33-07',tg:'@mironova_e'},
+    {s:'15:00',e:'17:00',name:'Горбунов П.',   hall:'В',h:2,amt:7000, st:'ok',  phone:'+7 (901) 774-29-55',tg:null},
+  ],
+  '2026-05-15':[{s:'12:00',e:'20:00',name:'Корпоратив LLC',hall:'А',h:8,amt:80000,st:'ok',phone:'+7 (495) 000-12-34',tg:'@corp_llc'}],
+  '2026-05-16':[],
+  '2026-05-17':[
+    {s:'09:00',e:'15:00',name:'Цой Наталья',   hall:'Б',h:6,amt:30000,st:'ok',  phone:'+7 (912) 667-00-43',tg:'@natcoy'},
+    {s:'16:00',e:'20:00',name:'Власов Д.',      hall:'В',h:4,amt:14000,st:'pend',phone:'+7 (926) 388-71-19',tg:'@vlasov_d'},
+  ],
+};
+
+const ST = {
+  ok:   {dot:'#2ECC71', iconColor:'#2ECC71', icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'},
+  pend: {dot:'#F39C12', iconColor:'#F39C12', icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'},
+  hold: {dot:'#376FFF', iconColor:'#7ea8ff', icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="4.93" y2="19.07"/></svg>'},
+  cancel:{dot:'#E74C3C', iconColor:'#E74C3C', icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'},
+};
+
+const HALL_CLR = {А:'#376FFF',Б:'#27AE60',В:'#9B59B6',Г:'#F39C12'};
+
+/* ══════════════════════════════════════
+   TABS
+══════════════════════════════════════ */
+function switchTab(id, triggerEl) {
+  document.querySelectorAll('.ll-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.querySelectorAll('.bottom-nav .nav-tab').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + id);
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.snav-link').forEach(a => a.classList.remove('active'));
+  if (triggerEl) triggerEl.classList.add('active');
+  if (id === 'bookings') renderStrip();
+}
+
+/* ══════════════════════════════════════
+   REVENUE CHART
+══════════════════════════════════════ */
+function renderChart() {
+  const max = Math.max(...REVENUE.map(r => r.val));
+  const chart = document.getElementById('revenue-chart');
+  const days  = document.getElementById('chart-days');
+  if (!chart) return;
+
+  chart.innerHTML = REVENUE.map((r, i) => {
+    const pct = Math.round(r.val / max * 100);
+    const valStr = r.val.toLocaleString('ru') + ' ₽';
+    const isMax = r.val === max;
+    return `<div class="mini-bar-wrap${isMax?' active':''}" onclick="selectBar(this)" style="gap:0;">
+      <div class="bar-val">${valStr}</div>
+      <div class="mini-bar-inner" style="height:${Math.max(pct,4)}%;"></div>
+    </div>`;
+  }).join('');
+
+  days.innerHTML = REVENUE.map(r => `<span>${r.day}</span>`).join('');
+}
+
+function selectBar(el) {
+  document.querySelectorAll('.mini-bar-wrap').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ══════════════════════════════════════
+   DATE STRIP + BOOKINGS (monthly view)
+══════════════════════════════════════ */
+let curYear = 2026, curMonth = 4; // May 2026 (month 0-indexed)
+let selDate = new Date(2026, 4, 13);
+selDate.setHours(0,0,0,0);
+
+const MONTH_NAMES_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+function fmtKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function shiftMonth(dir) {
+  curMonth += dir;
+  if (curMonth > 11) { curMonth = 0; curYear++; }
+  if (curMonth < 0)  { curMonth = 11; curYear--; }
+  // select first day of new month if selDate not in this month
+  if (selDate.getMonth() !== curMonth || selDate.getFullYear() !== curYear) {
+    selDate = new Date(curYear, curMonth, 1);
+    selDate.setHours(0,0,0,0);
+  }
+  renderStrip();
+}
+
+function renderStrip() {
+  const strip = document.getElementById('date-strip');
+  const lbl   = document.getElementById('month-lbl');
+  if (!strip) return;
+  if (lbl) lbl.textContent = MONTH_NAMES_FULL[curMonth] + ' ' + curYear;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+
+  strip.innerHTML = Array.from({length: daysInMonth}, (_, i) => {
+    const d = new Date(curYear, curMonth, i + 1);
+    d.setHours(0,0,0,0);
+    const key    = fmtKey(d);
+    const has    = (MOCK_BOOKINGS[key] || []).some(b => !b._deleted);
+    const isTod  = d.getTime() === today.getTime();
+    const isSel  = d.getTime() === selDate.getTime();
+    const cls = 'ds-chip' + (isTod?' today':'') + (isSel?' sel':'');
+    return `<div class="${cls}" onclick="selectDay(${curYear},${curMonth},${i+1})">
+      <div class="ds-day">${WDAYS[d.getDay()]}</div>
+      <div class="ds-num">${i+1}</div>
+      ${has && !isSel ? '<div class="ds-dot"></div>' : ''}
+    </div>`;
+  }).join('');
+
+  // Scroll selected chip into view
+  setTimeout(() => {
+    const sel = strip.querySelector('.ds-chip.sel');
+    if (sel) sel.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  }, 40);
+
+  if (authToken) loadBookings(fmtKey(selDate));
+  else renderList();
+}
+
+function selectDay(y, m, d) {
+  selDate = new Date(y, m, d);
+  selDate.setHours(0,0,0,0);
+  curYear = y; curMonth = m;
+  renderStrip();
+}
+
+const TRASH_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#tc)"><path d="M16.8 24H7.08C5.1 24 3.54 22.38 3.54 20.46V9.6C3.54 9.24 3.78 9 4.14 9C4.5 9 4.74 9.24 4.74 9.6V20.46C4.74 21.78 5.82 22.8 7.08 22.8H16.8C18.12 22.8 19.14 21.72 19.14 20.46V9.6C19.14 9.24 19.38 9 19.74 9C20.1 9 20.34 9.24 20.34 9.6V20.46C20.34 22.38 18.72 24 16.8 24Z" fill="white"/><path d="M19.98 2.94H15.42C15.12 1.26 13.68 0 11.94 0C10.2 0 8.76 1.26 8.46 2.94H3.9C2.52 2.94 1.44 4.02 1.44 5.4C1.44 6.78 2.52 7.8 3.9 7.8H20.04C21.42 7.8 22.5 6.72 22.5 5.34C22.5 3.96 21.36 2.94 19.98 2.94ZM11.94 1.2C13.02 1.2 13.92 1.92 14.16 2.94H9.66C9.96 1.92 10.86 1.2 11.94 1.2ZM19.98 6.6H3.9C3.24 6.6 2.64 6.06 2.64 5.34C2.64 4.68 3.18 4.08 3.9 4.08H20.04C20.7 4.08 21.3 4.62 21.3 5.34C21.24 6.06 20.7 6.6 19.98 6.6Z" fill="white"/><path d="M7.74 21.06C7.38 21.06 7.14 20.82 7.14 20.46V10.44C7.14 10.08 7.38 9.84 7.74 9.84C8.1 9.84 8.34 10.08 8.34 10.44V20.46C8.34 20.76 8.04 21.06 7.74 21.06Z" fill="white"/><path d="M16.14 21.06C15.78 21.06 15.54 20.82 15.54 20.46V10.44C15.54 10.08 15.78 9.84 16.14 9.84C16.5 9.84 16.74 10.08 16.74 10.44V20.46C16.74 20.76 16.44 21.06 16.14 21.06Z" fill="white"/><path d="M11.94 21.06C11.58 21.06 11.34 20.82 11.34 20.46V10.44C11.34 10.08 11.58 9.84 11.94 9.84C12.3 9.84 12.54 10.08 12.54 10.44V20.46C12.54 20.76 12.24 21.06 11.94 21.06Z" fill="white"/></g><defs><clipPath id="tc"><rect width="24" height="24" fill="white"/></clipPath></defs></svg>`;
+
+function renderList() {
+  const key  = fmtKey(selDate);
+  const list = MOCK_BOOKINGS[key] || [];
+
+  const lbl = document.getElementById('sel-date-lbl');
+  if (lbl) lbl.textContent = `${WDAYS[selDate.getDay()]}, ${selDate.getDate()} ${MONTHS[selDate.getMonth()]}`;
+
+  const active = list.filter(b => !b._deleted);
+  const ok   = active.filter(b => b.st === 'ok').length;
+  const pend = active.filter(b => b.st === 'pend').length;
+  const sok  = document.getElementById('stat-ok');
+  const spnd = document.getElementById('stat-pend');
+  if (sok)  { sok.textContent = ok + ' подтв.';   sok.style.display  = ok   ? '' : 'none'; }
+  if (spnd) { spnd.textContent = pend + ' ожид.'; spnd.style.display = pend ? '' : 'none'; }
+
+  const cntEl = document.getElementById('bookings-count');
+  if (cntEl) cntEl.textContent = list.length ? `${list.length} брон.` : 'Нет бронирований';
+
+  const el    = document.getElementById('bookings-list');
+  const empty = document.getElementById('bookings-empty');
+
+  if (!list.length) {
+    el.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  el.innerHTML = list.map((b, idx) => {
+    const st = b._deleted ? 'deleted' : b.st;
+    return `<div class="booking-card st-${st}">
+      <div class="bc-top">
+        <span class="bc-hall">Зал ${b.hall} · ${b.h} ч</span>
+        <span class="bc-time">${b.s} – ${b.e}</span>
+        <span class="bc-amount">${b.amt.toLocaleString('ru')} ₽</span>
+      </div>
+      <div class="bc-bottom">
+        <div class="bc-avatar"></div>
+        <div class="bc-info">
+          <div class="bc-name">${b.name}</div>
+          ${b.phone ? `<div class="bc-contact"><a href="tel:${b.phone}" style="color:rgba(255,255,255,.85);text-decoration:none;">${b.phone}</a></div>` : ''}
+          ${b.tg    ? `<div class="bc-contact"><a href="https://t.me/${b.tg.replace('@','')}" style="color:rgba(255,255,255,.85);text-decoration:none;">${b.tg}</a></div>` : ''}
+        </div>
+        <button class="bc-del" onclick="event.stopPropagation();deleteCard('${key}',${idx})" title="${b._deleted ? 'Восстановить' : 'Удалить'}">${TRASH_ICON}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteCard(key, idx) {
+  const b = MOCK_BOOKINGS[key][idx];
+  if (!b._deleted) {
+    const ok = confirm(`Отменить бронь — ${b.name}?\n${b.s} – ${b.e}, ${key}`);
+    if (!ok) return;
+    // Call real API if logged in
+    if (authToken && b._id) {
+      const res = await apiFetch(`/admin/bookings/${b._id}/cancel`, { method: 'POST' });
+      if (!res || !res.ok) { alert('Не удалось отменить бронь'); return; }
+    }
+  }
+  b._deleted = !b._deleted;
+  b.st = b._deleted ? 'cancel' : (STATUS_MAP[b._status] || 'ok');
+  renderList();
+  renderStrip();
+}
+
+/* ══════════════════════════════════════
+   LOGIN / AUTH
+══════════════════════════════════════ */
+let isLoggedIn = false;
+
+function openLogin() {
+  if (isLoggedIn) { switchTab('profile', null); return; }
+  // TG WebApp auto-match
+  try {
+    const tg = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (tg) {
+      document.getElementById('login-phone').value = '+7 (___) ___-__-__'; // placeholder, backend fills
+      document.getElementById('login-tg-hint').style.display = 'block';
+    }
+  } catch(e) {}
+  openModal('login-modal');
+}
+
+async function doLogin() {
+  const phone = document.getElementById('login-phone').value;
+  const pass  = document.getElementById('login-pass').value;
+  if (!phone || !pass) { alert('Заполните все поля'); return; }
+
+  const btn = document.querySelector('#login-modal .btn-w');
+  if (btn) { btn.textContent = 'Вход...'; btn.disabled = true; }
+
+  try {
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ phone, password: pass }),
+    });
+    if (!data || !data.token) throw new Error(data?.message || 'Ошибка входа');
+    authToken = data.token;
+    localStorage.setItem('rh_token', authToken);
+    isLoggedIn = true;
+    closeModal('login-modal');
+    const u = data.user || {};
+    const initials = (u.name || 'АИ').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    setLoggedIn(initials, null);
+    loadDashboard();
+  } catch(e) {
+    alert(e.message || 'Не удалось войти');
+  } finally {
+    if (btn) { btn.textContent = 'Войти'; btn.disabled = false; }
+  }
+}
+
+function setLoggedIn(initials, avatarUrl) {
+  const btn    = document.getElementById('nav-acct-btn');
+  const img    = document.getElementById('nav-av-img');
+  const init   = document.getElementById('nav-av-init');
+  btn.classList.add('logged-in');
+  if (avatarUrl) {
+    img.src = avatarUrl;
+    img.style.display = 'block';
+    init.style.display = 'none';
+  } else {
+    init.textContent = initials;
+    init.style.display = 'flex';
+  }
+}
+
+function logout() {
+  isLoggedIn = false;
+  const btn = document.getElementById('nav-acct-btn');
+  btn.classList.remove('logged-in');
+  document.getElementById('nav-av-img').style.display = 'none';
+  document.getElementById('nav-av-init').style.display = 'none';
+}
+
+/* ══════════════════════════════════════
+   REAL DATA LOADERS
+══════════════════════════════════════ */
+async function loadDashboard() {
+  if (!authToken) return;
+  const today = new Date();
+  const from = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-01';
+  const to   = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(new Date(today.getFullYear(), today.getMonth()+1, 0).getDate()).padStart(2,'0');
+  const data = await apiFetch(`/admin/analytics?from=${from}&to=${to}`);
+  if (!data || !data.ok) return;
+
+  const t = data.total || {};
+  // Update stat cards
+  const fmt = n => n >= 1000 ? (n/1000).toFixed(0) + ' ' + (n%1000===0 ? '' : Math.round((n%1000)/100)) : n;
+  const revEl = document.querySelector('#tab-dashboard .stat-val');
+  if (revEl) {
+    const statVals = document.querySelectorAll('#tab-dashboard .stat-val');
+    if (statVals[0]) statVals[0].textContent = (t.revenue || 0).toLocaleString('ru') + ' ₽';
+    if (statVals[1]) statVals[1].textContent = t.bookings || 0;
+  }
+
+  // Update chart from by_day
+  const byDay = data.by_day || {};
+  if (Object.keys(byDay).length) {
+    window.REVENUE = Object.entries(byDay).slice(-7).map(([date, d]) => ({
+      day: WDAYS[new Date(date).getDay()],
+      val: d.revenue || 0,
+    }));
+    renderChart();
+  }
+
+  // Update period label
+  const lbl = document.getElementById('dash-period-lbl');
+  if (lbl) {
+    const df = new Date(from), dt = new Date(to);
+    lbl.textContent = df.toLocaleDateString('ru', {day:'numeric',month:'long'}) + ' – ' + dt.toLocaleDateString('ru', {day:'numeric',month:'long',year:'numeric'});
+  }
+}
+
+async function loadBookings(dateStr) {
+  if (!authToken) { renderList(); return; }
+  const data = await apiFetch(`/admin/bookings?date=${dateStr}`);
+  if (!data || !data.ok) { renderList(); return; }
+
+  // Convert API format to internal MOCK_BOOKINGS format
+  MOCK_BOOKINGS[dateStr] = data.bookings.map(b => ({
+    s:     b.time_start,
+    e:     b.time_end,
+    name:  b.client?.name || 'Гость',
+    hall:  b.hall,
+    h:     0, // not needed for display
+    amt:   b.total || b.prepayment || 0,
+    st:    STATUS_MAP[b.status] || 'pend',
+    phone: b.client?.phone || null,
+    tg:    b.client?.telegram ? '@' + b.client.telegram.replace('@','') : null,
+    _id:   b.id,
+    _status: b.status,
+  }));
+  renderList();
+}
+
+/* ══════════════════════════════════════
+   ANALYTICS FILTER
+══════════════════════════════════════ */
+function toggleFilterPopup(e) {
+  e && e.stopPropagation();
+  document.getElementById('filter-popup').classList.toggle('open');
+}
+
+async function applyFilter() {
+  const from = document.getElementById('filter-from').value;
+  const to   = document.getElementById('filter-to').value;
+  if (!from || !to) return;
+  document.getElementById('filter-popup').classList.remove('open');
+  const df = new Date(from), dt = new Date(to);
+  const lbl = df.toLocaleDateString('ru', {day:'numeric',month:'short'}) +
+    ' – ' + dt.toLocaleDateString('ru', {day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('dash-period-lbl').textContent = lbl;
+
+  if (authToken) {
+    const data = await apiFetch(`/admin/analytics?from=${from}&to=${to}`);
+    if (data && data.ok) {
+      const t = data.total || {};
+      const statVals = document.querySelectorAll('#tab-dashboard .stat-val');
+      if (statVals[0]) statVals[0].textContent = (t.revenue || 0).toLocaleString('ru') + ' ₽';
+      if (statVals[1]) statVals[1].textContent = t.bookings || 0;
+      const byDay = data.by_day || {};
+      if (Object.keys(byDay).length) {
+        window.REVENUE = Object.entries(byDay).slice(-14).map(([date, d]) => ({
+          day: WDAYS[new Date(date).getDay()],
+          val: d.revenue || 0,
+        }));
+        renderChart();
+      }
+    }
+  } else {
+    renderChart();
+  }
+}
+
+// Close filter popup on outside click
+document.addEventListener('click', () => {
+  const fp = document.getElementById('filter-popup');
+  if (fp) fp.classList.remove('open');
+});
+
+/* ══════════════════════════════════════
+   PHONE MASK
+══════════════════════════════════════ */
+function phoneMask(inp) {
+  let v = inp.value.replace(/\D/g,'');
+  if (v.startsWith('8')) v = '7' + v.slice(1);
+  if (!v.startsWith('7')) v = '7' + v;
+  v = v.slice(0, 11);
+  let r = '+7';
+  if (v.length > 1) r += ' (' + v.slice(1, 4);
+  if (v.length >= 4) r += ') ' + v.slice(4, 7);
+  if (v.length >= 7) r += '-' + v.slice(7, 9);
+  if (v.length >= 9) r += '-' + v.slice(9, 11);
+  inp.value = r;
+}
+
+/* ══════════════════════════════════════
+   HALL MODAL
+══════════════════════════════════════ */
+const HALL_DATA = {
+  a: {name:'Зал А', area:160, cap:80, desc:'Танцевальный зал с зеркалами, сценой и профессиональным звуком.', amenities:'Зеркала, Звук, Сцена, Раздевалки'},
+  b: {name:'Зал Б', area:65,  cap:30, desc:'Малый зал с зеркалами и световым оборудованием.', amenities:'Зеркала, Свет'},
+  c: {name:'Зал В', area:60,  cap:25, desc:'Универсальный зал с матами и Wi-Fi.', amenities:'Маты, Wi-Fi'},
+  d: {name:'Зал Г', area:15,  cap:8,  desc:'Небольшой кабинет с маркерной доской.', amenities:'Доска, Wi-Fi'},
+};
+
+function openHallModal(id) {
+  const data = id ? HALL_DATA[id] : {name:'', area:'', cap:'', desc:'', amenities:''};
+  document.getElementById('hall-modal-title').textContent = id ? 'Параметры зала' : 'Добавить зал';
+  document.getElementById('hall-modal-sub').textContent   = data.name || '';
+  document.getElementById('hall-name').value      = data.name;
+  document.getElementById('hall-area').value      = data.area;
+  document.getElementById('hall-cap').value       = data.cap;
+  document.getElementById('hall-desc').value      = data.desc;
+  document.getElementById('hall-amenities').value = data.amenities;
+  document.getElementById('photo-grid').innerHTML = '';
+  openModal('hall-modal');
+}
+
+function saveHall() {
+  closeModal('hall-modal');
+}
+
+/* ══════════════════════════════════════
+   PHOTO UPLOAD
+══════════════════════════════════════ */
+function handlePhotoUpload(inp) {
+  const grid = document.getElementById('photo-grid');
+  Array.from(inp.files).forEach((file, i) => {
+    if (file.size > 1024 * 1024) { alert(`Файл "${file.name}" превышает 1 МБ — пропущен.`); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'photo-thumb';
+      div.draggable = true;
+      div.innerHTML = `<img src="${e.target.result}" alt="">
+        <button class="photo-thumb-del" onclick="this.closest('.photo-thumb').remove();reindexPhotos()">✕</button>`;
+      addDragHandlers(div);
+      grid.appendChild(div);
+      reindexPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  inp.value = '';
+}
+
+let dragSrc = null;
+
+function addDragHandlers(el) {
+  el.addEventListener('dragstart', function(e) {
+    dragSrc = this;
+    this.style.opacity = '.4';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', function() {
+    this.style.opacity = '';
+    document.querySelectorAll('.photo-thumb').forEach(t => t.classList.remove('drag-over'));
+  });
+  el.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  });
+  el.addEventListener('dragenter', function() { this.classList.add('drag-over'); });
+  el.addEventListener('dragleave', function() { this.classList.remove('drag-over'); });
+  el.addEventListener('drop', function(e) {
+    e.stopPropagation();
+    if (dragSrc !== this) {
+      const grid = document.getElementById('photo-grid');
+      const kids = [...grid.children];
+      const srcIdx  = kids.indexOf(dragSrc);
+      const destIdx = kids.indexOf(this);
+      if (srcIdx < destIdx) grid.insertBefore(dragSrc, this.nextSibling);
+      else                   grid.insertBefore(dragSrc, this);
+      reindexPhotos();
+    }
+    return false;
+  });
+}
+
+function reindexPhotos() {
+  const grid = document.getElementById('photo-grid');
+  Array.from(grid.children).forEach((th, i) => {
+    let badge = th.querySelector('.photo-cover-badge');
+    if (i === 0 && !badge) {
+      badge = document.createElement('div');
+      badge.className = 'photo-cover-badge';
+      badge.textContent = 'Обложка';
+      th.appendChild(badge);
+    } else if (i !== 0 && badge) {
+      badge.remove();
+    }
+  });
+}
+
+/* ══════════════════════════════════════
+   AVATAR UPLOAD
+══════════════════════════════════════ */
+function triggerAvatarUpload() {
+  document.getElementById('avatar-file').click();
+}
+
+function handleAvatarUpload(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const url = e.target.result;
+    document.getElementById('profile-initials').style.display = 'none';
+    const img = document.getElementById('profile-avatar-img');
+    img.src = url; img.style.display = 'block';
+    if (isLoggedIn) setLoggedIn('', url);
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════════════════════════════
+   TG MODAL
+══════════════════════════════════════ */
+function openTgModal() { openModal('tg-modal'); }
+function saveTg() { closeModal('tg-modal'); }
+
+/* ══════════════════════════════════════
+   BLOCK DATES MODAL
+══════════════════════════════════════ */
+function openBlockModal(hallName) {
+  document.getElementById('block-modal-sub').textContent = hallName;
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('block-from').value = today;
+  document.getElementById('block-to').value   = today;
+  openModal('block-modal');
+}
+function saveBlock() { closeModal('block-modal'); }
+
+/* ══════════════════════════════════════
+   HALL STATUS TOGGLE
+══════════════════════════════════════ */
+function toggleHall(btn) {
+  const on = btn.classList.contains('on');
+  btn.classList.toggle('on',!on);
+  btn.classList.toggle('off',on);
+  btn.innerHTML = `<span class="status-dot"></span>${on ? 'Отключён' : 'Активен'}`;
+}
+
+/* ══════════════════════════════════════
+   MODAL HELPERS
+══════════════════════════════════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+renderChart();
+renderStrip();
+
+// Auto-restore session from token
+(async () => {
+  if (!authToken) return;
+  const me = await apiFetch('/auth/me');
+  if (me && me.id) {
+    isLoggedIn = true;
+    const initials = (me.name || 'АИ').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    setLoggedIn(initials, null);
+    loadDashboard();
+  } else {
+    authToken = null;
+    localStorage.removeItem('rh_token');
+  }
+})();
+</script>
+</body>
+</html>
