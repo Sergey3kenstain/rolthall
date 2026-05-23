@@ -62,8 +62,8 @@ button{font-family:var(--font);}
 /* ═══════════════════════════════════════
    SIDEBAR
 ═══════════════════════════════════════ */
-.ll-side-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border);}
-.ll-side-logo svg{height:19px;width:auto;}
+.ll-side-logo{padding:20px 18px 14px;border:none;}
+.ll-side-logo svg{max-width:10vw;height:19px;display:block;}
 .ll-side-logo .sub{font-size:.58rem;color:var(--text-dim);margin-top:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;}
 .ll-side-nav{padding:10px;flex:1;}
 .snav-lbl{padding:14px 8px 5px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);}
@@ -167,7 +167,7 @@ button{font-family:var(--font);}
 ═══════════════════════════════════════ */
 .hall-card{display:flex;background:var(--bg-3);border-radius:var(--r-lg);border:1px solid var(--border);overflow:hidden;margin-bottom:10px;cursor:pointer;transition:border-color .2s;}
 .hall-card:hover{border-color:rgba(255,255,255,.2);}
-.hall-thumb{width:96px;flex-shrink:0;object-fit:cover;display:block;background:var(--bg-2);height:100%;min-height:96px;}
+.hall-thumb{width:8vw;min-height:8vw;flex-shrink:0;object-fit:cover;display:block;background:var(--bg-2);height:100%;}
 .hall-body{flex:1;padding:11px 13px;min-width:0;}
 .hall-name{font-size:.85rem;font-weight:700;}
 .hall-meta{font-size:.66rem;color:var(--text-muted);margin-top:3px;}
@@ -316,7 +316,7 @@ select.inp option{background:var(--bg-2);}
 /* ═══════════════════════════════════════
    BOOKING CARDS (new card style)
 ═══════════════════════════════════════ */
-.booking-card{border-radius:18px;overflow:hidden;margin-bottom:12px;cursor:pointer;background-size:cover;background-position:center;background-repeat:no-repeat;min-height:140px;display:flex;flex-direction:column;justify-content:space-between;padding:16px 16px 14px;color:#fff;transition:transform .12s,opacity .2s;}
+.booking-card{border-radius:20px;overflow:hidden;margin-bottom:0;cursor:pointer;background-size:cover;background-position:center;background-repeat:no-repeat;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;padding:20px;color:#fff;transition:transform .12s,opacity .2s;}
 .booking-card:active{transform:scale(.98);}
 .booking-card.st-ok      {background-image:url('card/succes.svg');}
 .booking-card.st-pend    {background-image:url('card/time.svg');}
@@ -324,20 +324,20 @@ select.inp option{background:var(--bg-2);}
 .booking-card.st-cancel  {background-image:url('card/cancel.svg');}
 .booking-card.st-deleted {background-image:url('card/delete.svg');opacity:.75;}
 .bc-top{text-align:right;}
-.bc-hall{font-size:.68rem;font-weight:500;opacity:.82;display:block;}
-.bc-time{font-size:1.15rem;font-weight:800;letter-spacing:-.02em;display:block;line-height:1.15;}
-.bc-amount{font-size:.88rem;font-weight:700;display:block;margin-top:2px;}
+.bc-hall{font-size:18px;font-weight:300;opacity:1;display:block;}
+.bc-time{font-size:16px;font-weight:800;letter-spacing:0;display:block;line-height:1.6;}
+.bc-amount{font-size:16px;font-weight:300;display:block;margin-top:2px;}
 .bc-bottom{display:flex;align-items:center;gap:10px;margin-top:10px;}
-.bc-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);flex-shrink:0;}
+.bc-avatar{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.25);flex-shrink:0;}
 .bc-info{flex:1;min-width:0;}
-.bc-name{font-size:.82rem;font-weight:700;}
-.bc-contact{font-size:.62rem;opacity:.85;margin-top:1px;}
-.bc-del{background:none;border:none;cursor:pointer;padding:4px;opacity:.65;flex-shrink:0;transition:opacity .15s;display:flex;align-items:center;}
+.bc-name{font-size:16px;font-weight:700;}
+.bc-contact{font-size:14px;opacity:1;font-weight:300;margin:3px 0;}
+.bc-del{background:none;border:none;cursor:pointer;padding:36px 0 0 0;opacity:.65;flex-shrink:0;transition:opacity .15s;display:flex;align-items:center;}
 .bc-del:hover{opacity:1;}
 .booking-cards-grid{display:flex;flex-wrap:wrap;gap:12px;}
 .booking-card{width:100%;margin-bottom:0;}
 @media(min-width:1024px){
-  .booking-card{max-width:calc(25% - 9px);}
+  .booking-card{min-width:340px;max-width:calc(25% - 9px);}
 }
 
 /* ═══════════════════════════════════════
@@ -365,11 +365,33 @@ select.inp option{background:var(--bg-2);}
 @media(min-width:1024px){
   .modal-ov{align-items:center;}
   .modal{border-radius:var(--r-xl);max-height:88vh;}
-  .app-content{padding:24px;max-width:100%;}
+  .app-content{padding:0;max-width:100%;}
   .mob-top .nav-logo svg{height:14px;}
   .month-strip{gap:4px;}
   .ll-stats{display:flex;flex-wrap:wrap;gap:10px;padding:14px 16px;}
   .ll-stats .stat-card{max-width:calc(25% - 8px);flex:1;}
+}
+/* ── Block-dates toggle ── */
+.block-toggle{display:flex;align-items:center;gap:7px;margin-left:auto;cursor:pointer;user-select:none;}
+.block-toggle input{display:none;}
+.block-toggle-track{
+  width:34px;height:20px;border-radius:100px;
+  background:rgba(255,255,255,.1);border:1px solid var(--border);
+  position:relative;transition:background .2s,border-color .2s;flex-shrink:0;
+}
+.block-toggle-track::after{
+  content:'';position:absolute;width:14px;height:14px;border-radius:50%;
+  background:rgba(255,255,255,.5);top:2px;left:2px;transition:transform .2s,background .2s;
+}
+.block-toggle input:checked + .block-toggle-track{background:var(--danger);border-color:var(--danger);}
+.block-toggle input:checked + .block-toggle-track::after{transform:translateX(14px);background:#fff;}
+.block-toggle-label{font-size:.62rem;font-weight:600;color:var(--text-dim);white-space:nowrap;}
+
+@media(max-width:480px){
+  .hall-thumb{width:32vw;flex-shrink:0;object-fit:cover;display:block;background:var(--bg-2);height:100%;min-height:42vw;}
+  .status-pill{position:absolute;right:2.5em;top:10.5em;}
+  .hall-body{flex:1;padding:36px 20px 0 20px;min-width:0;}
+  .sec-head{padding:16px 16px 36px;display:flex;align-items:center;justify-content:space-between;}
 }
 </style>
 </head>
@@ -586,7 +608,7 @@ select.inp option{background:var(--bg-2);}
             </div>
             <div class="hall-footer">
               <button class="status-pill on" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Активен</button>
-              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал А')">Блок дат</button>
+              <label class="block-toggle" onclick="event.stopPropagation();" title="Заблокировать даты"><input type="checkbox" onchange="onBlockToggle(this,'Зал А')"><span class="block-toggle-track"></span><span class="block-toggle-label">Блок дат</span></label>
             </div>
           </div>
         </div>
@@ -600,7 +622,7 @@ select.inp option{background:var(--bg-2);}
             </div>
             <div class="hall-footer">
               <button class="status-pill on" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Активен</button>
-              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал Б')">Блок дат</button>
+              <label class="block-toggle" onclick="event.stopPropagation();" title="Заблокировать даты"><input type="checkbox" onchange="onBlockToggle(this,'Зал Б')"><span class="block-toggle-track"></span><span class="block-toggle-label">Блок дат</span></label>
             </div>
           </div>
         </div>
@@ -614,7 +636,7 @@ select.inp option{background:var(--bg-2);}
             </div>
             <div class="hall-footer">
               <button class="status-pill on" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Активен</button>
-              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал В')">Блок дат</button>
+              <label class="block-toggle" onclick="event.stopPropagation();" title="Заблокировать даты"><input type="checkbox" onchange="onBlockToggle(this,'Зал В')"><span class="block-toggle-track"></span><span class="block-toggle-label">Блок дат</span></label>
             </div>
           </div>
         </div>
@@ -628,7 +650,7 @@ select.inp option{background:var(--bg-2);}
             </div>
             <div class="hall-footer">
               <button class="status-pill off" onclick="event.stopPropagation();toggleHall(this)"><span class="status-dot"></span>Отключён</button>
-              <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="event.stopPropagation();openBlockModal('Зал Г')">Блок дат</button>
+              <label class="block-toggle" onclick="event.stopPropagation();" title="Заблокировать даты"><input type="checkbox" onchange="onBlockToggle(this,'Зал Г')"><span class="block-toggle-track"></span><span class="block-toggle-label">Блок дат</span></label>
             </div>
           </div>
         </div>
@@ -1510,7 +1532,34 @@ function openBlockModal(hallName) {
   document.getElementById('block-to').value   = today;
   openModal('block-modal');
 }
-function saveBlock() { closeModal('block-modal'); }
+let _pendingBlockToggle = null;
+function onBlockToggle(input, hallName) {
+  if (input.checked) {
+    // включили — открываем модал выбора дат
+    _pendingBlockToggle = input;
+    openBlockModal(hallName);
+  } else {
+    // выключили — просим подтверждение
+    if (!confirm('Снять блокировку дат для «' + hallName + '»?')) {
+      input.checked = true; // откатываем
+    }
+  }
+}
+// Если модал закрыли не сохранив — откатываем тумблер
+const _origCloseModal = closeModal;
+closeModal = function(id) {
+  if (id === 'block-modal' && _pendingBlockToggle) {
+    const saved = document.getElementById('block-modal').dataset.saved;
+    if (saved !== '1' && _pendingBlockToggle.checked) _pendingBlockToggle.checked = false;
+    _pendingBlockToggle = null;
+    document.getElementById('block-modal').dataset.saved = '';
+  }
+  _origCloseModal(id);
+};
+function saveBlock() {
+  document.getElementById('block-modal').dataset.saved = '1';
+  closeModal('block-modal');
+}
 
 /* ══════════════════════════════════════
    HALL STATUS TOGGLE
