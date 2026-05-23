@@ -106,31 +106,35 @@ nav.d-nav {
 }
 .section-label::before { content: ''; width: 24px; height: 1px; background: rgba(217,217,217,.25); }
 
-/* ══ BOOKING CARD ══ */
+/* ══ BOOKING CARD (SVG-BG) ══ */
+.booking-cards-grid { display: flex; flex-direction: column; gap: 12px; }
 .booking-card {
-  border: 1px solid var(--accent-border); background: var(--charcoal-mid);
-  padding: 24px; margin-bottom: 2px;
-  display: flex; gap: 20px; align-items: flex-start;
-  transition: border-color .2s;
+  border-radius: 18px; overflow: hidden; cursor: default;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  min-height: 140px; display: flex; flex-direction: column; justify-content: space-between;
+  padding: 16px 16px 14px; color: #fff;
 }
-.booking-card:hover { border-color: rgba(255,255,255,.22); }
-.booking-status-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px;
+.booking-card.st-ok     { background-image: url('/card/succes.svg'); }
+.booking-card.st-pend   { background-image: url('/card/time.svg'); }
+.booking-card.st-hold   { background-image: url('/card/hold.svg'); }
+.booking-card.st-cancel { background-image: url('/card/cancel.svg'); opacity: .8; }
+.bc-top { display: flex; flex-direction: column; gap: 3px; }
+.bc-hall   { font-size: .8rem; font-weight: 700; letter-spacing: -.01em; opacity: .95; }
+.bc-time   { font-size: .7rem; font-weight: 400; opacity: .75; }
+.bc-amount { font-size: 1.15rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; margin-top: 6px; }
+.bc-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.bc-info   { display: flex; flex-direction: column; gap: 3px; }
+.bc-date   { font-size: .72rem; font-weight: 600; opacity: .85; }
+.bc-fmt    { font-size: .65rem; opacity: .6; }
+.bc-prepay { font-size: .65rem; opacity: .6; }
+.bc-cancel-btn {
+  background: rgba(0,0,0,.22); border: none; color: #fff; cursor: pointer;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background .2s;
 }
-.status-paid    { background: var(--success); box-shadow: 0 0 8px rgba(80,216,144,.4); }
-.status-hold    { background: var(--warning); box-shadow: 0 0 8px rgba(245,200,66,.4); }
-.status-cancelled { background: rgba(217,217,217,.2); }
-.booking-info { flex: 1; }
-.booking-hall  { font-size: 13px; font-weight: 700; color: var(--accent); }
-.booking-date  { font-size: 10px; font-weight: 400; color: rgba(217,217,217,.6); margin-top: 4px; letter-spacing: .04em; }
-.booking-price { font-size: 10px; font-weight: 600; color: rgba(217,217,217,.4); margin-top: 8px; }
-.booking-badge {
-  font-size: 7px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase;
-  padding: 4px 10px; border-radius: 2px; flex-shrink: 0; align-self: center;
-}
-.badge-paid     { background: rgba(80,216,144,.12); color: var(--success); border: 1px solid rgba(80,216,144,.25); }
-.badge-hold     { background: rgba(245,200,66,.1);  color: var(--warning);  border: 1px solid rgba(245,200,66,.25); }
-.badge-cancelled { background: rgba(217,217,217,.06); color: rgba(217,217,217,.35); border: 1px solid rgba(217,217,217,.12); }
+.bc-cancel-btn:hover { background: rgba(0,0,0,.45); }
+.bc-cancel-btn svg   { width: 15px; height: 15px; }
 
 /* ══ EMPTY STATE ══ */
 .empty-state {
@@ -203,16 +207,6 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
   .user-card { flex-direction: row; align-items: center; gap: 16px; }
 }
 
-/* ══ BOOKING ACTIONS ══ */
-.booking-actions { display: flex; gap: 8px; margin-top: 10px; }
-.btn-action {
-  font-family: var(--font); font-size: 7.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
-  padding: 7px 14px; border: 1px solid var(--accent-border); background: transparent;
-  color: rgba(217,217,217,.5); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
-  transition: all .2s;
-}
-.btn-action:hover { border-color: rgba(255,255,255,.35); color: var(--light); }
-.btn-action.danger:hover { border-color: rgba(255,100,100,.5); color: var(--danger); }
 
 /* ══ CANCEL MODAL ══ */
 .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -252,7 +246,7 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
   .container { padding: 0 20px; }
   .section { margin-top: 32px; }
   .page-title { font-size: 22px; }
-  .booking-card { padding: 18px 16px; }
+
 }
 </style>
 <script src="/layout.js" defer></script>
@@ -373,11 +367,13 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
 const MONTH  = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 const DAY    = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const STATUS = {
-  paid:            { label: 'Оплачено',  cls: 'badge-paid',      dot: 'status-paid'      },
-  confirmed:       { label: 'Оплачено',  cls: 'badge-paid',      dot: 'status-paid'      },
-  hold:            { label: 'Резерв',    cls: 'badge-hold',      dot: 'status-hold'      },
-  pending_payment: { label: 'Ожидает',   cls: 'badge-hold',      dot: 'status-hold'      },
-  cancelled:       { label: 'Отменено',  cls: 'badge-cancelled', dot: 'status-cancelled' },
+  paid:            { label: 'Оплачено',  card: 'st-ok'     },
+  confirmed:       { label: 'Подтверждено', card: 'st-ok'  },
+  completed:       { label: 'Завершено', card: 'st-ok'     },
+  hold:            { label: 'Резерв',    card: 'st-hold'   },
+  pending_payment: { label: 'Ожидает',   card: 'st-pend'   },
+  draft:           { label: 'Черновик',  card: 'st-pend'   },
+  cancelled:       { label: 'Отменено',  card: 'st-cancel' },
 };
 
 function fmtDate(str) {
@@ -488,35 +484,46 @@ function renderBookings(list) {
   let html = '';
   if (upcoming.length) {
     html += '<div class="section-label" style="margin-bottom:12px;">Предстоящие</div>';
-    html += upcoming.map(bookingCard).join('');
+    html += `<div class="booking-cards-grid">${upcoming.map(bookingCard).join('')}</div>`;
   }
   if (past.length) {
     html += '<div class="section-label" style="margin-top:28px;margin-bottom:12px;">Прошедшие</div>';
-    html += past.map(bookingCard).join('');
+    html += `<div class="booking-cards-grid">${past.map(bookingCard).join('')}</div>`;
   }
   el.innerHTML = html;
 }
 
 function bookingCard(b) {
-  const s   = STATUS[b.status] || { label: b.status, cls: 'badge-cancelled', dot: 'status-cancelled' };
+  const s   = STATUS[b.status] || { label: b.status, card: 'st-pend' };
   const fmt = b.format === 'event' ? 'Мероприятие' : 'Почасовая';
   const canCancel = ['paid','confirmed','hold','pending_payment'].includes(b.status)
     && new Date(b.date + 'T00:00:00') >= new Date(new Date().setHours(0,0,0,0));
 
-  const actions = `<div class="booking-actions">
-    ${canCancel ? `<button class="btn-action danger" onclick="showCancelModal(${b.id})">Отменить</button>` : ''}
-    <a href="tel:+79086850838" class="btn-action">Связаться</a>
-  </div>`;
+  const [hs, ms] = (b.time_start || '0:0').split(':').map(Number);
+  const [he, me] = (b.time_end   || '0:0').split(':').map(Number);
+  const dur = Math.round((he * 60 + me - hs * 60 - ms) / 60);
 
-  return `<div class="booking-card" id="booking-${b.id}">
-    <div class="booking-status-dot ${s.dot}"></div>
-    <div class="booking-info">
-      <div class="booking-hall">${b.hall}</div>
-      <div class="booking-date">${fmtDate(b.date)} · ${b.time_start}–${b.time_end} · ${fmt}</div>
-      <div class="booking-price">Оплачено: ${fmtMoney(b.prepayment)} из ${fmtMoney(b.total)}</div>
-      ${actions}
+  const cancelBtn = canCancel ? `<button class="bc-cancel-btn" onclick="event.stopPropagation();showCancelModal(${b.id})" title="Отменить бронь">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>` : '';
+
+  const prepayLine = b.prepayment && Number(b.prepayment) < Number(b.total)
+    ? `<div class="bc-prepay">Предоплата: ${fmtMoney(b.prepayment)}</div>` : '';
+
+  return `<div class="booking-card ${s.card}" id="booking-${b.id}">
+    <div class="bc-top">
+      <span class="bc-hall">${b.hall} · ${dur} ч</span>
+      <span class="bc-time">${b.time_start} – ${b.time_end}</span>
+      <span class="bc-amount">${fmtMoney(b.total)}</span>
     </div>
-    <span class="booking-badge ${s.cls}">${s.label}</span>
+    <div class="bc-bottom">
+      <div class="bc-info">
+        <div class="bc-date">${fmtDate(b.date)}</div>
+        <div class="bc-fmt">${fmt}</div>
+        ${prepayLine}
+      </div>
+      ${cancelBtn}
+    </div>
   </div>`;
 }
 
@@ -541,7 +548,9 @@ async function confirmCancel() {
     hideCancelModal();
     if (data.ok) {
       const card = document.getElementById(`booking-${cancelTarget}`);
-      if (card) card.style.opacity = '.4';
+      if (card) {
+        card.className = card.className.replace(/\bst-\w+\b/, 'st-cancel');
+      }
     } else {
       alert(data.error || 'Ошибка отмены');
     }
