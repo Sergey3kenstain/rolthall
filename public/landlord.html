@@ -1234,6 +1234,7 @@ const HALL_CLR = {А:'#376FFF',Б:'#27AE60',В:'#9B59B6',Г:'#F39C12'};
 /* ══════════════════════════════════════
    TABS
 ══════════════════════════════════════ */
+const _tabLoaded = {};
 function switchTab(id, triggerEl) {
   document.querySelectorAll('.ll-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + id).classList.add('active');
@@ -1243,6 +1244,14 @@ function switchTab(id, triggerEl) {
   document.querySelectorAll('.snav-link').forEach(a => a.classList.remove('active'));
   if (triggerEl) triggerEl.classList.add('active');
   if (id === 'bookings') renderStrip();
+  if (!_tabLoaded[id]) {
+    _tabLoaded[id] = true;
+    if (id === 'all-bookings') loadAllBookings();
+    if (id === 'heatmap') { renderHeatmapMock(); loadHeatmap(); }
+    if (id === 'log') loadActionLog();
+    if (id === 'blacklist') loadBlacklist();
+    if (id === 'roles') loadRoles();
+  }
 }
 
 /* ══════════════════════════════════════
@@ -2073,22 +2082,6 @@ async function toggleUserBlacklist(userId, val) {
 
 async function toggleUserActive(userId, val) {
   await apiFetch(`/admin/users/${userId}`, { method:'PUT', body: JSON.stringify({ is_active: val }) });
-}
-
-/* ══════════════════════════════════════
-   switchTab override — trigger load on first open
-══════════════════════════════════════ */
-const _switchTabOrig = switchTab;
-const _tabLoaded = {};
-function switchTab(id, triggerEl) {
-  _switchTabOrig(id, triggerEl);
-  if (_tabLoaded[id]) return;
-  _tabLoaded[id] = true;
-  if (id === 'all-bookings') loadAllBookings();
-  if (id === 'heatmap') { renderHeatmapMock(); loadHeatmap(); }
-  if (id === 'log') loadActionLog();
-  if (id === 'blacklist') loadBlacklist();
-  if (id === 'roles') loadRoles();
 }
 
 // Auto-restore session from token
