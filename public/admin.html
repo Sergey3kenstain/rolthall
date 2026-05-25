@@ -650,7 +650,12 @@ select.inp option{background:var(--bg-card);}
       </div>
       <div class="widget">
         <div class="widget-head">
-          <div><div class="widget-title">Популярность слотов</div><div class="widget-sub">Часы × дни недели</div></div>
+          <div><div class="widget-title">Брони по слотам</div><div class="widget-sub" id="hm-week-lbl">неделя</div></div>
+          <div style="display:flex;gap:4px;">
+            <button class="widget-action" onclick="shiftHmWeek(-1)" title="Пред. неделя">‹</button>
+            <button class="widget-action" onclick="shiftHmWeek(0)" title="Текущая неделя" style="font-size:.6rem;">сег.</button>
+            <button class="widget-action" onclick="shiftHmWeek(1)" title="След. неделя">›</button>
+          </div>
         </div>
         <div class="heatmap-wrap">
           <div class="heatmap" id="heatmap"></div>
@@ -1167,31 +1172,81 @@ function renderBarFallback() {
 }
 
 /* HEATMAP */
-async function loadHeatmap() {
-  const data=await api('/admin/heatmap');
-  if(data?.heatmap) renderHeatmapData(data.heatmap, data.max||1);
-  else renderHeatmapFallback();
+let _hmWeekStart = getMonday(new Date());
+
+function getMonday(d) {
+  d = new Date(d); d.setHours(0,0,0,0);
+  const day = d.getDay();
+  d.setDate(d.getDate() - (day===0 ? 6 : day-1));
+  return d;
 }
-function renderHeatmapData(hmData, maxVal) {
-  const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  const hm=document.getElementById('heatmap');
-  hm.innerHTML='<div class="hm-lbl"></div>'+DAYS.map(d=>`<div class="hm-lbl">${d}</div>`).join('');
-  const mx=maxVal||1;
-  for(let h=10;h<=22;h++){
-    hm.innerHTML+=`<div class="hm-time">${h}:00</div>`;
-    DAYS.forEach((_,di)=>{
-      const cnt=hmData?.[h]?.[di]??0;
-      const cls=cnt===0?'hm-0':cnt/mx>.66?'hm-paid':cnt/mx>.33?'hm-hold':'hm-pend';
-      hm.innerHTML+=`<div class="hm-cell ${cls}" title="${cnt} броней"></div>`;
+
+function shiftHmWeek(dir) {
+  if (dir === 0) _hmWeekStart = getMonday(new Date());
+  else _hmWeekStart = new Date(_hmWeekStart.getTime() + dir * 7 * 86400000);
+  loadHeatmap();
+}
+
+async function loadHeatmap() {
+  const pad = n => String(n).padStart(2,'0');
+  const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const days = Array.from({length:7}, (_,i) => {
+    const d = new Date(_hmWeekStart.getTime() + i * 86400000);
+    return fmtDate(d);
+  });
+  const mon = days[0], sun = days[6];
+  const monD = new Date(mon+'T00:00:00');
+  const sunD = new Date(sun+'T00:00:00');
+  const fmtShort = d => `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]}`;
+  document.getElementById('hm-week-lbl').textContent = `${fmtShort(monD)} — ${fmtShort(sunD)}`;
+
+  // Fetch all 7 days in parallel
+  const results = await Promise.all(days.map(date => api(`/admin/bookings?date=${date}`)));
+
+  // Build matrix [hour][dayIdx] = 'paid'|'pend'|'hold'|'0'
+  const ST_PRIORITY = {paid:4, confirmed:4, completed:4, pending_payment:3, hold:2};
+  const matrix = {};
+  for (let h=10; h<=22; h++) matrix[h] = Array(7).fill('0');
+
+  results.forEach((data, di) => {
+    (data?.bookings || data?.data || []).forEach(b => {
+      const sh = parseInt((b.time_start||'').slice(0,2));
+      const eh = parseInt((b.time_end||'').slice(0,2));
+      const pri = ST_PRIORITY[b.status] || 0;
+      if (!pri) return;
+      for (let h=sh; h<eh && h<=22; h++) {
+        if (h<10) continue;
+        const cur = matrix[h][di];
+        const curPri = ST_PRIORITY[{paid:'paid',pend:'pending_payment',hold:'hold'}[cur]] || 0;
+        if (pri > curPri) {
+          if (['paid','confirmed','completed'].includes(b.status)) matrix[h][di]='paid';
+          else if (b.status==='pending_payment') matrix[h][di]='pend';
+          else if (b.status==='hold') matrix[h][di]='hold';
+        }
+      }
+    });
+  });
+
+  renderHeatmapWeek(days, matrix);
+}
+
+function renderHeatmapWeek(days, matrix) {
+  const WDAYS_HM = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const today = new Date().toISOString().slice(0,10);
+  const hm = document.getElementById('heatmap');
+  hm.innerHTML = '<div class="hm-lbl"></div>' + days.map((d,i) => {
+    const dn = new Date(d+'T00:00:00').getDate();
+    const isT = d===today;
+    return `<div class="hm-lbl" style="${isT?'color:rgba(55,111,255,.9);font-weight:700;':''}">${WDAYS_HM[i]}<br><span style="font-size:.5rem;opacity:.75;">${dn}</span></div>`;
+  }).join('');
+  for (let h=10; h<=22; h++) {
+    hm.innerHTML += `<div class="hm-time">${h}:00</div>`;
+    days.forEach((_,di) => {
+      const st = matrix[h][di];
+      const cls = st==='paid'?'hm-paid':st==='pend'?'hm-pend':st==='hold'?'hm-hold':'hm-0';
+      hm.innerHTML += `<div class="hm-cell ${cls}"></div>`;
     });
   }
-}
-function renderHeatmapFallback() {
-  const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  function mockS(h,di){const we=di>=5,r=Math.random(),busy=(we?.35:.15)+(h>=17&&h<=21?.45:h>=11&&h<17?.25:.1);if(r>busy)return'0';const s=Math.random();return(h>=17||we)?(s<.65?'paid':s<.85?'pend':'hold'):(s<.35?'paid':s<.65?'pend':'hold');}
-  const hm=document.getElementById('heatmap');
-  hm.innerHTML='<div class="hm-lbl"></div>'+DAYS.map(d=>`<div class="hm-lbl">${d}</div>`).join('');
-  for(let h=10;h<=22;h++){hm.innerHTML+=`<div class="hm-time">${h}:00</div>`;DAYS.forEach((_,di)=>{hm.innerHTML+=`<div class="hm-cell hm-${mockS(h,di)}"></div>`;});}
 }
 
 /* GAUGE */
@@ -1822,7 +1877,6 @@ async function init() {
   initUser();
   loadHalls();
   renderBarFallback();
-  renderHeatmapFallback();
   renderGauge(0,12);
   loadAnalytics();
   loadHeatmap();
