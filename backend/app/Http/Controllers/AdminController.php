@@ -338,9 +338,11 @@ class AdminController extends Controller
 
         $esc = fn($v) => '"' . str_replace('"', '""', (string)($v ?? '')) . '"';
 
-        $rows = ["ID,Аватар,Имя,Телефон,Email,Telegram,Брони,Оплачено (руб),Последняя бронь"];
+        $rows = ["ID,Аватар,Имя,Телефон,Email,Telegram,Брони,Оплачено (руб),Первая бронь,Последняя бронь,Статус"];
         foreach ($clients as $c) {
-            $lastBooking = $c->bookings()->orderByDesc('date')->value('date') ?? '';
+            $firstBooking = $c->bookings()->orderBy('date')->value('date') ?? '';
+            $lastBooking  = $c->bookings()->orderByDesc('date')->value('date') ?? '';
+            $status       = $c->is_blacklisted ? 'В чёрном списке' : 'Активен';
             $rows[] = implode(',', [
                 $c->id,
                 $esc($c->avatar_url),
@@ -350,7 +352,9 @@ class AdminController extends Controller
                 $esc($c->telegram_username),
                 $c->bookings_count,
                 $c->total_paid,
+                $firstBooking,
                 $lastBooking,
+                $esc($status),
             ]);
         }
 
