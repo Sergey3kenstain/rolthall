@@ -726,7 +726,9 @@ select.inp option{background:var(--bg-card);}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-size:.9rem;font-weight:700;">Все брони</div>
         <!-- <button class="btn btn-ghost btn-sm" onclick="loadAllBookings()">Обновить</button> -->
-
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+        <select class="inp" id="abf-status" onchange="renderAllBookings()" style="flex:1;min-width:100px;max-width:140px;font-size:.7rem;padding:7px 10px;">
           <option value="">Все статусы</option>
           <option value="hold">Холд</option>
           <option value="pending_payment">Ожидает оплаты</option>
@@ -735,9 +737,6 @@ select.inp option{background:var(--bg-card);}
           <option value="completed">Завершена</option>
           <option value="cancelled">Отменена</option>
         </select>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        <select class="inp" id="abf-status" onchange="renderAllBookings()" style="flex: 1;margin: 0 0 0 2em;min-width: 100px;max-width: 140px;font-size: .7rem;padding: 7px 10px;">
         <select class="inp" id="abf-hall" onchange="renderAllBookings()" style="display: none;flex:1;min-width:110px;font-size:.7rem;padding:7px 10px;"><option value="">Все залы</option></select>
         <input type="date" class="inp" id="abf-from" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
         <input type="date" class="inp" id="abf-to" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
