@@ -126,7 +126,7 @@ class AuthController extends Controller
             'ok'          => true,
             'token'       => $token,
             'token_type'  => $isStaff ? 'sanctum' : 'profile',
-            'redirect_to' => $isStaff ? '/dashboard' : '/client',
+            'redirect_to' => $isStaff ? '/admin' : '/profile',
             'user'        => [
                 'id'    => $user->id,
                 'name'  => $user->name,
