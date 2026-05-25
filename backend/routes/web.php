@@ -78,9 +78,9 @@ $statusPageLayout = fn(string $icon, string $title, string $text, string $extra 
 </html>
 HTML);
 
-Route::get('/admin', function () {
-    return response(file_get_contents(public_path('admin.html')));
-});
+Route::get('/login',   function () { return response(file_get_contents(public_path('login.html'))); });
+Route::get('/profile', function () { return response(file_get_contents(public_path('profile.html'))); });
+Route::get('/admin',   function () { return response(file_get_contents(public_path('admin.html'))); });
 
 Route::get('/booking/success', function () use ($statusPageLayout) {
     return $statusPageLayout(

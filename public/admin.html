@@ -469,7 +469,7 @@ button{font-family:var(--font);}
 <script>
 const API = '/api';
 const _token = localStorage.getItem('rh_token');
-if (!_token) window.location.href = '/profile';
+if (!_token) window.location.href = '/login';
 
 let _period = 'month';
 let _gaugeHallId = null;
@@ -499,7 +499,7 @@ document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',
 async function doLogout() {
   try { await api('/auth/logout',{method:'POST'}); } catch(e){}
   localStorage.removeItem('rh_token');
-  window.location.href='/profile';
+  window.location.href='/login';
 }
 
 /* FILTER */
