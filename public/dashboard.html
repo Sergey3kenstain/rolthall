@@ -794,15 +794,15 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <!-- Login -->
 <div class="modal-overlay" id="login-modal">
   <div class="modal">
-    <div class="modal-title">Вход в систему</div>
+    <div class="modal-title">Вход</div>
     <div class="modal-form">
       <div class="form-group">
         <label class="form-label">Телефон</label>
-        <input type="tel" class="form-input" id="login-phone" placeholder="+7 (999) 000-00-00" autocomplete="tel">
+        <input type="tel" class="form-input" id="login-phone" placeholder="+7 (999) 000-00-00" autocomplete="tel" oninput="phoneMask(this)" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <div class="form-group">
-        <label class="form-label">Пароль</label>
-        <input type="password" class="form-input" id="login-password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="login-email" placeholder="email@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <div id="login-error" style="font-size:10px;color:var(--danger);display:none"></div>
       <div class="modal-actions">
@@ -984,21 +984,45 @@ async function apiFetch(path, opts = {}) {
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────
+function phoneMask(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v.startsWith('8')) v = '7' + v.slice(1);
+  if (!v.startsWith('7')) v = '7' + v;
+  v = v.slice(0, 11);
+  let out = '+7';
+  if (v.length > 1) out += ' (' + v.slice(1, 4);
+  if (v.length >= 4) out += ') ' + v.slice(4, 7);
+  if (v.length >= 7) out += '-' + v.slice(7, 9);
+  if (v.length >= 9) out += '-' + v.slice(9, 11);
+  input.value = out;
+}
+
 async function doLogin() {
   const phone = document.getElementById('login-phone').value.trim();
-  const password = document.getElementById('login-password').value;
+  const email = document.getElementById('login-email').value.trim();
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
-  if (!phone || !password) { errEl.textContent = 'Введите телефон и пароль'; errEl.style.display = ''; return; }
-  const data = await apiFetch('/auth/login', {
+  if (!phone || !email) { errEl.textContent = 'Введите телефон и email'; errEl.style.display = ''; return; }
+
+  const data = await apiFetch('/auth/unified-login', {
     method: 'POST',
-    body: JSON.stringify({phone, password})
+    body: JSON.stringify({phone, email})
   });
-  if (!data || !data.token) {
-    errEl.textContent = data?.message || 'Неверный телефон или пароль';
+  if (!data || !data.ok) {
+    errEl.textContent = data?.error || 'Пользователь не найден';
     errEl.style.display = '';
     return;
   }
+
+  // Клиент → редирект на /client
+  if (data.redirect_to === '/client') {
+    localStorage.setItem('rh_profile_token', data.token);
+    localStorage.setItem('rh_profile_name', data.user?.name || '');
+    window.location.href = '/client';
+    return;
+  }
+
+  // Стафф → остаёмся на dashboard
   authToken = data.token;
   localStorage.setItem('rh_token', authToken);
   _currentUser = data.user;

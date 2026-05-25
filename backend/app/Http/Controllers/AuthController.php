@@ -37,7 +37,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Вход для персонала
+     * Вход для персонала (email + password)
      * POST /api/auth/login
      */
     public function login(Request $request): JsonResponse
@@ -53,13 +53,11 @@ class AuthController extends Controller
             return response()->json(['ok' => false, 'error' => 'Неверный email или пароль'], 401);
         }
 
-        if (!$user->hasAnyRole(['owner', 'manager', 'developer'])) {
+        if (!$user->hasAnyRole(['owner', 'admin', 'manager', 'developer'])) {
             return response()->json(['ok' => false, 'error' => 'Доступ не назначен. Обратитесь к разработчику.'], 403);
         }
 
-        // Удаляем старые токены персонала
         $user->tokens()->where('name', 'staff')->delete();
-
         $token = $user->createToken('staff')->plainTextToken;
 
         return response()->json([
@@ -70,6 +68,71 @@ class AuthController extends Controller
                 'name'  => $user->name,
                 'email' => $user->email,
                 'role'  => $user->getRoleNames()->first(),
+                'roles' => $user->getRoleNames()->values()->all(),
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Единый вход: телефон + email → определяет роль, выдаёт нужный токен
+     * POST /api/auth/unified-login
+     */
+    public function unifiedLogin(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'phone' => 'required|string|max:30',
+            'email' => 'required|email|max:191',
+        ]);
+
+        // Нормализуем телефон — убираем всё кроме цифр и ведущего +
+        $phone = preg_replace('/[^\d+]/', '', $data['phone']);
+        if (strlen($phone) === 11 && $phone[0] === '8') {
+            $phone = '+7' . substr($phone, 1);
+        } elseif (strlen($phone) === 10) {
+            $phone = '+7' . $phone;
+        }
+
+        $user = User::where('email', $data['email'])
+            ->where('phone', $phone)
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Пользователь с таким телефоном и email не найден.',
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $role = $user->getRoleNames()->first() ?? 'client';
+        $isStaff = $user->hasAnyRole(['owner', 'admin', 'manager', 'developer']);
+
+        if ($isStaff) {
+            // Выдаём Sanctum-токен для доступа к /admin/* API
+            $user->tokens()->where('name', 'staff')->delete();
+            $token = $user->createToken('staff')->plainTextToken;
+        } else {
+            // Клиентский SHA256-токен (без пароля, только идентификация)
+            $client = $user->client ?? null;
+            if ($client && $client->is_blacklisted) {
+                return response()->json([
+                    'ok'    => false,
+                    'error' => 'Доступ ограничен. Обратитесь к администратору.',
+                ], 403, [], JSON_UNESCAPED_UNICODE);
+            }
+            $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
+        }
+
+        return response()->json([
+            'ok'          => true,
+            'token'       => $token,
+            'token_type'  => $isStaff ? 'sanctum' : 'profile',
+            'redirect_to' => $isStaff ? '/dashboard' : '/client',
+            'user'        => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'role'  => $role,
                 'roles' => $user->getRoleNames()->values()->all(),
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
