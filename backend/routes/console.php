@@ -13,12 +13,16 @@ Schedule::command('bookings:release-holds')->everyMinute()->withoutOverlapping()
 
 // Переводим оплаченные брони в completed после окончания
 Schedule::call(function () {
-    \App\Models\Booking::where('status', \App\Models\Booking::STATUS_CONFIRMED)
-        ->where('date', '<', now()->toDateString())
-        ->orWhere(function ($q) {
-            $q->where('status', \App\Models\Booking::STATUS_CONFIRMED)
-              ->where('date', now()->toDateString())
-              ->where('time_end', '<', now()->format('H:i:s'));
+    \App\Models\Booking::whereIn('status', [
+            \App\Models\Booking::STATUS_PAID,
+            \App\Models\Booking::STATUS_CONFIRMED,
+        ])
+        ->where(function ($q) {
+            $q->where('date', '<', now()->toDateString())
+              ->orWhere(function ($q2) {
+                  $q2->where('date', now()->toDateString())
+                     ->where('time_end', '<', now()->format('H:i:s'));
+              });
         })
         ->update(['status' => \App\Models\Booking::STATUS_COMPLETED]);
 })->everyFifteenMinutes()->name('bookings:complete')->withoutOverlapping();
