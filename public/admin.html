@@ -727,7 +727,7 @@ select.inp option{background:var(--bg-card);}
         <div style="font-size:.9rem;font-weight:700;">Все брони</div>
         <button class="btn btn-ghost btn-sm" onclick="loadAllBookings()">Обновить</button>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
         <select class="inp" id="abf-status" onchange="renderAllBookings()" style="flex:1;min-width:110px;font-size:.7rem;padding:7px 10px;">
           <option value="">Все статусы</option>
           <option value="hold">Холд</option>
@@ -899,7 +899,7 @@ select.inp option{background:var(--bg-card);}
       <div class="cd-stats">
         <div class="cd-stat"><div class="cd-stat-val" id="cd-bookings">—</div><div class="cd-stat-lbl">Броней</div></div>
         <div class="cd-stat"><div class="cd-stat-val" id="cd-total">—</div><div class="cd-stat-lbl">Оплачено</div></div>
-        <div class="cd-stat"><div class="cd-stat-val" id="cd-since">—</div><div class="cd-stat-lbl">Клиент с</div></div>
+        <div class="cd-stat"><div class="cd-stat-val" id="cd-since">—</div><div class="cd-stat-lbl">1-ая бронь</div></div>
       </div>
       <!-- Роль + статус (dev only) -->
       <div id="cd-dev-row" style="display:none;padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -1012,6 +1012,12 @@ const STATUS_MAP = {paid:'ok',confirmed:'ok',completed:'ok',hold:'hold',pending_
 const AB_STATUS_CLASS = {paid:'ok',confirmed:'ok',completed:'ok',hold:'warn',pending_payment:'warn',cancelled:'err',draft:'gray'};
 const AB_STATUS_LABELS = {paid:'Оплачена',confirmed:'Подтверждена',completed:'Завершена',hold:'Холд',pending_payment:'Ожидает',cancelled:'Отменена',draft:'Черновик'};
 const _tabLoaded = new Set();
+function fmtDisplayDate(d) {
+  if (!d || d === '—') return '—';
+  const dt = new Date(d);
+  if (isNaN(dt)) return d;
+  return String(dt.getDate()).padStart(2,'0')+'.'+String(dt.getMonth()+1).padStart(2,'0')+'.'+dt.getFullYear();
+}
 let _me = null;
 
 let _period = 'month';
@@ -1688,7 +1694,7 @@ async function openClientModal(id) {
   const lastBk  = bk.length ? bk[0].date : '—';
   document.getElementById('cd-bookings').textContent = c.bookings_count || bk.length || 0;
   document.getElementById('cd-total').textContent = c.total_paid ? Number(c.total_paid).toLocaleString('ru')+'₽' : '0₽';
-  document.getElementById('cd-since').textContent = (c.created_at||'—').slice(0,7).replace('-','.');
+  document.getElementById('cd-since').textContent = fmtDisplayDate(firstBk);
   // Dev controls
   const devRow = document.getElementById('cd-dev-row');
   if (_me?.role==='developer'||_me?.role==='owner') {
@@ -1706,7 +1712,7 @@ async function openClientModal(id) {
     bkList.innerHTML = bk.map(b=>{
       const sc=AB_STATUS_CLASS[b.status]||'gray', sl=AB_STATUS_LABELS[b.status]||b.status||'—';
       return `<div class="cd-booking-row">
-        <span class="cd-bk-date">${b.date||'—'}</span>
+        <span class="cd-bk-date">${fmtDisplayDate(b.date)}</span>
         <span class="cd-bk-hall">${b.hall||'—'}</span>
         <span class="cd-bk-time">${b.time_start||''}–${b.time_end||''}</span>
         <span class="st-badge ${sc}" style="margin-left:auto;">${sl}</span>
