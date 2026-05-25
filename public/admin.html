@@ -59,6 +59,7 @@ button{font-family:var(--font);}
 
 /* ── MOB HEADER ── */
 .mob-header{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:var(--mob-h);padding:0 18px;background:var(--bg);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;}
+.mob-header-logo{height:12px;width:auto;max-width:190px;display:block;}
 .mob-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;cursor:pointer;position:relative;}
 .mob-avatar-popup{position:absolute;top:calc(100% + 10px);right:0;background:var(--bg-card2);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:160px;box-shadow:0 16px 40px rgba(0,0,0,.55);display:none;z-index:300;}
 .mob-avatar-popup.open{display:block;}
@@ -518,7 +519,7 @@ select.inp option{background:var(--bg-card);}
 
 <!-- ══ MOB HEADER ══ -->
 <div class="mob-header">
-  <svg style="height:13px;width:auto;display:block"><use href="#rh-logo"/></svg>
+  <svg class="mob-header-logo"><use href="#rh-logo"/></svg>
   <div class="mob-avatar" id="mob-avatar" onclick="toggleMobAvatarPopup(event)">—
     <div class="mob-avatar-popup" id="mob-avatar-popup">
       <div class="mob-avatar-popup-name" id="mob-avatar-popup-name">…</div>
