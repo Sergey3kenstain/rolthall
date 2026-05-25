@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — RoltHall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1724;
+  --bg-2:#26232e;--bg-card:#26232e;
+  --bg-3:#2e2b35;--bg-card2:#2e2b35;
+  --bg-4:#35313f;
+  --accent:#7c5cbf;--accent-l:#9b7de3;--accent-s:rgba(124,92,191,.18);
+  --text:#fff;
+  --text-muted:#b0aab8;--text-m:#b0aab8;
+  --text-dim:#6b6478;--text-d:#6b6478;
+  --ok:#4caf82;--warn:#e8a838;--danger:#e05252;
+  --hold-c:#7c5cbf;--pend-c:#e8a838;
+  --radius:16px;--radius-s:10px;--radius-xs:6px;
+  --shadow:0 4px 20px rgba(0,0,0,.35);
+}
+body{font-family:'Unbounded',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+img{display:block;max-width:100%}
+
+/* ── Layout ── */
+.ll-wrap{display:flex;min-height:100dvh}
+.ll-side{width:240px;min-width:240px;background:var(--bg-2);display:flex;flex-direction:column;padding:20px 12px 24px;gap:4px;overflow-y:auto}
+.app-shell{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.page-content{flex:1;overflow-y:auto}
+.app-content{padding:20px 24px 40px;max-width:1400px;margin:0 auto}
+.ll-tab{display:none}.ll-tab.active{display:block}
+
+/* ── Sidebar ── */
+.side-logo{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;margin-bottom:4px}
+.side-logo svg{width:32px;height:32px;flex-shrink:0}
+.side-logo-name{font-size:13px;font-weight:600;letter-spacing:.02em}
+.user-block{display:flex;align-items:center;gap:10px;padding:10px 10px;background:var(--bg-3);border-radius:var(--radius-s);margin-bottom:8px;cursor:pointer;transition:background .15s}
+.user-block:hover{background:var(--bg-4)}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--accent-s);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--accent-l);flex-shrink:0}
+.user-name{font-size:11px;font-weight:500;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.snav-lbl{font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;padding:12px 10px 4px}
+.snav-link{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:var(--radius-xs);font-size:11px;font-weight:500;color:var(--text-muted);transition:background .15s,color .15s}
+.snav-link:hover{background:var(--bg-3);color:var(--text)}
+.snav-link.active{background:var(--accent-s);color:var(--accent-l)}
+
+/* ── Mobile top ── */
+.mob-top{display:none;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-2);border-bottom:1px solid rgba(255,255,255,.06)}
+.mob-top-logo{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.mob-top-logo svg{width:26px;height:26px}
+.mob-top-acc{width:32px;height:32px;border-radius:50%;background:var(--accent-s);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--accent-l);cursor:pointer}
+
+/* ── Bottom nav ── */
+.bottom-nav{display:none;background:var(--bg-2);border-top:1px solid rgba(255,255,255,.06);padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;font-size:9px;font-weight:500;color:var(--text-dim);transition:color .15s}
+.nav-tab.active{color:var(--accent-l)}
+.nav-tab svg{width:20px;height:20px}
+
+/* ── Section heading ── */
+.sec-title{font-size:15px;font-weight:600;margin-bottom:16px}
+.sec-sub{font-size:11px;color:var(--text-muted);margin-bottom:20px}
+
+/* ── Widget (card) ── */
+.widget{background:var(--bg-card);border-radius:var(--radius);padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.widget-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.widget-title{font-size:12px;font-weight:600;color:var(--text-muted)}
+.widget-sub{font-size:10px;color:var(--text-dim)}
+.widget-action{font-size:10px;font-weight:500;color:var(--accent-l);padding:4px 10px;border-radius:20px;background:var(--accent-s);transition:background .15s;flex-shrink:0}
+.widget-action:hover{background:rgba(124,92,191,.3)}
+
+/* ── KPI cards ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi-card{background:var(--bg-card);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between}
+.kpi-icon-img{width:32px;height:32px;border-radius:8px}
+.kpi-delta{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(76,175,130,.15);color:var(--ok)}
+.kpi-delta.neg{background:rgba(224,82,82,.15);color:var(--danger)}
+.kpi-bottom{display:flex;flex-direction:column;gap:3px}
+.kpi-value{font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.kpi-label{font-size:9px;font-weight:500;color:var(--text-dim);letter-spacing:.03em}
+
+/* ── Filter bar ── */
+.dash-filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;position:relative}
+.dash-period-lbl{font-size:11px;font-weight:500;color:var(--text-muted)}
+.filter-popup{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--bg-2);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-s);padding:14px;z-index:100;gap:10px;flex-direction:column;min-width:240px;box-shadow:var(--shadow)}
+.filter-popup.open{display:flex}
+.filter-row{display:flex;align-items:center;gap:8px}
+.filter-row label{font-size:10px;color:var(--text-dim);width:30px;flex-shrink:0}
+.filter-input{flex:1;background:var(--bg-3);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xs);padding:7px 10px;color:var(--text);font-size:11px;font-family:inherit}
+.filter-input:focus{outline:none;border-color:var(--accent)}
+.btn-apply{background:var(--accent);color:#fff;border-radius:var(--radius-xs);padding:8px 16px;font-size:11px;font-weight:600;width:100%}
+.btn-apply:hover{background:var(--accent-l)}
+
+/* ── Bar chart ── */
+.bar-chart-wrap{display:flex;align-items:flex-end;gap:6px;height:110px;padding-top:8px}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.bar-amount{font-size:8px;font-weight:500;color:var(--text-dim);text-align:center;min-height:12px;line-height:1}
+.bar{width:100%;border-radius:4px 4px 0 0;background:var(--bg-4);position:relative;transition:height .3s;min-height:4px}
+.bar.active{background:var(--accent)}
+.bar-tooltip{display:none;position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg-card2);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 8px;font-size:9px;white-space:nowrap;pointer-events:none}
+.bar:hover .bar-tooltip{display:block}
+.bar-day{font-size:8px;color:var(--text-dim);text-align:center}
+.widget-bar{min-height:160px}
+.widget-bar .bar-chart-wrap{flex:1}
+
+/* ── Status Heatmap (dashboard) ── */
+.hm-wrap{overflow-x:auto}
+.hm-grid{display:grid;gap:3px;width:max-content}
+.hm-row{display:contents}
+.hm-cell{width:28px;height:22px;border-radius:4px;background:var(--bg-4)}
+.hm-lbl{font-size:8px;color:var(--text-dim);display:flex;align-items:center;height:22px;width:28px}
+.hm-hour-lbl{font-size:8px;color:var(--text-dim);display:flex;align-items:center;justify-content:center;height:22px;width:28px}
+.hm-0{background:var(--bg-4)}
+.hm-hold{background:rgba(124,92,191,.4)}
+.hm-pend{background:rgba(232,168,56,.45)}
+.hm-paid{background:rgba(76,175,130,.55)}
+.hm-legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.hm-legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text-dim)}
+.hm-legend-dot{width:10px;height:10px;border-radius:2px}
+
+/* ── Gauge ── */
+.gauge-body{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
+.gauge-svg-wrap{position:relative;width:100%;max-width:260px;margin:0 auto}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:16px;gap:2px}
+.gauge-val{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.gauge-lbl{font-size:9px;color:var(--text-dim);text-align:center}
+.gauge-footer{display:flex;justify-content:center}
+.gauge-pill{font-size:10px;font-weight:500;padding:5px 14px;border-radius:20px;background:var(--accent-s);color:var(--accent-l)}
+.gauge-hall-select{font-size:10px;background:var(--bg-3);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xs);padding:3px 8px;color:var(--text);cursor:pointer}
+
+/* ── dash-grid ── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.dash-grid-2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+
+/* ── Client item (в виджетах) ── */
+.client-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.client-item:last-child{border-bottom:none}
+.ci-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-s);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--accent-l);flex-shrink:0}
+.ci-info{flex:1;min-width:0}
+.ci-name{font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-phone{font-size:9px;color:var(--text-dim)}
+.bl-reason-tag{font-size:8px;padding:2px 7px;border-radius:20px;background:rgba(224,82,82,.15);color:var(--danger);white-space:nowrap;flex-shrink:0}
+
+/* ── Log item ── */
+.log-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.log-item:last-child{border-bottom:none}
+.log-icon{width:24px;height:24px;border-radius:50%;background:var(--bg-4);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.log-info{flex:1;min-width:0}
+.log-action{font-size:10px;font-weight:500;line-height:1.3}
+.log-meta{font-size:9px;color:var(--text-dim);margin-top:2px}
+
+/* ── Date strip (bookings tab) ── */
+.date-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.date-strip::-webkit-scrollbar{display:none}
+.ds-day{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 12px;border-radius:var(--radius-s);background:var(--bg-card);cursor:pointer;flex-shrink:0;transition:background .15s,color .15s;min-width:52px}
+.ds-day.active{background:var(--accent);color:#fff}
+.ds-day .wd{font-size:9px;font-weight:500;color:var(--text-dim);text-transform:uppercase}
+.ds-day.active .wd{color:rgba(255,255,255,.7)}
+.ds-day .dd{font-size:16px;font-weight:700}
+.ds-day .mn{font-size:9px;color:var(--text-dim)}
+.ds-day.active .mn{color:rgba(255,255,255,.7)}
+
+/* ── Booking cards ── */
+.bookings-list{display:flex;flex-direction:column;gap:10px}
+.booking-card{background:var(--bg-card);border-radius:var(--radius);padding:14px 16px;border-left:3px solid transparent;display:flex;flex-direction:column;gap:8px}
+.booking-card.ok{border-color:var(--ok)}
+.booking-card.hold{border-color:var(--hold-c)}
+.booking-card.pend{border-color:var(--warn)}
+.booking-card.cancel{border-color:var(--danger);opacity:.6}
+.bc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bc-hall{font-size:12px;font-weight:600}
+.bc-status{font-size:9px;font-weight:600;padding:3px 9px;border-radius:20px}
+.bc-status.ok{background:rgba(76,175,130,.2);color:var(--ok)}
+.bc-status.hold{background:rgba(124,92,191,.2);color:var(--accent-l)}
+.bc-status.pend{background:rgba(232,168,56,.2);color:var(--warn)}
+.bc-status.cancel{background:rgba(224,82,82,.2);color:var(--danger)}
+.bc-row{display:flex;align-items:center;gap:16px;font-size:10px;color:var(--text-muted);flex-wrap:wrap}
+.bc-row span{display:flex;align-items:center;gap:4px}
+.bc-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-sm{font-size:10px;font-weight:500;padding:6px 12px;border-radius:var(--radius-xs);transition:background .15s}
+.btn-cancel{background:rgba(224,82,82,.12);color:var(--danger)}
+.btn-cancel:hover{background:rgba(224,82,82,.25)}
+.btn-detail{background:var(--bg-3);color:var(--text-muted)}
+.btn-detail:hover{background:var(--bg-4)}
+
+/* ── Hall cards ── */
+.halls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.hall-card{background:var(--bg-card);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.hall-photo{width:100%;height:160px;object-fit:cover;background:var(--bg-3)}
+.hall-body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.hall-name{font-size:14px;font-weight:600}
+.hall-meta{display:flex;gap:12px;font-size:10px;color:var(--text-muted)}
+.hall-amenities{display:flex;flex-wrap:wrap;gap:5px}
+.hall-tag{font-size:9px;padding:3px 8px;border-radius:20px;background:var(--bg-3);color:var(--text-muted)}
+.hall-actions{display:flex;gap:8px}
+.btn-edit{background:var(--accent-s);color:var(--accent-l);font-size:10px;font-weight:600;padding:7px 14px;border-radius:var(--radius-xs)}
+.btn-block{background:rgba(232,168,56,.12);color:var(--warn);font-size:10px;font-weight:600;padding:7px 14px;border-radius:var(--radius-xs)}
+
+/* ── Profile ── */
+.profile-form{display:flex;flex-direction:column;gap:14px;max-width:480px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:10px;font-weight:500;color:var(--text-dim)}
+.form-input{background:var(--bg-card);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xs);padding:10px 14px;color:var(--text);font-size:12px;font-family:inherit;transition:border .15s}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.btn-save{background:var(--accent);color:#fff;font-size:12px;font-weight:600;padding:11px 24px;border-radius:var(--radius-xs);align-self:flex-start;transition:background .15s}
+.btn-save:hover{background:var(--accent-l)}
+.btn-danger{background:rgba(224,82,82,.12);color:var(--danger);font-size:12px;font-weight:600;padding:11px 24px;border-radius:var(--radius-xs);margin-top:8px;transition:background .15s}
+.btn-danger:hover{background:rgba(224,82,82,.25)}
+
+/* ── Telegram form ── */
+.tg-form{display:flex;flex-direction:column;gap:14px;max-width:480px}
+.tg-status{font-size:10px;padding:6px 12px;border-radius:20px;background:rgba(76,175,130,.12);color:var(--ok);display:inline-flex;align-items:center;gap:5px}
+.tg-status.off{background:rgba(107,100,120,.15);color:var(--text-dim)}
+
+/* ── Notifications ── */
+.notif-list{display:flex;flex-direction:column;gap:10px;max-width:480px}
+.notif-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-card);border-radius:var(--radius-s);gap:12px}
+.notif-info{flex:1}
+.notif-title{font-size:11px;font-weight:500}
+.notif-desc{font-size:9px;color:var(--text-dim);margin-top:2px}
+.toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-sw .slider{position:absolute;inset:0;background:var(--bg-4);border-radius:11px;cursor:pointer;transition:background .2s}
+.toggle-sw .slider::before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s}
+.toggle-sw input:checked+.slider{background:var(--accent)}
+.toggle-sw input:checked+.slider::before{transform:translateX(18px)}
+
+/* ── Tables ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:9px;font-weight:600;color:var(--text-dim);text-align:left;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
+td{font-size:10px;color:var(--text-muted);padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-status{font-size:9px;font-weight:600;padding:3px 8px;border-radius:20px;display:inline-block}
+.td-ok{background:rgba(76,175,130,.2);color:var(--ok)}
+.td-hold{background:rgba(124,92,191,.2);color:var(--accent-l)}
+.td-pend{background:rgba(232,168,56,.2);color:var(--warn)}
+.td-cancel{background:rgba(224,82,82,.2);color:var(--danger)}
+
+/* ── All-bookings filters ── */
+.ab-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filter-btn{font-size:10px;font-weight:500;padding:6px 14px;border-radius:20px;background:var(--bg-card);color:var(--text-muted);transition:background .15s,color .15s}
+.filter-btn.active{background:var(--accent-s);color:var(--accent-l)}
+
+/* ── Old Heatmap tab (intensity) ── */
+.hm-intensity-wrap{overflow-x:auto}
+.hm-intensity-table{border-collapse:separate;border-spacing:3px}
+.hmi-cell{width:30px;height:24px;border-radius:4px;text-align:center;font-size:0}
+.hmi-0{background:var(--bg-4)}
+.hmi-1{background:rgba(124,92,191,.25)}
+.hmi-2{background:rgba(124,92,191,.5)}
+.hmi-3{background:rgba(124,92,191,.75)}
+.hmi-4{background:var(--accent-l)}
+.hm-lbl-cell{font-size:8px;color:var(--text-dim);padding:2px 4px;text-align:right;white-space:nowrap}
+
+/* ── Blacklist cards ── */
+.bl-list{display:flex;flex-direction:column;gap:10px}
+.bl-card{background:var(--bg-card);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.bl-avatar{width:36px;height:36px;border-radius:50%;background:rgba(224,82,82,.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--danger);flex-shrink:0}
+.bl-info{flex:1;min-width:0}
+.bl-name{font-size:12px;font-weight:500}
+.bl-phone{font-size:10px;color:var(--text-muted)}
+.bl-reason{font-size:9px;color:var(--text-dim);margin-top:2px}
+.btn-unblock{font-size:10px;font-weight:500;padding:6px 12px;border-radius:var(--radius-xs);background:rgba(76,175,130,.12);color:var(--ok)}
+
+/* ── Roles ── */
+.roles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.role-card{background:var(--bg-card);border-radius:var(--radius);padding:16px}
+.role-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.role-badge{font-size:9px;font-weight:600;padding:3px 9px;border-radius:20px}
+.role-developer{background:rgba(124,92,191,.2);color:var(--accent-l)}
+.role-owner{background:rgba(232,168,56,.15);color:var(--warn)}
+.role-admin{background:rgba(76,175,130,.15);color:var(--ok)}
+.role-client{background:rgba(107,100,120,.2);color:var(--text-muted)}
+.role-user-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.role-user-phone{font-size:10px;color:var(--text-dim)}
+.role-select{width:100%;background:var(--bg-3);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xs);padding:7px 10px;color:var(--text);font-size:10px;font-family:inherit;margin-top:10px}
+
+/* ── Modals ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-2);border-radius:var(--radius);padding:24px;width:100%;max-width:420px;max-height:90dvh;overflow-y:auto;position:relative}
+.modal-wide{max-width:620px}
+.modal-title{font-size:14px;font-weight:600;margin-bottom:18px}
+.modal-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-muted);cursor:pointer}
+.modal-close:hover{background:var(--bg-4)}
+.modal-form{display:flex;flex-direction:column;gap:12px}
+.modal-actions{display:flex;gap:8px;margin-top:6px;justify-content:flex-end}
+.btn-primary{background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:9px 20px;border-radius:var(--radius-xs)}
+.btn-primary:hover{background:var(--accent-l)}
+.btn-secondary{background:var(--bg-3);color:var(--text-muted);font-size:11px;font-weight:500;padding:9px 20px;border-radius:var(--radius-xs)}
+.btn-secondary:hover{background:var(--bg-4)}
+.btn-red{background:rgba(224,82,82,.15);color:var(--danger);font-size:11px;font-weight:600;padding:9px 20px;border-radius:var(--radius-xs)}
+.btn-red:hover{background:rgba(224,82,82,.3)}
+
+/* Tariff rows */
+.tariff-rows{display:flex;flex-direction:column;gap:8px}
+.tariff-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.tariff-row-lbl{font-size:10px;color:var(--text-dim);text-align:center}
+
+/* Photo upload */
+.photo-upload{display:flex;flex-direction:column;gap:8px}
+.photo-list{display:flex;gap:8px;flex-wrap:wrap}
+.photo-thumb{width:60px;height:60px;border-radius:var(--radius-xs);object-fit:cover;background:var(--bg-3)}
+.btn-upload{font-size:10px;font-weight:500;padding:7px 14px;border-radius:var(--radius-xs);background:var(--bg-3);color:var(--text-muted);border:1px dashed rgba(255,255,255,.15)}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;padding:40px 20px;color:var(--text-dim)}
+.empty-state .icon{font-size:36px;opacity:.4}
+.empty-state p{font-size:11px;text-align:center}
+
+/* Loading spinner */
+.spinner{width:20px;height:20px;border:2px solid rgba(124,92,191,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-center{display:flex;justify-content:center;padding:30px}
+
+/* ── Responsive ── */
+@media(max-width:1399px){
+  .kpi-grid{grid-template-columns:repeat(3,1fr)}
+  .kpi-grid>.kpi-card:nth-child(n+4){grid-column:auto}
+  .kpi-grid>.widget:last-child{grid-column:1/-1}
+}
+@media(max-width:1199px){
+  .dash-grid-2{grid-template-columns:1fr 1fr}
+}
+@media(max-width:1023px){
+  .ll-side{display:none}
+  .mob-top{display:flex}
+  .bottom-nav{display:flex}
+  .app-content{padding:14px 14px 80px}
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi-grid>.widget:last-child{grid-column:1/-1}
+  .dash-grid{grid-template-columns:1fr}
+  .dash-grid-2{grid-template-columns:1fr}
+  .widget-bar{min-height:55vw}
+  .hm-cell{width:22px;height:18px}
+  .hm-hour-lbl{width:22px;height:18px}
+  .hm-lbl{width:22px}
+}
+@media(max-width:639px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .kpi-value{font-size:16px}
+  .halls-grid{grid-template-columns:1fr}
+  .roles-grid{grid-template-columns:1fr}
+  .dash-grid-2{grid-template-columns:1fr}
+}
+@media(max-width:399px){
+  .kpi-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SVG sprite -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="rh-logo" viewBox="0 0 40 40">
+    <rect width="40" height="40" rx="10" fill="#7c5cbf"/>
+    <text x="20" y="27" font-family="Unbounded,sans-serif" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">R</text>
+  </symbol>
+</svg>
+
+<div class="ll-wrap">
+
+  <!-- ── Sidebar ── -->
+  <aside class="ll-side">
+    <div class="side-logo">
+      <svg><use href="#rh-logo"/></svg>
+      <span class="side-logo-name">RoltHall</span>
+    </div>
+
+    <div class="user-block" onclick="onNavAccountClick()">
+      <div class="user-avatar" id="side-avatar">—</div>
+      <div class="user-name" id="side-name">Войти в систему</div>
+    </div>
+
+    <nav class="ll-side-nav">
+      <div class="snav-lbl">Обзор</div>
+      <button class="snav-link active" onclick="switchTab('dashboard',this)">Сводная</button>
+      <button class="snav-link" onclick="switchTab('bookings',this)">Брони</button>
+      <button class="snav-link" onclick="switchTab('halls',this)">Залы</button>
+
+      <div class="snav-lbl" id="snav-lbl-manage" style="display:none">Управление</div>
+      <button class="snav-link snav-role-any" onclick="switchTab('all-bookings',this)" style="display:none">Все брони</button>
+      <button class="snav-link snav-role-any" onclick="switchTab('heatmap',this)" style="display:none">Хитмап</button>
+      <button class="snav-link snav-role-owner-dev" onclick="switchTab('log',this)" style="display:none">Лог действий</button>
+      <button class="snav-link snav-role-any" onclick="switchTab('blacklist',this)" style="display:none">Чёрный список</button>
+      <button class="snav-link snav-role-dev" onclick="switchTab('roles',this)" style="display:none">Роли и доступы</button>
+
+      <div class="snav-lbl">Настройки</div>
+      <button class="snav-link" onclick="switchTab('profile',this)">Профиль</button>
+      <button class="snav-link" onclick="switchTab('telegram',this)">Telegram</button>
+      <button class="snav-link" onclick="switchTab('notifications',this)">Уведомления</button>
+    </nav>
+  </aside>
+
+  <!-- ── App shell ── -->
+  <div class="app-shell">
+
+    <!-- Mobile header -->
+    <header class="mob-top">
+      <div class="mob-top-logo">
+        <svg width="26" height="26"><use href="#rh-logo"/></svg>
+        RoltHall
+      </div>
+      <div class="mob-top-acc" id="mob-avatar" onclick="onNavAccountClick()">—</div>
+    </header>
+
+    <div class="page-content">
+      <div class="app-content">
+
+        <!-- ════ TAB: dashboard ════ -->
+        <div class="ll-tab active" id="tab-dashboard">
+
+          <!-- Filter bar -->
+          <div class="dash-filter-bar">
+            <span class="dash-period-lbl" id="dash-period-lbl">Загрузка…</span>
+            <button class="widget-action" onclick="toggleDashFilter(event)">Период</button>
+            <div class="filter-popup" id="dash-filter-popup">
+              <div class="filter-row">
+                <label>От</label>
+                <input type="date" id="dash-from" class="filter-input">
+              </div>
+              <div class="filter-row">
+                <label>До</label>
+                <input type="date" id="dash-to" class="filter-input">
+              </div>
+              <button class="btn-apply" onclick="applyDashFilter()">Применить</button>
+            </div>
+          </div>
+
+          <!-- KPI cards -->
+          <div class="kpi-grid">
+            <!-- Выручка -->
+            <div class="kpi-card">
+              <div class="kpi-top">
+                <img class="kpi-icon-img" src="icons/ruble.svg" alt="">
+                <span class="kpi-delta" id="kpi-revenue-delta">+0%</span>
+              </div>
+              <div class="kpi-bottom">
+                <div class="kpi-value" id="kpi-revenue">—</div>
+                <div class="kpi-label">Выручка / период</div>
+              </div>
+            </div>
+            <!-- Брони -->
+            <div class="kpi-card">
+              <div class="kpi-top">
+                <img class="kpi-icon-img" src="icons/booking.svg" alt="">
+                <span class="kpi-delta" id="kpi-bookings-delta">+0</span>
+              </div>
+              <div class="kpi-bottom">
+                <div class="kpi-value" id="kpi-bookings">—</div>
+                <div class="kpi-label">Брони / период</div>
+              </div>
+            </div>
+            <!-- Загрузка -->
+            <div class="kpi-card">
+              <div class="kpi-top">
+                <img class="kpi-icon-img" src="icons/loading.svg" alt="">
+                <span class="kpi-delta" id="kpi-occ-delta">+0%</span>
+              </div>
+              <div class="kpi-bottom">
+                <div class="kpi-value" id="kpi-occupancy">—</div>
+                <div class="kpi-label">Загрузка / период</div>
+              </div>
+            </div>
+            <!-- Клиенты -->
+            <div class="kpi-card">
+              <div class="kpi-top">
+                <img class="kpi-icon-img" src="icons/clients.svg" alt="">
+                <span class="kpi-delta" id="kpi-clients-delta">+0</span>
+              </div>
+              <div class="kpi-bottom">
+                <div class="kpi-value" id="kpi-clients">—</div>
+                <div class="kpi-label">Клиентов / период</div>
+              </div>
+            </div>
+            <!-- Gauge -->
+            <div class="widget">
+              <div class="widget-head">
+                <div>
+                  <div class="widget-title">Занятость зала</div>
+                  <div class="widget-sub">часы на сегодня</div>
+                </div>
+                <select class="gauge-hall-select" id="gauge-hall-select" onchange="loadDashGauge()">
+                  <option value="">Все залы</option>
+                </select>
+              </div>
+              <div class="gauge-body">
+                <div class="gauge-svg-wrap">
+                  <svg id="dash-gauge-svg" viewBox="0 0 260 150" width="100%">
+                    <!-- Track arc -->
+                    <path id="gauge-track" d="" fill="none" stroke="#35313f" stroke-width="16" stroke-linecap="round"/>
+                    <!-- Fill arc -->
+                    <path id="gauge-fill" d="" fill="none" stroke="#7c5cbf" stroke-width="16" stroke-linecap="round"/>
+                    <!-- Ticks -->
+                    <g id="gauge-ticks"></g>
+                    <!-- Center dot -->
+                    <circle id="dash-gauge-dot" cx="130" cy="138" r="6" fill="#9b7de3"/>
+                  </svg>
+                  <div class="gauge-center">
+                    <div class="gauge-val" id="dash-gauge-val">—</div>
+                    <div class="gauge-lbl" id="dash-gauge-lbl">ч. из 12 сегодня</div>
+                  </div>
+                </div>
+                <div class="gauge-footer" id="dash-gauge-footer">
+                  <span class="gauge-pill">Загрузка…</span>
+                </div>
+              </div>
+            </div>
+          </div><!-- /kpi-grid -->
+
+          <!-- dash-grid: bar + heatmap -->
+          <div class="dash-grid">
+            <!-- Bar chart -->
+            <div class="widget widget-bar">
+              <div class="widget-head">
+                <div>
+                  <div class="widget-title">Выручка · неделя</div>
+                  <div class="widget-sub" id="dash-bar-week-lbl"></div>
+                </div>
+              </div>
+              <div class="bar-chart-wrap" id="dash-barChart">
+                <div class="loading-center"><div class="spinner"></div></div>
+              </div>
+            </div>
+
+            <!-- Status heatmap -->
+            <div class="widget">
+              <div class="widget-head">
+                <div>
+                  <div class="widget-title">Популярность слотов</div>
+                  <div class="widget-sub" id="dash-hm-week-label">Текущая неделя</div>
+                </div>
+                <div style="display:flex;gap:6px">
+                  <button class="widget-action" onclick="shiftHmWeek(-1)">←</button>
+                  <button class="widget-action" onclick="shiftHmWeek(1)">→</button>
+                </div>
+              </div>
+              <div class="hm-wrap">
+                <div id="dash-heatmap"><div class="loading-center"><div class="spinner"></div></div></div>
+              </div>
+              <div class="hm-legend">
+                <div class="hm-legend-item"><div class="hm-legend-dot hm-0"></div>Свободно</div>
+                <div class="hm-legend-item"><div class="hm-legend-dot hm-hold"></div>Холд</div>
+                <div class="hm-legend-item"><div class="hm-legend-dot hm-pend"></div>Ожидание</div>
+                <div class="hm-legend-item"><div class="hm-legend-dot hm-paid"></div>Оплачено</div>
+              </div>
+            </div>
+          </div><!-- /dash-grid -->
+
+          <!-- dash-grid-2: clients, blacklist, log -->
+          <div class="dash-grid-2">
+            <div class="widget">
+              <div class="widget-head">
+                <div class="widget-title">База клиентов</div>
+                <div class="widget-sub" id="dash-clients-count"></div>
+              </div>
+              <div id="dash-clientList"><div class="loading-center"><div class="spinner"></div></div></div>
+            </div>
+            <div class="widget">
+              <div class="widget-head">
+                <div class="widget-title">Чёрный список</div>
+                <div class="widget-sub" id="dash-bl-count"></div>
+              </div>
+              <div id="dash-blackList"><div class="loading-center"><div class="spinner"></div></div></div>
+            </div>
+            <div class="widget">
+              <div class="widget-head">
+                <div class="widget-title">Лог действий</div>
+                <button class="widget-action" onclick="downloadLog()">Скачать</button>
+              </div>
+              <div id="dash-logList"><div class="loading-center"><div class="spinner"></div></div></div>
+            </div>
+          </div><!-- /dash-grid-2 -->
+
+        </div><!-- /tab-dashboard -->
+
+        <!-- ════ TAB: bookings ════ -->
+        <div class="ll-tab" id="tab-bookings">
+          <div class="sec-title">Брони</div>
+          <div class="date-strip" id="date-strip"></div>
+          <div class="bookings-list" id="bookings-list">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- ════ TAB: halls ════ -->
+        <div class="ll-tab" id="tab-halls">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="sec-title" style="margin:0">Залы</div>
+            <button class="btn-edit" onclick="openHallModal(null)">+ Добавить</button>
+          </div>
+          <div class="halls-grid" id="halls-grid">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- ════ TAB: profile ════ -->
+        <div class="ll-tab" id="tab-profile">
+          <div class="sec-title">Профиль</div>
+          <div class="profile-form" id="profile-form">
+            <div class="form-group">
+              <label class="form-label">Имя</label>
+              <input type="text" class="form-input" id="pf-name" placeholder="Ваше имя">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Телефон</label>
+              <input type="tel" class="form-input" id="pf-phone" placeholder="+7 (999) 000-00-00" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="pf-email" placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Новый пароль</label>
+              <input type="password" class="form-input" id="pf-password" placeholder="Оставьте пустым, чтобы не менять">
+            </div>
+            <button class="btn-save" onclick="saveProfile()">Сохранить</button>
+            <button class="btn-danger" onclick="openModal('logout-modal')">Выйти из аккаунта</button>
+          </div>
+        </div>
+
+        <!-- ════ TAB: telegram ════ -->
+        <div class="ll-tab" id="tab-telegram">
+          <div class="sec-title">Telegram уведомления</div>
+          <div class="tg-form">
+            <div id="tg-status-badge" class="tg-status off">● Не подключён</div>
+            <div class="form-group">
+              <label class="form-label">Bot Token</label>
+              <input type="text" class="form-input" id="tg-token" placeholder="123456:ABC-DEF...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Chat ID</label>
+              <input type="text" class="form-input" id="tg-chat" placeholder="-100123456789">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Thread ID (опционально)</label>
+              <input type="text" class="form-input" id="tg-thread" placeholder="">
+            </div>
+            <button class="btn-save" onclick="saveTg()">Сохранить</button>
+            <button class="btn-secondary" onclick="testTg()" style="margin-top:4px">Тест уведомления</button>
+          </div>
+        </div>
+
+        <!-- ════ TAB: notifications ════ -->
+        <div class="ll-tab" id="tab-notifications">
+          <div class="sec-title">Уведомления</div>
+          <div class="notif-list">
+            <div class="notif-row">
+              <div class="notif-info">
+                <div class="notif-title">Новая бронь</div>
+                <div class="notif-desc">При создании новой заявки</div>
+              </div>
+              <label class="toggle-sw"><input type="checkbox" id="nt-new" checked onchange="saveNotif('new_booking',this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="notif-row">
+              <div class="notif-info">
+                <div class="notif-title">Отмена брони</div>
+                <div class="notif-desc">При отмене бронирования</div>
+              </div>
+              <label class="toggle-sw"><input type="checkbox" id="nt-cancel" checked onchange="saveNotif('cancel',this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="notif-row">
+              <div class="notif-info">
+                <div class="notif-title">Оплата получена</div>
+                <div class="notif-desc">При успешной оплате</div>
+              </div>
+              <label class="toggle-sw"><input type="checkbox" id="nt-paid" checked onchange="saveNotif('payment',this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="notif-row">
+              <div class="notif-info">
+                <div class="notif-title">Истёк холд</div>
+                <div class="notif-desc">Когда время холда закончилось</div>
+              </div>
+              <label class="toggle-sw"><input type="checkbox" id="nt-hold" onchange="saveNotif('hold_expired',this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="notif-row">
+              <div class="notif-info">
+                <div class="notif-title">Ежедневная сводка</div>
+                <div class="notif-desc">Отчёт в конце каждого дня</div>
+              </div>
+              <label class="toggle-sw"><input type="checkbox" id="nt-daily" onchange="saveNotif('daily_summary',this.checked)"><span class="slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ TAB: all-bookings ════ -->
+        <div class="ll-tab" id="tab-all-bookings">
+          <div class="sec-title">Все брони</div>
+          <div class="ab-filters">
+            <button class="filter-btn active" onclick="filterAB('all',this)">Все</button>
+            <button class="filter-btn" onclick="filterAB('paid',this)">Оплачено</button>
+            <button class="filter-btn" onclick="filterAB('hold',this)">Холд</button>
+            <button class="filter-btn" onclick="filterAB('pending_payment',this)">Ожидание</button>
+            <button class="filter-btn" onclick="filterAB('cancelled',this)">Отменено</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th><th>Клиент</th><th>Зал</th><th>Дата</th><th>Время</th><th>Сумма</th><th>Статус</th><th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="ab-tbody">
+                <tr><td colspan="8" style="text-align:center;padding:30px"><div class="spinner" style="margin:0 auto"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ════ TAB: heatmap (intensity, old) ════ -->
+        <div class="ll-tab" id="tab-heatmap">
+          <div class="sec-title">Хитмап загрузки</div>
+          <div class="hm-intensity-wrap" id="hm-wrap">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+          <div class="hm-legend" style="margin-top:16px">
+            <div class="hm-legend-item"><div class="hm-legend-dot hmi-0" style="width:12px;height:12px;border-radius:2px;background:var(--bg-4)"></div>0</div>
+            <div class="hm-legend-item"><div class="hm-legend-dot" style="width:12px;height:12px;border-radius:2px;background:rgba(124,92,191,.25)"></div>1</div>
+            <div class="hm-legend-item"><div class="hm-legend-dot" style="width:12px;height:12px;border-radius:2px;background:rgba(124,92,191,.5)"></div>2</div>
+            <div class="hm-legend-item"><div class="hm-legend-dot" style="width:12px;height:12px;border-radius:2px;background:rgba(124,92,191,.75)"></div>3</div>
+            <div class="hm-legend-item"><div class="hm-legend-dot" style="width:12px;height:12px;border-radius:2px;background:var(--accent-l)"></div>4+</div>
+          </div>
+        </div>
+
+        <!-- ════ TAB: log ════ -->
+        <div class="ll-tab" id="tab-log">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="sec-title" style="margin:0">Лог действий</div>
+            <button class="widget-action" onclick="downloadLog()">Скачать CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Время</th><th>Пользователь</th><th>Действие</th><th>Объект</th><th>Детали</th></tr>
+              </thead>
+              <tbody id="log-tbody">
+                <tr><td colspan="5" style="text-align:center;padding:30px"><div class="spinner" style="margin:0 auto"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ════ TAB: blacklist ════ -->
+        <div class="ll-tab" id="tab-blacklist">
+          <div class="sec-title">Чёрный список</div>
+          <div class="bl-list" id="bl-list">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- ════ TAB: roles ════ -->
+        <div class="ll-tab" id="tab-roles">
+          <div class="sec-title">Роли и доступы</div>
+          <div class="roles-grid" id="roles-grid">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+      </div><!-- /app-content -->
+    </div><!-- /page-content -->
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <button class="nav-tab active" id="btn-dashboard" onclick="switchTab('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Сводная
+      </button>
+      <button class="nav-tab" id="btn-bookings" onclick="switchTab('bookings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Брони
+      </button>
+      <button class="nav-tab" id="btn-halls" onclick="switchTab('halls',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Залы
+      </button>
+      <button class="nav-tab" id="btn-profile" onclick="switchTab('profile',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Профиль
+      </button>
+    </nav>
+
+  </div><!-- /app-shell -->
+</div><!-- /ll-wrap -->
+
+<!-- ════ MODALS ════ -->
+
+<!-- Login -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <div class="modal-title">Вход в систему</div>
+    <div class="modal-form">
+      <div class="form-group">
+        <label class="form-label">Телефон</label>
+        <input type="tel" class="form-input" id="login-phone" placeholder="+7 (999) 000-00-00" autocomplete="tel">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <input type="password" class="form-input" id="login-password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-error" style="font-size:10px;color:var(--danger);display:none"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="doLogin()">Войти</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logout -->
+<div class="modal-overlay" id="logout-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('logout-modal')">×</button>
+    <div class="modal-title">Выйти из аккаунта?</div>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:18px">Сессия будет завершена на этом устройстве.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('logout-modal')">Отмена</button>
+      <button class="btn-red" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hall modal -->
+<div class="modal-overlay" id="hall-modal">
+  <div class="modal modal-wide">
+    <button class="modal-close" onclick="closeModal('hall-modal')">×</button>
+    <div class="modal-title" id="hall-modal-title">Редактировать зал</div>
+    <input type="hidden" id="hall-modal-id">
+    <div class="modal-form">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Название</label>
+          <input type="text" class="form-input" id="hm-name" placeholder="Зал A">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Площадь, м²</label>
+          <input type="number" class="form-input" id="hm-area" placeholder="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Вместимость</label>
+          <input type="number" class="form-input" id="hm-capacity" placeholder="20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Цвет (акцент)</label>
+          <input type="text" class="form-input" id="hm-color" placeholder="#7c5cbf">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <textarea class="form-input" id="hm-desc" rows="2" style="resize:vertical"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Удобства (через запятую)</label>
+        <input type="text" class="form-input" id="hm-amenities" placeholder="Проектор, Звук, Wi-Fi">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Тарифы (₽/час)</label>
+        <div class="tariff-rows" id="hm-tariffs">
+          <div class="tariff-row">
+            <input type="text" class="form-input" id="hm-t1-name" placeholder="Будни">
+            <span class="tariff-row-lbl">₽/ч</span>
+            <input type="number" class="form-input" id="hm-t1-price" placeholder="1000">
+          </div>
+          <div class="tariff-row">
+            <input type="text" class="form-input" id="hm-t2-name" placeholder="Выходные">
+            <span class="tariff-row-lbl">₽/ч</span>
+            <input type="number" class="form-input" id="hm-t2-price" placeholder="1200">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Фото</label>
+        <div class="photo-upload">
+          <div class="photo-list" id="hm-photo-list"></div>
+          <label class="btn-upload">
+            + Загрузить фото
+            <input type="file" accept="image/*" multiple style="display:none" onchange="uploadHallPhotos(this)">
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('hall-modal')">Отмена</button>
+        <button class="btn-primary" onclick="saveHall()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TG modal -->
+<div class="modal-overlay" id="tg-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('tg-modal')">×</button>
+    <div class="modal-title">Настройка Telegram</div>
+    <div class="modal-form">
+      <div class="form-group">
+        <label class="form-label">Bot Token</label>
+        <input type="text" class="form-input" id="tgm-token">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Chat ID</label>
+        <input type="text" class="form-input" id="tgm-chat">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Thread ID</label>
+        <input type="text" class="form-input" id="tgm-thread">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('tg-modal')">Отмена</button>
+        <button class="btn-primary" onclick="saveTgModal()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Block modal -->
+<div class="modal-overlay" id="block-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('block-modal')">×</button>
+    <div class="modal-title">Заблокировать даты</div>
+    <div id="block-hall-name" style="font-size:11px;color:var(--text-muted);margin-bottom:14px"></div>
+    <div class="modal-form">
+      <div class="form-group">
+        <label class="form-label">С</label>
+        <input type="date" class="form-input" id="bm-from">
+      </div>
+      <div class="form-group">
+        <label class="form-label">По</label>
+        <input type="date" class="form-input" id="bm-to">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Причина</label>
+        <input type="text" class="form-input" id="bm-reason" placeholder="Технические работы">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('block-modal')">Отмена</button>
+        <button class="btn-primary" onclick="saveBlock()">Заблокировать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const API_BASE = 'https://hall.roltworld.com/api';
+let authToken = localStorage.getItem('rh_token') || null;
+let isLoggedIn = false;
+let _currentUser = null;
+let _tabLoaded = {};
+let _selectedDate = null;
+let _bookingsCache = {};
+let _abAllData = [];
+let _abFilter = 'all';
+let _hmWeekOffset = 0;
+let _dashFrom = null;
+let _dashTo = null;
+
+// ── API ──────────────────────────────────────────────────────────────
+function apiHeaders() {
+  const h = {'Content-Type': 'application/json', 'Accept': 'application/json'};
+  if (authToken) h['Authorization'] = 'Bearer ' + authToken;
+  return h;
+}
+
+async function apiFetch(path, opts = {}) {
+  try {
+    const res = await fetch(API_BASE + path, {headers: apiHeaders(), ...opts});
+    if (res.status === 401) {
+      authToken = null;
+      localStorage.removeItem('rh_token');
+      isLoggedIn = false;
+      return null;
+    }
+    if (!res.ok) return null;
+    return res.json();
+  } catch(e) {
+    console.error('apiFetch', path, e);
+    return null;
+  }
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────
+async function doLogin() {
+  const phone = document.getElementById('login-phone').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  if (!phone || !password) { errEl.textContent = 'Введите телефон и пароль'; errEl.style.display = ''; return; }
+  const data = await apiFetch('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({phone, password})
+  });
+  if (!data || !data.token) {
+    errEl.textContent = data?.message || 'Неверный телефон или пароль';
+    errEl.style.display = '';
+    return;
+  }
+  authToken = data.token;
+  localStorage.setItem('rh_token', authToken);
+  _currentUser = data.user;
+  const name = data.user?.name || '';
+  const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0,2).toUpperCase() || 'ЛК';
+  setLoggedIn(initials, name);
+  const role = (data.user?.roles?.[0]) || data.user?.role;
+  if (role) applyRoleNav(role);
+  closeModal('login-modal');
+  loadDashboardAll();
+  loadHalls();
+}
+
+function logout() {
+  authToken = null;
+  localStorage.removeItem('rh_token');
+  isLoggedIn = false;
+  _currentUser = null;
+  _tabLoaded = {};
+  document.getElementById('side-avatar').textContent = '—';
+  document.getElementById('side-name').textContent = 'Войти в систему';
+  document.getElementById('mob-avatar').textContent = '—';
+  closeModal('logout-modal');
+  openModal('login-modal');
+}
+
+function setLoggedIn(initials, name) {
+  isLoggedIn = true;
+  document.getElementById('side-avatar').textContent = initials;
+  document.getElementById('side-name').textContent = name || initials;
+  document.getElementById('mob-avatar').textContent = initials;
+}
+
+function applyRoleNav(role) {
+  const isAny = ['owner','developer','admin'].includes(role);
+  const isOwnerOrDev = ['owner','developer'].includes(role);
+  const isDev = role === 'developer';
+  if (isAny) {
+    document.getElementById('snav-lbl-manage').style.display = '';
+    document.querySelectorAll('.snav-role-any').forEach(el => el.style.display = '');
+  }
+  if (isOwnerOrDev) document.querySelectorAll('.snav-role-owner-dev').forEach(el => el.style.display = '');
+  if (isDev) document.querySelectorAll('.snav-role-dev').forEach(el => el.style.display = '');
+}
+
+function onNavAccountClick() {
+  if (isLoggedIn) openModal('logout-modal');
+  else openModal('login-modal');
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── Tab switching ─────────────────────────────────────────────────────
+function switchTab(id, triggerEl) {
+  document.querySelectorAll('.ll-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id)?.classList.add('active');
+  document.querySelectorAll('.bottom-nav .nav-tab').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + id);
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.snav-link').forEach(a => a.classList.remove('active'));
+  if (triggerEl) triggerEl.classList.add('active');
+
+  if (!_tabLoaded[id]) {
+    _tabLoaded[id] = true;
+    if (id === 'bookings') renderStrip();
+    if (id === 'halls') loadHalls();
+    if (id === 'all-bookings') loadAllBookings();
+    if (id === 'heatmap') { renderHeatmapIntensityMock(); loadHeatmapIntensity(); }
+    if (id === 'log') loadActionLog();
+    if (id === 'blacklist') loadBlacklist();
+    if (id === 'roles') loadRoles();
+    if (id === 'telegram') loadTgSettings();
+    if (id === 'notifications') loadNotifSettings();
+    if (id === 'profile') loadProfile();
+  }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────
+function initDashPeriod() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const from = new Date(y, m, 1);
+  const to = new Date(y, m + 1, 0);
+  _dashFrom = from.toISOString().slice(0,10);
+  _dashTo = to.toISOString().slice(0,10);
+  document.getElementById('dash-from').value = _dashFrom;
+  document.getElementById('dash-to').value = _dashTo;
+  const monthNames = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  document.getElementById('dash-period-lbl').textContent =
+    `1–${to.getDate()} ${monthNames[m]} ${y}`;
+}
+
+function toggleDashFilter(e) {
+  e.stopPropagation();
+  document.getElementById('dash-filter-popup').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('dash-filter-popup')?.classList.remove('open');
+});
+
+function applyDashFilter() {
+  _dashFrom = document.getElementById('dash-from').value;
+  _dashTo = document.getElementById('dash-to').value;
+  if (!_dashFrom || !_dashTo) return;
+  const fmtDate = s => {
+    const [y,m,d] = s.split('-');
+    return `${+d} ${['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][+m-1]}`;
+  };
+  document.getElementById('dash-period-lbl').textContent = `${fmtDate(_dashFrom)} – ${fmtDate(_dashTo)} ${_dashTo.slice(0,4)}`;
+  document.getElementById('dash-filter-popup').classList.remove('open');
+  loadDashKPI();
+  renderDashBarChart([]);
+  loadDashHeatmap();
+}
+
+async function loadDashboardAll() {
+  initDashPeriod();
+  buildGaugeArc();
+  renderDashHeatmapMock();
+  await Promise.all([
+    loadDashKPI(),
+    loadDashGauge(),
+    loadDashHeatmap(),
+    loadDashClients(),
+    loadDashBlacklist(),
+    loadDashLog(),
+    loadGaugeHalls(),
+  ]);
+}
+
+async function loadDashKPI() {
+  const data = await apiFetch(`/admin/analytics?from=${_dashFrom}&to=${_dashTo}`);
+  if (!data) return;
+  const t = data.total || {};
+
+  // Revenue
+  const rev = t.revenue || 0;
+  document.getElementById('kpi-revenue').textContent =
+    rev >= 1000 ? (rev/1000).toFixed(1).replace('.',',') + ' т₽' : rev + ' ₽';
+
+  // Bookings
+  document.getElementById('kpi-bookings').textContent = t.bookings || 0;
+
+  // Occupancy
+  const occ = parseFloat(t.occupancy) || 0;
+  document.getElementById('kpi-occupancy').textContent = Math.round(occ) + '%';
+
+  // Clients
+  document.getElementById('kpi-clients').textContent = t.new_clients || t.clients || 0;
+
+  // Bar chart from by_day
+  if (data.by_day) {
+    const entries = Object.entries(data.by_day).sort((a,b) => a[0] > b[0] ? 1 : -1);
+    const last7 = entries.slice(-7);
+    const today = new Date().toISOString().slice(0,10);
+    const days = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+    const barData = last7.map(([dateStr, dayData]) => {
+      const d = new Date(dateStr + 'T12:00:00');
+      return {
+        day: days[d.getDay()],
+        val: dayData.revenue || 0,
+        active: dateStr === today
+      };
+    });
+    renderDashBarChart(barData);
+    if (last7.length) {
+      const fst = last7[0][0], lst = last7[last7.length-1][0];
+      const fmt = s => { const [,m,d] = s.split('-'); return `${+d} ${['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][+m-1]}`; };
+      document.getElementById('dash-bar-week-lbl').textContent = `${fmt(fst)} – ${fmt(lst)}`;
+    }
+  }
+}
+
+function renderDashBarChart(data) {
+  const el = document.getElementById('dash-barChart');
+  if (!data || !data.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>Нет данных</p></div>';
+    return;
+  }
+  const BAR_MAX_PX = 90;
+  const maxVal = Math.max(...data.map(d => d.val), 1);
+  let html = '';
+  data.forEach(d => {
+    const px = Math.max(Math.round(d.val / maxVal * BAR_MAX_PX), 4);
+    const fmt = d.val >= 1000
+      ? (d.val/1000).toFixed(1).replace('.',',') + ' т₽'
+      : d.val + ' ₽';
+    html += `<div class="bar-col">
+      <span class="bar-amount">${fmt}</span>
+      <div class="bar ${d.active ? 'active' : ''}" style="height:${px}px">
+        <div class="bar-tooltip">${d.val.toLocaleString('ru')} ₽</div>
+      </div>
+      <div class="bar-day">${d.day}</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── Gauge (booked hours today) ─────────────────────────────────────────
+function buildGaugeArc() {
+  const cx = 130, cy = 138, R = 110;
+  function polarToXY(angleDeg) {
+    const rad = (angleDeg - 180) * Math.PI / 180;
+    return {x: cx + R * Math.cos(rad), y: cy + R * Math.sin(rad)};
+  }
+  // Track: 180° arc (left to right, top semicircle)
+  const startPt = polarToXY(0);
+  const endPt = polarToXY(180);
+  const trackD = `M ${startPt.x} ${startPt.y} A ${R} ${R} 0 1 1 ${endPt.x} ${endPt.y}`;
+  document.getElementById('gauge-track').setAttribute('d', trackD);
+
+  // Ticks at each hour
+  let tickHTML = '';
+  for (let i = 0; i <= 12; i++) {
+    const angle = i / 12 * 180;
+    const inner = {x: cx + (R-22) * Math.cos((angle-180)*Math.PI/180), y: cy + (R-22) * Math.sin((angle-180)*Math.PI/180)};
+    const outer = {x: cx + (R-10) * Math.cos((angle-180)*Math.PI/180), y: cy + (R-10) * Math.sin((angle-180)*Math.PI/180)};
+    tickHTML += `<line x1="${inner.x.toFixed(1)}" y1="${inner.y.toFixed(1)}" x2="${outer.x.toFixed(1)}" y2="${outer.y.toFixed(1)}" stroke="rgba(255,255,255,.15)" stroke-width="1"/>`;
+  }
+  document.getElementById('gauge-ticks').innerHTML = tickHTML;
+}
+
+function renderGauge(bookedHours, totalHours) {
+  totalHours = totalHours || 12;
+  const cx = 130, cy = 138, R = 110;
+  const pct = Math.min(bookedHours / totalHours, 1);
+
+  function polarToXY(angleDeg) {
+    const rad = (angleDeg - 180) * Math.PI / 180;
+    return {x: cx + R * Math.cos(rad), y: cy + R * Math.sin(rad)};
+  }
+
+  const startPt = polarToXY(0);
+  const fillAngle = pct * 180;
+  const fillPt = polarToXY(fillAngle);
+  const largeArc = fillAngle > 180 ? 1 : 0;
+
+  let fillD = '';
+  if (pct > 0) {
+    fillD = `M ${startPt.x.toFixed(1)} ${startPt.y.toFixed(1)} A ${R} ${R} 0 ${largeArc} 1 ${fillPt.x.toFixed(1)} ${fillPt.y.toFixed(1)}`;
+  }
+  document.getElementById('gauge-fill').setAttribute('d', fillD);
+
+  // Dot position
+  const dotPt = polarToXY(fillAngle);
+  document.getElementById('dash-gauge-dot').setAttribute('cx', dotPt.x.toFixed(1));
+  document.getElementById('dash-gauge-dot').setAttribute('cy', dotPt.y.toFixed(1));
+
+  document.getElementById('dash-gauge-val').textContent = bookedHours + ' ч.';
+  document.getElementById('dash-gauge-lbl').textContent = `из ${totalHours} ч. сегодня`;
+
+  const pctDisplay = Math.round(pct * 100);
+  document.getElementById('dash-gauge-footer').innerHTML =
+    `<span class="gauge-pill">${bookedHours} из ${totalHours} часов · ${pctDisplay}%</span>`;
+}
+
+async function loadGaugeHalls() {
+  const data = await apiFetch('/halls');
+  const sel = document.getElementById('gauge-hall-select');
+  if (data && Array.isArray(data)) {
+    data.forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h.id;
+      opt.textContent = h.name;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+async function loadDashGauge() {
+  const hallId = document.getElementById('gauge-hall-select')?.value;
+  const today = new Date().toISOString().slice(0,10);
+  let bookedHours = 0;
+
+  // Use today's analytics to get occupancy → convert to hours
+  const params = new URLSearchParams({from: today, to: today});
+  if (hallId) params.set('hall_id', hallId);
+  const data = await apiFetch('/admin/analytics?' + params.toString());
+
+  if (data && data.total) {
+    const occ = parseFloat(data.total.occupancy) || 0;
+    bookedHours = Math.round(occ / 100 * 12);
+  } else {
+    // fallback: fetch all bookings for today and count hours
+    const bdata = await apiFetch('/admin/bookings/all?from=' + today + '&to=' + today);
+    if (bdata) {
+      const list = bdata.bookings || bdata.data || (Array.isArray(bdata) ? bdata : []);
+      const hourSet = new Set();
+      list.filter(b => ['paid','confirmed','completed'].includes(b.status) && b.date === today)
+          .forEach(b => {
+            const s = parseInt((b.start_time || b.from || '').slice(0,2));
+            const e = parseInt((b.end_time || b.to || '').slice(0,2));
+            if (!isNaN(s) && !isNaN(e)) for (let h = s; h < e; h++) hourSet.add(h);
+          });
+      bookedHours = hourSet.size;
+    }
+  }
+  renderGauge(bookedHours, 12);
+}
+
+// ── Dashboard Heatmap (status-based) ─────────────────────────────────
+function getWeekRange(offset) {
+  const now = new Date();
+  const dow = now.getDay();
+  const daysToMon = dow === 0 ? -6 : 1 - dow;
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + daysToMon + offset * 7);
+  mon.setHours(0,0,0,0);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  return {from: mon, to: sun};
+}
+
+function hmWeekLabel(offset) {
+  if (offset === 0) return 'Текущая неделя';
+  if (offset === -1) return 'Прошлая неделя';
+  const {from, to} = getWeekRange(offset);
+  const fmt = d => d.toLocaleDateString('ru', {day:'numeric', month:'short'});
+  return fmt(from) + ' – ' + fmt(to);
+}
+
+function shiftHmWeek(dir) {
+  _hmWeekOffset += dir;
+  document.getElementById('dash-hm-week-label').textContent = hmWeekLabel(_hmWeekOffset);
+  loadDashHeatmap();
+}
+
+function renderDashHeatmapMock() {
+  const hours = Array.from({length:13}, (_,i) => i + 10);
+  const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  let grid = `<div class="hm-grid" style="grid-template-columns: 28px repeat(${days.length},28px);">`;
+
+  // Hour labels row
+  grid += '<div class="hm-lbl"></div>';
+  days.forEach(d => grid += `<div class="hm-hour-lbl">${d}</div>`);
+
+  hours.forEach(h => {
+    grid += `<div class="hm-lbl">${h}:00</div>`;
+    days.forEach(() => grid += '<div class="hm-cell hm-0"></div>');
+  });
+  grid += '</div>';
+  document.getElementById('dash-heatmap').innerHTML = grid;
+}
+
+async function loadDashHeatmap() {
+  const {from, to} = getWeekRange(_hmWeekOffset);
+  const fmt = d => d.toISOString().slice(0,10);
+  document.getElementById('dash-hm-week-label').textContent = hmWeekLabel(_hmWeekOffset);
+
+  const data = await apiFetch(`/admin/heatmap?from=${fmt(from)}&to=${fmt(to)}`);
+  if (!data || !data.heatmap) { renderDashHeatmapMock(); return; }
+
+  const hours = Array.from({length:13}, (_,i) => i + 10);
+  const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  let grid = `<div class="hm-grid" style="grid-template-columns: 28px repeat(${days.length},28px);">`;
+  grid += '<div class="hm-lbl"></div>';
+  days.forEach(d => grid += `<div class="hm-hour-lbl">${d}</div>`);
+
+  hours.forEach(h => {
+    grid += `<div class="hm-lbl">${h}:00</div>`;
+    days.forEach((_, di) => {
+      const hData = data.heatmap[h] || {};
+      const status = hData[di] || hData[String(di)] || 'free';
+      let cls = 'hm-0';
+      if (status === 'hold') cls = 'hm-hold';
+      else if (status === 'pending' || status === 'pend') cls = 'hm-pend';
+      else if (status === 'paid' || status === 'confirmed' || status === 'completed') cls = 'hm-paid';
+      grid += `<div class="hm-cell ${cls}"></div>`;
+    });
+  });
+  grid += '</div>';
+  document.getElementById('dash-heatmap').innerHTML = grid;
+}
+
+// ── Dashboard Clients ──────────────────────────────────────────────────
+async function loadDashClients() {
+  const data = await apiFetch('/admin/clients?limit=6');
+  const el = document.getElementById('dash-clientList');
+  const list = data?.data || data?.clients || (Array.isArray(data) ? data : []);
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>Нет клиентов</p></div>'; return; }
+  document.getElementById('dash-clients-count').textContent = data?.total ? data.total + ' всего' : '';
+  el.innerHTML = list.map(c => {
+    const name = c.name || c.phone || '—';
+    const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
+    return `<div class="client-item">
+      <div class="ci-avatar">${initials}</div>
+      <div class="ci-info">
+        <div class="ci-name">${name}</div>
+        <div class="ci-phone">${c.phone || ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadDashBlacklist() {
+  const data = await apiFetch('/admin/clients?blacklisted=1&limit=5');
+  const el = document.getElementById('dash-blackList');
+  const list = data?.data || data?.clients || (Array.isArray(data) ? data : []);
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="icon">🚫</div><p>Список пуст</p></div>'; return; }
+  document.getElementById('dash-bl-count').textContent = data?.total ? data.total + ' всего' : '';
+  el.innerHTML = list.map(c => {
+    const name = c.name || c.phone || '—';
+    const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
+    return `<div class="client-item">
+      <div class="ci-avatar" style="background:rgba(224,82,82,.15);color:var(--danger)">${initials}</div>
+      <div class="ci-info">
+        <div class="ci-name">${name}</div>
+        <div class="ci-phone">${c.phone || ''}</div>
+      </div>
+      ${c.blacklist_reason ? `<span class="bl-reason-tag">${c.blacklist_reason}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function loadDashLog() {
+  const data = await apiFetch('/admin/log?limit=7');
+  const el = document.getElementById('dash-logList');
+  const list = data?.data || data?.log || (Array.isArray(data) ? data : []);
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>Нет записей</p></div>'; return; }
+  el.innerHTML = list.map(l => {
+    const icons = {create:'➕', update:'✏️', delete:'🗑️', login:'🔐', cancel:'❌', block:'🚫'};
+    const icon = icons[l.event_type] || icons[l.action] || '•';
+    const time = l.created_at ? new Date(l.created_at).toLocaleString('ru',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="log-item">
+      <div class="log-icon">${icon}</div>
+      <div class="log-info">
+        <div class="log-action">${l.description || l.message || l.action || '—'}</div>
+        <div class="log-meta">${l.causer?.name || l.user_name || ''} · ${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function downloadLog() {
+  if (!authToken) return;
+  window.open(API_BASE + '/admin/log/export?token=' + authToken, '_blank');
+}
+
+// ── Bookings tab ───────────────────────────────────────────────────────
+function renderStrip() {
+  const strip = document.getElementById('date-strip');
+  const days = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  if (!_selectedDate) _selectedDate = today.toISOString().slice(0,10);
+
+  let html = '';
+  for (let i = -3; i <= 14; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const ds = d.toISOString().slice(0,10);
+    const active = ds === _selectedDate ? 'active' : '';
+    html += `<div class="ds-day ${active}" onclick="selectDate('${ds}',this)">
+      <span class="wd">${days[d.getDay()]}</span>
+      <span class="dd">${d.getDate()}</span>
+      <span class="mn">${months[d.getMonth()]}</span>
+    </div>`;
+  }
+  strip.innerHTML = html;
+  loadBookings(_selectedDate);
+}
+
+function selectDate(ds, el) {
+  _selectedDate = ds;
+  document.querySelectorAll('.ds-day').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  loadBookings(ds);
+}
+
+async function loadBookings(dateStr) {
+  const el = document.getElementById('bookings-list');
+  el.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+  if (_bookingsCache[dateStr]) { renderBookingsList(_bookingsCache[dateStr]); return; }
+  const data = await apiFetch('/admin/bookings?date=' + dateStr);
+  const list = data?.bookings || data?.data || (Array.isArray(data) ? data : []);
+  _bookingsCache[dateStr] = list;
+  renderBookingsList(list);
+}
+
+function renderBookingsList(list) {
+  const el = document.getElementById('bookings-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Броней на этот день нет</p></div>';
+    return;
+  }
+  const statusMap = {
+    paid:'ok', confirmed:'ok', completed:'ok',
+    hold:'hold',
+    pending_payment:'pend', draft:'pend',
+    cancelled:'cancel'
+  };
+  const statusLabel = {
+    paid:'Оплачено', confirmed:'Подтверждено', completed:'Завершено',
+    hold:'Холд', pending_payment:'Ожидание оплаты', draft:'Черновик',
+    cancelled:'Отменено'
+  };
+  el.innerHTML = list.map(b => {
+    const cls = statusMap[b.status] || 'pend';
+    const lbl = statusLabel[b.status] || b.status;
+    const from = (b.start_time || b.from || '').slice(0,5);
+    const to = (b.end_time || b.to || '').slice(0,5);
+    const price = b.total_price || b.amount || 0;
+    const fmtPrice = price >= 1000 ? (price/1000).toFixed(1).replace('.',',') + ' т₽' : price + ' ₽';
+    return `<div class="booking-card ${cls}">
+      <div class="bc-head">
+        <span class="bc-hall">${b.hall?.name || b.hall_name || 'Зал'}</span>
+        <span class="bc-status ${cls}">${lbl}</span>
+      </div>
+      <div class="bc-row">
+        <span>🕐 ${from}–${to}</span>
+        <span>💰 ${fmtPrice}</span>
+        ${b.client?.name || b.user_name ? `<span>👤 ${b.client?.name || b.user_name}</span>` : ''}
+        ${b.client?.phone || b.phone ? `<span>📞 ${b.client?.phone || b.phone}</span>` : ''}
+      </div>
+      ${cls !== 'cancel' ? `<div class="bc-actions">
+        <button class="btn-sm btn-cancel" onclick="cancelBooking(${b.id})">Отменить</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function cancelBooking(id) {
+  if (!confirm('Отменить бронь?')) return;
+  const data = await apiFetch('/admin/bookings/' + id + '/cancel', {method:'POST'});
+  if (data) {
+    delete _bookingsCache[_selectedDate];
+    loadBookings(_selectedDate);
+  }
+}
+
+// ── Halls tab ─────────────────────────────────────────────────────────
+async function loadHalls() {
+  const el = document.getElementById('halls-grid');
+  const data = await apiFetch('/halls');
+  const list = Array.isArray(data) ? data : (data?.data || []);
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🏛️</div><p>Залы не найдены</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(h => {
+    const photo = h.photos?.[0] || h.photo || '';
+    const amenities = (h.amenities || []).slice(0,5).map(a => `<span class="hall-tag">${a}</span>`).join('');
+    return `<div class="hall-card">
+      ${photo ? `<img class="hall-photo" src="${photo}" alt="${h.name}">` : '<div class="hall-photo"></div>'}
+      <div class="hall-body">
+        <div class="hall-name">${h.name}</div>
+        <div class="hall-meta">
+          ${h.area ? `<span>📐 ${h.area} м²</span>` : ''}
+          ${h.capacity ? `<span>👥 до ${h.capacity} чел.</span>` : ''}
+        </div>
+        ${amenities ? `<div class="hall-amenities">${amenities}</div>` : ''}
+        <div class="hall-actions">
+          <button class="btn-edit" onclick='openHallModal(${JSON.stringify(h)})'>Редактировать</button>
+          <button class="btn-block" onclick="openBlockModal('${h.name}',${h.id})">Заблокировать</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openHallModal(hall) {
+  document.getElementById('hall-modal-title').textContent = hall ? 'Редактировать зал' : 'Новый зал';
+  document.getElementById('hall-modal-id').value = hall?.id || '';
+  document.getElementById('hm-name').value = hall?.name || '';
+  document.getElementById('hm-area').value = hall?.area || '';
+  document.getElementById('hm-capacity').value = hall?.capacity || '';
+  document.getElementById('hm-color').value = hall?.color || '';
+  document.getElementById('hm-desc').value = hall?.description || '';
+  document.getElementById('hm-amenities').value = (hall?.amenities || []).join(', ');
+  const tariffs = hall?.tariffs || [];
+  document.getElementById('hm-t1-name').value = tariffs[0]?.name || 'Будни';
+  document.getElementById('hm-t1-price').value = tariffs[0]?.price || '';
+  document.getElementById('hm-t2-name').value = tariffs[1]?.name || 'Выходные';
+  document.getElementById('hm-t2-price').value = tariffs[1]?.price || '';
+  document.getElementById('hm-photo-list').innerHTML = (hall?.photos || [])
+    .map(p => `<img class="photo-thumb" src="${p}" alt="">`).join('');
+  openModal('hall-modal');
+}
+
+async function saveHall() {
+  const id = document.getElementById('hall-modal-id').value;
+  const body = {
+    name: document.getElementById('hm-name').value,
+    area: document.getElementById('hm-area').value,
+    capacity: document.getElementById('hm-capacity').value,
+    color: document.getElementById('hm-color').value,
+    description: document.getElementById('hm-desc').value,
+    amenities: document.getElementById('hm-amenities').value.split(',').map(s=>s.trim()).filter(Boolean),
+    tariffs: [
+      {name: document.getElementById('hm-t1-name').value, price: document.getElementById('hm-t1-price').value},
+      {name: document.getElementById('hm-t2-name').value, price: document.getElementById('hm-t2-price').value},
+    ]
+  };
+  const path = id ? `/admin/halls/${id}` : '/admin/halls';
+  const method = id ? 'PUT' : 'POST';
+  const data = await apiFetch(path, {method, body: JSON.stringify(body)});
+  if (data) { closeModal('hall-modal'); loadHalls(); }
+  else alert('Ошибка сохранения');
+}
+
+function uploadHallPhotos(input) {
+  // Photo upload placeholder — POST /admin/halls/{id}/photos
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.className = 'photo-thumb';
+      img.src = e.target.result;
+      document.getElementById('hm-photo-list').appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Block modal ───────────────────────────────────────────────────────
+let _blockHallId = null;
+function openBlockModal(hallName, hallId) {
+  _blockHallId = hallId;
+  document.getElementById('block-hall-name').textContent = 'Зал: ' + hallName;
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('bm-from').value = today;
+  document.getElementById('bm-to').value = today;
+  document.getElementById('bm-reason').value = '';
+  openModal('block-modal');
+}
+
+async function saveBlock() {
+  const body = {
+    from: document.getElementById('bm-from').value,
+    to: document.getElementById('bm-to').value,
+    reason: document.getElementById('bm-reason').value,
+  };
+  const data = await apiFetch(`/admin/halls/${_blockHallId}/block`, {method:'POST', body: JSON.stringify(body)});
+  if (data) closeModal('block-modal');
+  else alert('Ошибка блокировки');
+}
+
+// ── All-bookings tab ───────────────────────────────────────────────────
+async function loadAllBookings() {
+  const data = await apiFetch('/admin/bookings/all');
+  _abAllData = data?.bookings || data?.data || (Array.isArray(data) ? data : []);
+  renderABTable();
+}
+
+function filterAB(status, btn) {
+  _abFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderABTable();
+}
+
+function renderABTable() {
+  const tbody = document.getElementById('ab-tbody');
+  const list = _abFilter === 'all' ? _abAllData : _abAllData.filter(b => b.status === _abFilter);
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:30px">Нет записей</td></tr>';
+    return;
+  }
+  const statusMap = {paid:'ok',confirmed:'ok',completed:'ok',hold:'hold',pending_payment:'pend',draft:'pend',cancelled:'cancel'};
+  const statusLabel = {paid:'Оплачено',confirmed:'Подтверждено',completed:'Завершено',hold:'Холд',pending_payment:'Ожидание',draft:'Черновик',cancelled:'Отменено'};
+  tbody.innerHTML = list.map(b => {
+    const cls = statusMap[b.status] || 'pend';
+    const lbl = statusLabel[b.status] || b.status;
+    const from = (b.start_time||b.from||'').slice(0,5);
+    const to = (b.end_time||b.to||'').slice(0,5);
+    const price = b.total_price || b.amount || 0;
+    return `<tr>
+      <td>#${b.id}</td>
+      <td>${b.client?.name || b.user_name || '—'}<br><span style="color:var(--text-dim);font-size:9px">${b.client?.phone||b.phone||''}</span></td>
+      <td>${b.hall?.name || b.hall_name || '—'}</td>
+      <td>${b.date || '—'}</td>
+      <td>${from}–${to}</td>
+      <td>${price.toLocaleString('ru')} ₽</td>
+      <td><span class="td-status td-${cls}">${lbl}</span></td>
+      <td>${cls !== 'cancel' ? `<button class="btn-sm btn-cancel" onclick="cancelBookingAB(${b.id})">Отменить</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function cancelBookingAB(id) {
+  if (!confirm('Отменить бронь #' + id + '?')) return;
+  const data = await apiFetch('/admin/bookings/' + id + '/cancel', {method:'POST'});
+  if (data) { _abAllData = []; _tabLoaded['all-bookings'] = false; loadAllBookings(); }
+}
+
+// ── Heatmap tab (intensity) ────────────────────────────────────────────
+function renderHeatmapIntensityMock() {
+  const hours = Array.from({length:13}, (_,i) => i+10);
+  const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  let html = '<table class="hm-intensity-table"><thead><tr><th></th>';
+  days.forEach(d => html += `<td class="hm-lbl-cell">${d}</td>`);
+  html += '</tr></thead><tbody>';
+  hours.forEach(h => {
+    html += `<tr><td class="hm-lbl-cell">${h}:00</td>`;
+    days.forEach(() => html += '<td><div class="hmi-cell hmi-0"></div></td>');
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('hm-wrap').innerHTML = html;
+}
+
+async function loadHeatmapIntensity() {
+  const data = await apiFetch('/admin/heatmap');
+  if (!data || !data.heatmap) { renderHeatmapIntensityMock(); return; }
+  const hours = Array.from({length:13}, (_,i) => i+10);
+  const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  let html = '<table class="hm-intensity-table"><thead><tr><th></th>';
+  days.forEach(d => html += `<td class="hm-lbl-cell">${d}</td>`);
+  html += '</tr></thead><tbody>';
+  hours.forEach(h => {
+    html += `<tr><td class="hm-lbl-cell">${h}:00</td>`;
+    days.forEach((_,di) => {
+      const val = data.heatmap[h]?.[di] || data.heatmap[h]?.[String(di)] || 0;
+      const intensity = Math.min(Math.floor(val), 4);
+      html += `<td><div class="hmi-cell hmi-${intensity}" title="${val}"></div></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('hm-wrap').innerHTML = html;
+}
+
+// ── Log tab ───────────────────────────────────────────────────────────
+async function loadActionLog() {
+  const data = await apiFetch('/admin/log?limit=100');
+  const tbody = document.getElementById('log-tbody');
+  const list = data?.data || data?.log || (Array.isArray(data) ? data : []);
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:30px">Лог пуст</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(l => {
+    const time = l.created_at ? new Date(l.created_at).toLocaleString('ru',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<tr>
+      <td style="white-space:nowrap">${time}</td>
+      <td>${l.causer?.name || l.user_name || '—'}</td>
+      <td>${l.event_type || l.action || '—'}</td>
+      <td>${l.subject_type || l.object || '—'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${l.description || l.details || ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Blacklist tab ──────────────────────────────────────────────────────
+async function loadBlacklist() {
+  const data = await apiFetch('/admin/clients?blacklisted=1');
+  const el = document.getElementById('bl-list');
+  const list = data?.data || data?.clients || (Array.isArray(data) ? data : []);
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>Список пуст</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(c => {
+    const name = c.name || c.phone || '—';
+    const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
+    return `<div class="bl-card">
+      <div class="bl-avatar">${initials}</div>
+      <div class="bl-info">
+        <div class="bl-name">${name}</div>
+        <div class="bl-phone">${c.phone || ''}</div>
+        ${c.blacklist_reason ? `<div class="bl-reason">${c.blacklist_reason}</div>` : ''}
+      </div>
+      <button class="btn-unblock" onclick="unblockClient(${c.id})">Разблокировать</button>
+    </div>`;
+  }).join('');
+}
+
+async function unblockClient(id) {
+  if (!confirm('Убрать из чёрного списка?')) return;
+  const data = await apiFetch('/admin/clients/' + id + '/unblock', {method:'POST'});
+  if (data) { _tabLoaded['blacklist'] = false; loadBlacklist(); }
+}
+
+// ── Roles tab ─────────────────────────────────────────────────────────
+async function loadRoles() {
+  const data = await apiFetch('/admin/users');
+  const el = document.getElementById('roles-grid');
+  const list = data?.data || data?.users || (Array.isArray(data) ? data : []);
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>Нет пользователей</p></div>';
+    return;
+  }
+  const roles = ['developer','owner','admin','client'];
+  el.innerHTML = list.map(u => {
+    const role = u.roles?.[0] || u.role || 'client';
+    return `<div class="role-card">
+      <div class="role-card-head">
+        <div>
+          <div class="role-user-name">${u.name || '—'}</div>
+          <div class="role-user-phone">${u.phone || u.email || ''}</div>
+        </div>
+        <span class="role-badge role-${role}">${role}</span>
+      </div>
+      <select class="role-select" onchange="saveRole(${u.id},this.value)">
+        ${roles.map(r => `<option value="${r}" ${r===role?'selected':''}>${r}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+async function saveRole(userId, role) {
+  await apiFetch('/admin/users/' + userId + '/role', {
+    method: 'POST',
+    body: JSON.stringify({role})
+  });
+}
+
+// ── Profile tab ───────────────────────────────────────────────────────
+async function loadProfile() {
+  const data = await apiFetch('/auth/me');
+  if (!data) return;
+  document.getElementById('pf-name').value = data.name || '';
+  document.getElementById('pf-phone').value = data.phone || '';
+  document.getElementById('pf-email').value = data.email || '';
+}
+
+async function saveProfile() {
+  const body = {
+    name: document.getElementById('pf-name').value,
+    email: document.getElementById('pf-email').value,
+  };
+  const pw = document.getElementById('pf-password').value;
+  if (pw) body.password = pw;
+  const data = await apiFetch('/auth/profile', {method:'POST', body: JSON.stringify(body)});
+  if (data) alert('Сохранено');
+  else alert('Ошибка сохранения');
+}
+
+// ── Telegram tab ──────────────────────────────────────────────────────
+async function loadTgSettings() {
+  const data = await apiFetch('/admin/telegram');
+  if (!data) return;
+  document.getElementById('tg-token').value = data.bot_token || '';
+  document.getElementById('tg-chat').value = data.chat_id || '';
+  document.getElementById('tg-thread').value = data.thread_id || '';
+  const badge = document.getElementById('tg-status-badge');
+  if (data.is_connected) {
+    badge.textContent = '● Подключён';
+    badge.className = 'tg-status';
+  }
+}
+
+async function saveTg() {
+  const body = {
+    bot_token: document.getElementById('tg-token').value,
+    chat_id: document.getElementById('tg-chat').value,
+    thread_id: document.getElementById('tg-thread').value,
+  };
+  const data = await apiFetch('/admin/telegram', {method:'POST', body: JSON.stringify(body)});
+  if (data) {
+    const badge = document.getElementById('tg-status-badge');
+    badge.textContent = '● Подключён';
+    badge.className = 'tg-status';
+    alert('Настройки Telegram сохранены');
+  } else alert('Ошибка сохранения');
+}
+
+async function testTg() {
+  const data = await apiFetch('/admin/telegram/test', {method:'POST'});
+  alert(data?.message || (data?.ok ? 'Тест отправлен!' : 'Ошибка отправки'));
+}
+
+// ── Notifications tab ─────────────────────────────────────────────────
+async function loadNotifSettings() {
+  const data = await apiFetch('/admin/notifications/settings');
+  if (!data) return;
+  const map = {new_booking:'nt-new', cancel:'nt-cancel', payment:'nt-paid', hold_expired:'nt-hold', daily_summary:'nt-daily'};
+  Object.entries(map).forEach(([key, elId]) => {
+    const el = document.getElementById(elId);
+    if (el && data[key] !== undefined) el.checked = !!data[key];
+  });
+}
+
+async function saveNotif(key, value) {
+  await apiFetch('/admin/notifications/settings', {
+    method: 'POST',
+    body: JSON.stringify({[key]: value})
+  });
+}
+
+// ── Session restore ────────────────────────────────────────────────────
+(async () => {
+  if (!authToken) { openModal('login-modal'); return; }
+  const me = await apiFetch('/auth/me');
+  if (me && me.id) {
+    _currentUser = me;
+    const name = me.name || '';
+    const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'ЛК';
+    setLoggedIn(initials, name);
+    const role = (me.roles?.[0]) || me.role;
+    if (role) applyRoleNav(role);
+    loadDashboardAll();
+    loadHalls();
+  } else {
+    authToken = null;
+    localStorage.removeItem('rh_token');
+    openModal('login-modal');
+  }
+})();
+</script>
+</body>
+</html>
