@@ -1024,6 +1024,57 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById(id)?.addEventListener('input', saveFormData);
   });
 
+  // Phone mask: +7 (XXX) XXX-XX-XX
+  const phoneInput = document.getElementById('f-phone');
+  if (phoneInput) {
+    function fmtPhone(v) {
+      let d = v.replace(/\D/g, '');
+      if (d.startsWith('8')) d = '7' + d.slice(1);
+      if (!d.startsWith('7')) d = '7' + d;
+      d = d.slice(0, 11);
+      let s = '+7';
+      if (d.length > 1) s += ' (' + d.slice(1, 4);
+      if (d.length >= 4) s += ')';
+      if (d.length > 4) s += ' ' + d.slice(4, 7);
+      if (d.length > 7) s += '-' + d.slice(7, 9);
+      if (d.length > 9) s += '-' + d.slice(9, 11);
+      return s;
+    }
+    phoneInput.addEventListener('focus', function() { if (!this.value) this.value = '+7'; });
+    phoneInput.addEventListener('blur',  function() { if (this.value === '+7') this.value = ''; });
+    phoneInput.addEventListener('input', function() {
+      const pos = this.selectionStart, prev = this.value;
+      this.value = fmtPhone(this.value);
+      const diff = this.value.length - prev.length;
+      this.setSelectionRange(pos + diff, pos + diff);
+    });
+    phoneInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && (this.value === '+7' || this.value === '+7 (')) {
+        e.preventDefault(); this.value = '';
+      }
+    });
+  }
+
+  // Email validation on blur
+  const emailInput = document.getElementById('f-email');
+  if (emailInput) {
+    emailInput.addEventListener('blur', function() {
+      const ok = !this.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value);
+      this.style.borderColor = ok ? '' : 'rgba(255,100,100,.6)';
+    });
+    emailInput.addEventListener('focus', function() { this.style.borderColor = ''; });
+  }
+
+  // Name validation on blur (минимум 2 слова)
+  const nameInput = document.getElementById('f-name');
+  if (nameInput) {
+    nameInput.addEventListener('blur', function() {
+      const ok = !this.value || /^[а-яА-ЯёЁa-zA-Z]+\s+[а-яА-ЯёЁa-zA-Z]/.test(this.value.trim());
+      this.style.borderColor = ok ? '' : 'rgba(255,100,100,.6)';
+    });
+    nameInput.addEventListener('focus', function() { this.style.borderColor = ''; });
+  }
+
   // Telegram mask: только @username
   const tgInput = document.getElementById('f-telegram');
   if (tgInput) {

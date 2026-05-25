@@ -98,8 +98,31 @@ async function doRegister() {
 (function(){
   const el = document.getElementById('email');
   if (!el) return;
-  el.addEventListener('blur', ()=>{ const ok=!el.value||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value); el.style.outline=ok?'':'1px solid rgba(255,100,100,.6)'; });
-  el.addEventListener('focus',()=>{ el.style.outline=''; });
+  el.addEventListener('blur', ()=>{ const ok=!el.value||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value); el.style.borderColor=ok?'':'rgba(255,100,100,.6)'; });
+  el.addEventListener('focus',()=>{ el.style.borderColor=''; });
+})();
+// Name validation (минимум 2 слова — Имя Фамилия)
+(function(){
+  const el = document.getElementById('name');
+  if (!el) return;
+  el.addEventListener('blur', ()=>{
+    const ok = !el.value || /^[а-яА-ЯёЁa-zA-Z]+\s+[а-яА-ЯёЁa-zA-Z]/.test(el.value.trim());
+    el.style.borderColor = ok ? '' : 'rgba(255,100,100,.6)';
+  });
+  el.addEventListener('focus', ()=>{ el.style.borderColor=''; });
+})();
+// Password confirmation match
+(function(){
+  const p1 = document.getElementById('password');
+  const p2 = document.getElementById('password_confirmation');
+  if (!p1 || !p2) return;
+  function checkMatch() {
+    const ok = !p2.value || p1.value === p2.value;
+    p2.style.borderColor = ok ? '' : 'rgba(255,100,100,.6)';
+  }
+  p2.addEventListener('blur', checkMatch);
+  p2.addEventListener('input', checkMatch);
+  p1.addEventListener('input', ()=>{ if (p2.value) checkMatch(); });
 })();
 document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') doRegister(); }));
 </script>

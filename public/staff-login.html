@@ -64,6 +64,13 @@ async function doLogin() {
     }
   } catch(e) { err.style.display='block'; err.textContent='Ошибка соединения'; btn.disabled=false; btn.textContent='Войти'; }
 }
+// Email validation
+(function(){
+  const el = document.getElementById('email');
+  if (!el) return;
+  el.addEventListener('blur', ()=>{ const ok=!el.value||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value); el.style.borderColor=ok?'':'rgba(255,100,100,.6)'; });
+  el.addEventListener('focus',()=>{ el.style.borderColor=''; });
+})();
 document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); }));
 </script>
 </body>
