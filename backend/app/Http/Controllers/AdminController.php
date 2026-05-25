@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActionLog;
 use App\Models\Booking;
 use App\Models\Client;
 use App\Models\Hall;
@@ -13,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -436,12 +438,45 @@ class AdminController extends Controller
         return response()->json(['ok' => true, 'heatmap' => $heatmap, 'max' => $max, 'halls' => $halls], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    // ── Action Log (stub — log table not yet implemented) ───────────────
+    // ── Action Log ───────────────────────────────────────────────────────
 
     public function actionLog(Request $request): JsonResponse
     {
-        // TODO: implement action_logs table migration and model
-        return response()->json(['ok' => true, 'data' => []], 200, [], JSON_UNESCAPED_UNICODE);
+        $limit = min((int) $request->query('limit', 100), 500);
+
+        $items = DB::table('action_logs as al')
+            ->leftJoin('users as u', 'u.id', '=', 'al.user_id')
+            ->select('al.id', 'al.user_id', 'al.role', 'al.action',
+                     'al.target_type', 'al.target_id',
+                     'al.payload', 'al.ip', 'al.created_at',
+                     'u.name as user_name')
+            ->orderByDesc('al.created_at')
+            ->limit($limit)
+            ->get();
+
+        $data = $items->map(function ($log) {
+            $type = $log->target_type ?? '';
+            $subject = match (true) {
+                str_ends_with($type, 'Booking') => "Бронь #{$log->target_id}",
+                str_ends_with($type, 'Client')  => "Клиент #{$log->target_id}",
+                str_ends_with($type, 'Hall')    => "Зал #{$log->target_id}",
+                $log->target_id !== null        => "#{$log->target_id}",
+                default                         => null,
+            };
+            return [
+                'id'        => $log->id,
+                'user_id'   => $log->user_id,
+                'user_name' => $log->user_name,
+                'role'      => $log->role,
+                'action'    => $log->action,
+                'subject'   => $subject,
+                'payload'   => $log->payload ? json_decode($log->payload, true) : null,
+                'ip'        => $log->ip,
+                'created_at'=> $log->created_at,
+            ];
+        });
+
+        return response()->json(['ok' => true, 'data' => $data], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     // ── Users / Roles ────────────────────────────────────────────────────

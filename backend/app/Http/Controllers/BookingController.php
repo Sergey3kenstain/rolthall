@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActionLog;
 use App\Models\Booking;
 use App\Services\BookingService;
 use App\Services\NotificationService;
@@ -55,6 +56,13 @@ class BookingController extends Controller
                 $booking->update(['status' => Booking::STATUS_CANCELLED]);
                 return response()->json(['ok' => false, 'error' => $result['error']], 422);
             }
+
+            ActionLog::write('booking.create', null, 'client', Booking::class, $booking->id, [
+                'name'  => $data['name'],
+                'date'  => $data['date'],
+                'hall'  => $data['hall_id'],
+                'total' => $booking->total_amount,
+            ], $request);
 
             return response()->json([
                 'ok'          => true,
@@ -146,6 +154,9 @@ class BookingController extends Controller
         }
 
         $refund = $this->bookings->cancel($booking);
+
+        ActionLog::write('booking.cancel', $booking->client->user_id ?? null, 'client',
+            Booking::class, $booking->id, ['refund' => $refund], $request);
 
         $this->notify->sendRaw(
             "❌ <b>Отмена брони #{$booking->id}</b>\n" .

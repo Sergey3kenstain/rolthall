@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActionLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -97,6 +98,8 @@ class AuthController extends Controller
             ->first();
 
         if (!$user) {
+            ActionLog::write('auth.login_failed', null, null, null, null,
+                ['phone' => $data['phone'], 'email' => $data['email']], $request);
             return response()->json([
                 'ok'    => false,
                 'error' => 'Пользователь с таким телефоном и email не найден.',
@@ -114,6 +117,7 @@ class AuthController extends Controller
             // Клиентский SHA256-токен (без пароля, только идентификация)
             $client = $user->client ?? null;
             if ($client && $client->is_blacklisted) {
+                ActionLog::write('auth.login_blocked', $user->id, $role, null, null, [], $request);
                 return response()->json([
                     'ok'    => false,
                     'error' => 'Доступ ограничен. Обратитесь к администратору.',
@@ -121,6 +125,9 @@ class AuthController extends Controller
             }
             $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
         }
+
+        ActionLog::write('auth.login', $user->id, $role, null, null,
+            ['name' => $user->name], $request);
 
         return response()->json([
             'ok'          => true,

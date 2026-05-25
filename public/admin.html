@@ -1821,12 +1821,13 @@ async function loadLogTab() {
   const empty = document.getElementById('log-tab-empty');
   if (!items.length) {
     tbody.innerHTML='';
-    empty.innerHTML='<div class="empty-title">Лог пуст</div><div class="empty-sub">Таблица action_logs ещё не создана на бэкенде</div>';
+    empty.innerHTML='<div class="empty-title">Лог пуст</div><div class="empty-sub">Действия начнут появляться при входах и бронированиях</div>';
     empty.style.display='';
     return;
   }
   empty.style.display='none';
-  const tagCls={'booking.create':'la-create','booking.pay':'la-pay','booking.cancel':'la-cancel','booking.confirm':'la-edit','client.blacklist':'la-block'};
+  const ACTION_LABELS={'auth.login':'Вход','auth.login_failed':'Неверные данные','auth.login_blocked':'Блокировка','booking.create':'Новая бронь','booking.paid':'Оплата','booking.cancel':'Отмена','booking.confirm':'Подтверждение','client.blacklist':'ЧС'};
+  const tagCls={'auth.login':'la-edit','auth.login_failed':'la-cancel','auth.login_blocked':'la-block','booking.create':'la-create','booking.paid':'la-pay','booking.cancel':'la-cancel','booking.confirm':'la-edit','client.blacklist':'la-block'};
   const ROLE_LABELS={owner:'Владелец',admin:'Администратор',manager:'Менеджер',developer:'Разработчик',client:'Клиент'};
   tbody.innerHTML = items.map(l => {
     const dt=new Date(l.created_at||'');
@@ -1834,7 +1835,7 @@ async function loadLogTab() {
     return `<tr>
       <td>${ts}</td><td>${l.user_name||l.user||'—'}</td>
       <td style="font-size:.65rem;color:var(--text-m);">${ROLE_LABELS[l.role]||l.role||'—'}</td>
-      <td><span class="log-tag ${tagCls[l.action]||'la-edit'}">${l.action||'—'}</span></td>
+      <td><span class="log-tag ${tagCls[l.action]||'la-edit'}">${ACTION_LABELS[l.action]||l.action||'—'}</span></td>
       <td style="font-size:.68rem;color:var(--text-m);">${l.subject||'—'}</td>
       <td style="font-size:.62rem;color:var(--text-d);">${l.ip||'—'}</td>
     </tr>`;

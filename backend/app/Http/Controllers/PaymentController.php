@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActionLog;
 use App\Models\Booking;
 use App\Services\BookingService;
 use App\Services\NotificationService;
@@ -75,6 +76,13 @@ class PaymentController extends Controller
 
             if ($booking) {
                 $this->bookings->confirmPayment($booking, $paymentId);
+
+                ActionLog::write('booking.paid', $booking->client->user_id ?? null, 'client',
+                    Booking::class, $booking->id, [
+                        'amount'         => $amount,
+                        'transaction_id' => $paymentId,
+                        'client'         => $booking->client->name ?? '—',
+                    ]);
 
                 // Уведомление администратору
                 $this->notify->notifyAdminNewBooking([
