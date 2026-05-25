@@ -1191,29 +1191,34 @@ async function loadAnalytics() {
 }
 
 /* BAR CHART */
+function weekDates() {
+  const mon = getMonday(new Date());
+  return Array.from({length:7}, (_,i) => {
+    const d = new Date(mon.getTime() + i*86400000);
+    return d.toISOString().slice(0,10);
+  });
+}
+function dateLbl(iso) { const p=iso.split('-'); return p[2]+'.'+p[1]; }
+
 function renderBarChart(byDay) {
   const el=document.getElementById('barChart');
   el.innerHTML='';
-  const maxV=Math.max(...byDay.map(d=>d.revenue||0),1);
+  const dataMap={};
+  byDay.forEach(d=>{ dataMap[d.date]=d; });
   const today=new Date().toISOString().slice(0,10);
-  byDay.forEach(d=>{
-    const px=Math.max(Math.round(((d.revenue||0)/maxV)*90),4);
-    const fmt=(d.revenue||0)>=1000?((d.revenue||0)/1000).toFixed(1).replace('.',',')+' т₽':(d.revenue||0)+'₽';
-    const lbl=d.label||(d.date||'').slice(5)||'';
-    el.innerHTML+=`<div class="bar-col"><span class="bar-amount">${fmt}</span><div class="bar${d.date===today?' today':''}" style="height:${px}px"><div class="bar-tooltip">${(d.revenue||0).toLocaleString('ru')} ₽</div></div><div class="bar-day">${lbl}</div></div>`;
+  const week=weekDates();
+  const maxV=Math.max(...week.map(dt=>dataMap[dt]?.revenue||0),1);
+  week.forEach(date=>{
+    const revenue=dataMap[date]?.revenue||0;
+    const px=Math.max(Math.round((revenue/maxV)*90),4);
+    const fmt=revenue>=1000?(revenue/1000).toFixed(1).replace('.',',')+' т₽':revenue+'₽';
+    el.innerHTML+=`<div class="bar-col"><span class="bar-amount">${fmt}</span><div class="bar${date===today?' today':''}" style="height:${px}px"><div class="bar-tooltip">${revenue.toLocaleString('ru')} ₽</div></div><div class="bar-day">${dateLbl(date)}</div></div>`;
   });
 }
 function renderBarFallback() {
   const el=document.getElementById('barChart');
-  const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  const todayIdx=(new Date().getDay()||7)-1;
-  const vals=DAYS.map(()=>Math.round((8000+Math.random()*28000)/500)*500);
-  const maxV=Math.max(...vals);
-  el.innerHTML=vals.map((v,i)=>{
-    const px=Math.max(Math.round((v/maxV)*90),4);
-    const fmt=v>=1000?(v/1000).toFixed(1).replace('.',',')+' т₽':v+'₽';
-    return`<div class="bar-col"><span class="bar-amount">${fmt}</span><div class="bar${i===todayIdx?' today':''}" style="height:${px}px"><div class="bar-tooltip">${v.toLocaleString('ru')} ₽</div></div><div class="bar-day">${DAYS[i]}</div></div>`;
-  }).join('');
+  const today=new Date().toISOString().slice(0,10);
+  el.innerHTML=weekDates().map(date=>`<div class="bar-col"><span class="bar-amount">—</span><div class="bar${date===today?' today':''}" style="height:4px"><div class="bar-tooltip">0 ₽</div></div><div class="bar-day">${dateLbl(date)}</div></div>`).join('');
 }
 
 /* HEATMAP */
