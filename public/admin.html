@@ -1,9 +1,750 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url=/landlord">
-<script>location.replace('/landlord');</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>ROLTHALL — Панель управления</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1e1c24;--bg-card:#26232e;--bg-card2:#2E2B35;
+  --bg-hover:rgba(255,255,255,.04);--border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.14);
+  --text:#D9D9D9;--text-m:rgba(217,217,217,.55);--text-d:rgba(217,217,217,.35);
+  --white:#fff;--blue:rgba(217,217,217,.35);--blue-dim:rgba(217,217,217,.08);
+  --green:#2ECC71;--green-bg:rgba(46,204,113,.12);
+  --orange:#F39C12;--orange-bg:rgba(243,156,18,.12);
+  --red:#E74C3C;--red-bg:rgba(231,76,60,.12);
+  --purple:#9B59B6;--sidebar-w:240px;
+  --font:'Unbounded',sans-serif;--r:10px;--r-lg:14px;
+  --mob-h:54px;--mob-nav-h:42px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{font-family:var(--font);}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(217,217,217,.15);border-radius:2px;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;}
+.sidebar-logo{padding:20px 18px 14px;}
+.sidebar-logo svg{height:19px;width:auto;display:block;}
+.sidebar-profile{padding:12px 14px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.s-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;}
+.s-name{font-size:.76rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.s-role{font-size:.6rem;color:var(--text-d);margin-top:2px;}
+.sidebar-nav{padding:10px;flex:1;}
+.nav-section{padding:14px 8px 5px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--r);margin-bottom:2px;color:var(--text-m);font-size:.78rem;font-weight:500;cursor:pointer;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--white);}
+.nav-item.active{background:rgba(255,255,255,.07);color:var(--white);}
+.nav-badge{margin-left:auto;border-radius:100px;font-size:.56rem;font-weight:700;padding:2px 7px;color:#fff;background:var(--orange);}
+.sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.btn-logout{width:100%;font-family:var(--font);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:9px 14px;border-radius:var(--r);background:transparent;border:1px solid var(--border2);color:var(--text-d);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;}
+.btn-logout:hover{color:var(--red);border-color:rgba(231,76,60,.3);}
+.btn-logout svg{width:13px;height:13px;}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar-w);flex:1;min-width:0;padding:28px 28px 48px;overflow-x:hidden;}
+
+/* ── TAB SYSTEM ── */
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── MOB HEADER ── */
+.mob-header{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:var(--mob-h);padding:0 18px;background:var(--bg);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;}
+.mob-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;cursor:pointer;}
+
+/* ── MOB NAV ── */
+.mob-nav{display:none;position:fixed;top:var(--mob-h);left:0;right:0;z-index:199;height:var(--mob-nav-h);background:var(--bg-card);border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.mob-nav::-webkit-scrollbar{display:none;}
+.mob-nav-inner{display:inline-flex;align-items:stretch;height:100%;padding:0 12px;gap:0;}
+.mob-nav-item{display:inline-flex;align-items:center;height:100%;padding:0 14px;font-size:.62rem;font-weight:600;color:var(--text-m);cursor:pointer;border:none;border-bottom:2px solid transparent;background:transparent;font-family:var(--font);transition:all .15s;white-space:nowrap;}
+.mob-nav-item.active{color:var(--white);border-bottom-color:var(--white);}
+.mob-nav-sep{align-self:center;width:1px;height:16px;background:var(--border);flex-shrink:0;margin:0 6px;}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;}
+.filter-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border2);border-radius:100px;padding:6px 14px;font-size:.7rem;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s;}
+.filter-chip:hover{border-color:rgba(255,255,255,.25);color:var(--white);}
+.filter-chip svg{width:12px;height:12px;opacity:.6;}
+.filter-dropdown-wrap{position:relative;}
+.filter-dropdown{position:absolute;top:calc(100% + 8px);left:0;background:var(--bg-card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:8px;z-index:200;min-width:200px;box-shadow:0 20px 50px rgba(0,0,0,.5);display:none;}
+.filter-dropdown.open{display:block;}
+.fd-label{font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);padding:6px 8px 4px;}
+.fd-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:.75rem;font-weight:500;color:var(--text-m);cursor:pointer;transition:background .13s;}
+.fd-item:hover{background:rgba(255,255,255,.06);color:var(--white);}
+.fd-item.sel{color:var(--white);}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px;}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;display:flex;flex-direction:column;min-height:150px;transition:border-color .2s,transform .2s;}
+.kpi-card:hover{border-color:rgba(255,255,255,.15);transform:translateY(-2px);}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.kpi-icon-img{width:44px;height:44px;flex-shrink:0;}
+.kpi-delta{font-size:.95rem;font-weight:700;color:var(--white);}
+.kpi-bottom{margin-top:auto;padding-top:10px;}
+.kpi-value{font-size:2.5rem;font-weight:800;color:var(--white);letter-spacing:-.03em;line-height:1.2;}
+.kpi-label{font-size:.58rem;font-weight:500;color:var(--text-d);margin-top:5px;letter-spacing:.04em;text-transform:uppercase;}
+
+/* ── GRID ── */
+.dash-grid{display:grid;grid-template-columns:1fr 480px;gap:16px;margin-bottom:16px;}
+.dash-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+
+/* ── WIDGET ── */
+.widget{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.widget-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.widget-title{font-size:.78rem;font-weight:700;color:var(--white);}
+.widget-sub{font-size:.6rem;color:var(--text-d);margin-top:2px;}
+.widget-action{display:inline-flex;align-items:center;gap:5px;font-size:.65rem;font-weight:600;color:var(--text-d);background:transparent;border:1px solid var(--border);border-radius:7px;padding:5px 10px;cursor:pointer;transition:all .14s;}
+.widget-action:hover{color:var(--white);border-color:rgba(255,255,255,.2);}
+.widget-action svg{width:12px;height:12px;}
+.widget-bar{display:flex;flex-direction:column;}
+.widget-bar .bar-chart-wrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;}
+
+/* ── BAR CHART ── */
+.bar-chart-wrap{padding:0 18px 16px;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:130px;}
+.bar-amount{font-size:8px;font-weight:300;color:rgba(255,255,255,.65);white-space:nowrap;pointer-events:none;text-align:center;line-height:1.2;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.bar{width:100%;border-radius:4px 4px 0 0;background:var(--blue-dim);position:relative;transition:background .2s;min-height:4px;}
+.bar:hover{background:rgba(55,111,255,.5);}
+.bar.today{background:var(--blue);}
+.bar-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg-card2);border:1px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:.6rem;font-weight:700;color:var(--white);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;}
+.bar-col:hover .bar-tooltip{opacity:1;}
+.bar-day{font-size:.58rem;color:var(--text-d);font-weight:500;}
+
+/* ── HEATMAP ── */
+.heatmap-wrap{padding:14px 16px 16px;overflow-x:auto;}
+.heatmap{display:grid;grid-template-columns:44px repeat(7,1fr);gap:3px;min-width:320px;}
+.hm-lbl{font-size:.56rem;font-weight:700;color:var(--text-d);text-align:center;padding:3px 2px;text-transform:uppercase;}
+.hm-time{font-size:.54rem;color:var(--text-d);display:flex;align-items:center;justify-content:flex-end;padding-right:5px;white-space:nowrap;}
+.hm-cell{border-radius:4px;height:22px;cursor:pointer;transition:transform .12s;}
+.hm-cell:hover{transform:scale(1.1);z-index:2;}
+.hm-0{background:rgba(255,255,255,.03);}
+.hm-hold{background:rgba(80,133,244,.45);}
+.hm-pend{background:rgba(247,123,34,.5);}
+.hm-paid{background:rgba(46,204,113,.55);}
+.hm-legend{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.58rem;color:var(--text-d);padding:8px 10px 0;}
+.hm-legend-item{display:flex;align-items:center;gap:4px;}
+.hm-legend-cell{width:12px;height:12px;border-radius:3px;}
+
+/* ── GAUGE ── */
+.gauge-body{padding:16px 18px 14px;display:flex;flex-direction:column;align-items:center;}
+.gauge-svg-wrap{position:relative;width:100%;max-width:260px;}
+.gauge-center{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;}
+.gauge-val{font-size:1.35rem;font-weight:800;color:#fff;display:block;line-height:1;}
+.gauge-lbl{font-size:.58rem;color:var(--text-d);display:block;margin-top:4px;}
+.gauge-pill{margin-top:10px;background:var(--bg-card2);border:1px solid var(--border2);border-radius:100px;padding:5px 16px;font-size:.62rem;color:var(--text);font-weight:500;}
+.hall-dd{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg-card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:6px;z-index:50;min-width:140px;box-shadow:0 12px 32px rgba(0,0,0,.5);display:none;}
+.hall-dd.open{display:block;}
+.hall-dd-item{padding:7px 10px;border-radius:7px;font-size:.72rem;font-weight:500;color:var(--text-m);cursor:pointer;transition:background .13s;}
+.hall-dd-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+.hall-dd-item.sel{color:#fff;background:rgba(255,255,255,.07);}
+
+/* ── CLIENT LIST ── */
+.client-list{display:flex;flex-direction:column;}
+.client-item{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);transition:background .13s;cursor:pointer;}
+.client-item:last-child{border-bottom:none;}
+.client-item:hover{background:var(--bg-hover);}
+.c-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;}
+.c-name{font-size:.75rem;font-weight:600;color:var(--white);}
+.c-sub{font-size:.62rem;color:var(--text-d);margin-top:2px;}
+.c-go{margin-left:auto;width:26px;height:26px;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .13s;color:var(--text-d);}
+.c-go svg{width:11px;height:11px;}
+.client-item:hover .c-go{border-color:rgba(255,255,255,.2);color:var(--white);}
+.bl-reason{font-size:.58rem;padding:2px 7px;border-radius:5px;background:var(--red-bg);color:var(--red);font-weight:700;margin-left:4px;}
+
+/* ── LOG ── */
+.log-list{display:flex;flex-direction:column;}
+.log-item{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);transition:background .13s;}
+.log-item:last-child{border-bottom:none;}
+.log-item:hover{background:var(--bg-hover);}
+.log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.log-dot-create{background:var(--green);}
+.log-dot-pay{background:var(--blue);}
+.log-dot-edit{background:var(--orange);}
+.log-dot-cancel{background:var(--red);}
+.log-dot-block{background:var(--purple);}
+.log-time{font-size:.6rem;color:var(--text-d);white-space:nowrap;width:72px;flex-shrink:0;}
+.log-user{font-size:.72rem;font-weight:600;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.log-tag{font-size:.6rem;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:5px;flex-shrink:0;}
+.la-create{background:var(--green-bg);color:var(--green);}
+.la-pay{background:var(--blue-dim);color:#7ea8ff;}
+.la-edit{background:var(--orange-bg);color:var(--orange);}
+.la-cancel{background:var(--red-bg);color:var(--red);}
+.la-block{background:rgba(155,89,182,.12);color:#c39bd3;}
+
+/* ── EMPTY STATE ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;gap:10px;}
+.empty-title{font-size:.8rem;font-weight:700;color:var(--text-m);}
+.empty-sub{font-size:.68rem;color:var(--text-d);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1200px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .dash-grid{grid-template-columns:1fr;}
+  .dash-grid-3{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:900px){
+  :root{--sidebar-w:200px;}
+  .main{padding:20px 16px 40px;}
+  .dash-grid-3{grid-template-columns:1fr;}
+  .bar-chart{height:80px;}
+}
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .mob-header{display:flex;}
+  .mob-nav{display:block;}
+  .main{margin-left:0;padding:calc(var(--mob-h) + var(--mob-nav-h) + 16px) 14px 40px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}
+  .kpi-grid>.widget:last-child{grid-column:1/-1;}
+  .widget-bar{min-height:65vw;}
+  .filter-bar{gap:7px;}
+  .dash-grid-3{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .kpi-grid{gap:8px;}
+  .kpi-value{font-size:1.15rem;}
+  .kpi-card{padding:14px 12px;min-height:120px;}
+  .kpi-icon-img{width:36px;height:36px;}
+  .kpi-delta{font-size:.78rem;}
+}
+</style>
 </head>
-<body></body>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="rh-logo" viewBox="0 0 1280 71"><g><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g></symbol>
+</svg>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo"><svg><use href="#rh-logo"/></svg></div>
+  <div class="sidebar-profile">
+    <div class="s-avatar" id="s-avatar">—</div>
+    <div style="min-width:0;">
+      <div class="s-name" id="s-name">Загрузка…</div>
+      <div class="s-role" id="s-role"></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Аналитика</div>
+    <button class="nav-item active" data-tab="analytics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Сводная
+    </button>
+    <button class="nav-item" data-tab="bookings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Брони
+      <span class="nav-badge" id="badge-bookings" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-tab="halls">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Залы
+    </button>
+    <button class="nav-item" data-tab="users">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Пользователи
+    </button>
+    <div class="nav-section">Настройки</div>
+    <button class="nav-item" data-tab="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Лог действий
+    </button>
+    <button class="nav-item" data-tab="blacklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      Чёрный список
+      <span class="nav-badge" id="badge-bl" style="display:none;background:#E74C3C">0</span>
+    </button>
+    <button class="nav-item" data-tab="profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Профиль
+    </button>
+    <button class="nav-item" data-tab="telegram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+      Telegram
+    </button>
+    <button class="nav-item" data-tab="notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      Уведомления
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="doLogout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Выйти
+    </button>
+  </div>
+</aside>
+
+<!-- ══ MOB HEADER ══ -->
+<div class="mob-header">
+  <svg style="height:13px;width:auto;display:block"><use href="#rh-logo"/></svg>
+  <div class="mob-avatar" id="mob-avatar">—</div>
+</div>
+
+<!-- ══ MOB NAV ══ -->
+<div class="mob-nav">
+  <div class="mob-nav-inner">
+    <button class="mob-nav-item active" data-tab="analytics">Сводная</button>
+    <button class="mob-nav-item" data-tab="bookings">Брони</button>
+    <button class="mob-nav-item" data-tab="halls">Залы</button>
+    <button class="mob-nav-item" data-tab="users">Пользователи</button>
+    <div class="mob-nav-sep"></div>
+    <button class="mob-nav-item" data-tab="log">Лог</button>
+    <button class="mob-nav-item" data-tab="blacklist">Чёрный список</button>
+    <button class="mob-nav-item" data-tab="profile">Профиль</button>
+    <button class="mob-nav-item" data-tab="telegram">Telegram</button>
+    <button class="mob-nav-item" data-tab="notifications">Уведомления</button>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+  <!-- СВОДНАЯ -->
+  <div class="tab-pane active" id="tab-analytics">
+
+    <div class="filter-bar">
+      <div class="filter-dropdown-wrap">
+        <div class="filter-chip" onclick="toggleDd('dd-period')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <span id="chip-period-lbl">Этот месяц</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;opacity:.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="filter-dropdown" id="dd-period">
+          <div class="fd-label">Период</div>
+          <div class="fd-item" onclick="setPeriod('today','Сегодня',this)">Сегодня</div>
+          <div class="fd-item" onclick="setPeriod('week','Эта неделя',this)">Эта неделя</div>
+          <div class="fd-item sel" onclick="setPeriod('month','Этот месяц',this)">Этот месяц</div>
+          <div class="fd-item" onclick="setPeriod('prev-month','Прошлый месяц',this)">Прошлый месяц</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-top"><img class="kpi-icon-img" src="/icons/ruble.svg" alt=""><span class="kpi-delta" id="kpi-rev-d">—</span></div>
+        <div class="kpi-bottom"><div class="kpi-value" id="kpi-rev">—</div><div class="kpi-label" id="kpi-rev-lbl">Выручка</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top"><img class="kpi-icon-img" src="/icons/booking.svg" alt=""><span class="kpi-delta" id="kpi-book-d">—</span></div>
+        <div class="kpi-bottom"><div class="kpi-value" id="kpi-book">—</div><div class="kpi-label" id="kpi-book-lbl">Брони</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top"><img class="kpi-icon-img" src="/icons/loading.svg" alt=""><span class="kpi-delta" id="kpi-occ-d">—</span></div>
+        <div class="kpi-bottom"><div class="kpi-value" id="kpi-occ">—</div><div class="kpi-label" id="kpi-occ-lbl">Загрузка</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top"><img class="kpi-icon-img" src="/icons/clients.svg" alt=""><span class="kpi-delta" id="kpi-cl-d">—</span></div>
+        <div class="kpi-bottom"><div class="kpi-value" id="kpi-cl">—</div><div class="kpi-label" id="kpi-cl-lbl">Клиентов</div></div>
+      </div>
+      <!-- Gauge: booked hours today -->
+      <div class="widget">
+        <div class="widget-head">
+          <div><div class="widget-title">Загруженность</div><div class="widget-sub" id="gauge-sub">сегодня</div></div>
+          <div style="position:relative;">
+            <button class="widget-action" id="gauge-btn" onclick="toggleHallDd()">···</button>
+            <div class="hall-dd" id="hall-dd">
+              <div class="hall-dd-item sel" onclick="selectHall(this,'all','Все залы')">Все залы</div>
+            </div>
+          </div>
+        </div>
+        <div class="gauge-body">
+          <div class="gauge-svg-wrap">
+            <svg id="gauge-svg" viewBox="0 0 260 148" style="width:100%;display:block;"></svg>
+            <div class="gauge-center">
+              <span class="gauge-val" id="gauge-val">—</span>
+              <span class="gauge-lbl" id="gauge-lbl">из 12 ч.</span>
+            </div>
+          </div>
+          <div class="gauge-pill" id="gauge-pill">Загрузка…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bar + Heatmap -->
+    <div class="dash-grid">
+      <div class="widget widget-bar">
+        <div class="widget-head">
+          <div><div class="widget-title">Выручка</div><div class="widget-sub" id="bar-sub">неделя</div></div>
+        </div>
+        <div class="bar-chart-wrap">
+          <div class="bar-chart" id="barChart"></div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-head">
+          <div><div class="widget-title">Популярность слотов</div><div class="widget-sub">Часы × дни недели</div></div>
+        </div>
+        <div class="heatmap-wrap">
+          <div class="heatmap" id="heatmap"></div>
+          <div class="hm-legend">
+            <div class="hm-legend-item"><div class="hm-legend-cell hm-0"></div><span>Свободно</span></div>
+            <div class="hm-legend-item"><div class="hm-legend-cell hm-hold"></div><span>Холд</span></div>
+            <div class="hm-legend-item"><div class="hm-legend-cell hm-pend"></div><span>Ожидание</span></div>
+            <div class="hm-legend-item"><div class="hm-legend-cell hm-paid"></div><span>Оплачено</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clients + Blacklist + Log -->
+    <div class="dash-grid-3">
+      <div class="widget">
+        <div class="widget-head">
+          <div><div class="widget-title">База клиентов</div><div class="widget-sub" id="cl-sub">—</div></div>
+          <button class="widget-action" onclick="switchTab('users')">Все →</button>
+        </div>
+        <div class="client-list" id="clientList"></div>
+      </div>
+      <div class="widget">
+        <div class="widget-head">
+          <div><div class="widget-title">Чёрный список</div><div class="widget-sub" id="bl-sub">—</div></div>
+          <button class="widget-action" onclick="switchTab('blacklist')">Управлять</button>
+        </div>
+        <div class="client-list" id="blackList"></div>
+      </div>
+      <div class="widget">
+        <div class="widget-head">
+          <div><div class="widget-title">Лог действий</div><div class="widget-sub">иммутабельный</div></div>
+          <button class="widget-action" onclick="switchTab('log')">Все →</button>
+        </div>
+        <div class="log-list" id="logList"></div>
+      </div>
+    </div>
+
+  </div><!-- /analytics -->
+
+  <!-- БРОНИ -->
+  <div class="tab-pane" id="tab-bookings">
+    <div class="empty-state"><div class="empty-title">Брони</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+  <!-- ЗАЛЫ -->
+  <div class="tab-pane" id="tab-halls">
+    <div class="empty-state"><div class="empty-title">Залы</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+  <!-- ПОЛЬЗОВАТЕЛИ -->
+  <div class="tab-pane" id="tab-users">
+    <div class="empty-state"><div class="empty-title">Пользователи</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+  <!-- ЛОГ -->
+  <div class="tab-pane" id="tab-log">
+    <div class="empty-state"><div class="empty-title">Лог действий</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+  <!-- ЧЁРНЫЙ СПИСОК -->
+  <div class="tab-pane" id="tab-blacklist">
+    <div class="empty-state"><div class="empty-title">Чёрный список</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+  <!-- ПРОФИЛЬ -->
+  <div class="tab-pane" id="tab-profile">
+    <div class="empty-state"><div class="empty-title">Профиль</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+  <!-- TELEGRAM -->
+  <div class="tab-pane" id="tab-telegram">
+    <div class="empty-state"><div class="empty-title">Telegram</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+  <!-- УВЕДОМЛЕНИЯ -->
+  <div class="tab-pane" id="tab-notifications">
+    <div class="empty-state"><div class="empty-title">Уведомления</div><div class="empty-sub">Раздел подключается в следующем шаге</div></div>
+  </div>
+
+</main>
+
+<script>
+const API = '/api';
+const _token = localStorage.getItem('rh_token');
+if (!_token) window.location.href = '/profile';
+
+let _period = 'month';
+let _gaugeHallId = null;
+
+async function api(path, opts={}) {
+  try {
+    const res = await fetch(API+path, {
+      ...opts,
+      headers:{'Content-Type':'application/json','Accept':'application/json','Authorization':'Bearer '+_token,...(opts.headers||{})},
+    });
+    if (res.status===401) { doLogout(); return null; }
+    return res.json();
+  } catch(e) { return null; }
+}
+
+/* TAB */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+  document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active', el.dataset.tab===tab));
+  if (window.innerWidth<768)
+    document.querySelector(`.mob-nav-item[data-tab="${tab}"]`)?.scrollIntoView({behavior:'smooth',inline:'center'});
+}
+document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>switchTab(el.dataset.tab)));
+
+/* LOGOUT */
+async function doLogout() {
+  try { await api('/auth/logout',{method:'POST'}); } catch(e){}
+  localStorage.removeItem('rh_token');
+  window.location.href='/profile';
+}
+
+/* FILTER */
+function toggleDd(id) {
+  const el=document.getElementById(id), open=el.classList.contains('open');
+  document.querySelectorAll('.filter-dropdown').forEach(d=>d.classList.remove('open'));
+  if(!open) el.classList.add('open');
+}
+function setPeriod(key,label,el) {
+  _period=key;
+  document.getElementById('chip-period-lbl').textContent=label;
+  document.querySelectorAll('#dd-period .fd-item').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');
+  document.querySelectorAll('.filter-dropdown').forEach(d=>d.classList.remove('open'));
+  loadAnalytics();
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.filter-dropdown-wrap')) document.querySelectorAll('.filter-dropdown').forEach(d=>d.classList.remove('open'));
+  if(!e.target.closest('#gauge-btn')&&!e.target.closest('#hall-dd')) document.getElementById('hall-dd')?.classList.remove('open');
+});
+
+/* PERIOD RANGE */
+function periodRange(key) {
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if(key==='today'){const t=fmt(now);return{from:t,to:t};}
+  if(key==='week'){const day=now.getDay()||7,mon=new Date(now);mon.setDate(now.getDate()-day+1);const sun=new Date(mon);sun.setDate(mon.getDate()+6);return{from:fmt(mon),to:fmt(sun)};}
+  if(key==='prev-month'){const pm=m===0?11:m-1,py=m===0?y-1:y;return{from:`${py}-${pad(pm+1)}-01`,to:fmt(new Date(py,pm+1,0))};}
+  return{from:`${y}-${pad(m+1)}-01`,to:fmt(new Date(y,m+1,0))};
+}
+
+/* USER */
+async function initUser() {
+  const data=await api('/auth/me');
+  if(!data?.ok) return;
+  const name=data.name||'';
+  const ini=name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'??';
+  const roles={owner:'Владелец',admin:'Администратор',manager:'Менеджер',developer:'Разработчик'};
+  document.getElementById('s-avatar').textContent=ini;
+  document.getElementById('s-name').textContent=name;
+  document.getElementById('s-role').textContent=roles[data.role]||data.role||'';
+  document.getElementById('mob-avatar').textContent=ini;
+}
+
+/* HALLS */
+async function loadHalls() {
+  const data=await api('/halls');
+  const halls=data?.data||[];
+  if(!halls.length) return;
+  document.getElementById('hall-dd').innerHTML=
+    `<div class="hall-dd-item sel" onclick="selectHall(this,'all','Все залы')">Все залы</div>`+
+    halls.map(h=>`<div class="hall-dd-item" onclick="selectHall(this,'${h.id}','${h.name}')">${h.name}</div>`).join('');
+}
+
+/* ANALYTICS */
+async function loadAnalytics() {
+  const{from,to}=periodRange(_period);
+  const data=await api(`/admin/analytics?from=${from}&to=${to}`);
+  if(!data) return;
+  const rev=data.total?.revenue??0,books=data.total?.bookings??0,occ=data.total?.occupancy??0,cls=data.total?.clients??0;
+  const fmtRev=rev>=1000000?(rev/1000000).toFixed(1)+' млн ₽':rev>=1000?Math.round(rev/1000)+' т₽':rev+' ₽';
+  document.getElementById('kpi-rev').textContent=fmtRev;
+  document.getElementById('kpi-book').textContent=books;
+  document.getElementById('kpi-occ').textContent=Math.round(occ)+'%';
+  document.getElementById('kpi-cl').textContent=cls;
+  const lm={today:'сегодня',week:'неделя',month:'месяц','prev-month':'прошлый мес.'};
+  const lbl=lm[_period]||'';
+  document.getElementById('kpi-rev-lbl').textContent='Выручка · '+lbl;
+  document.getElementById('kpi-book-lbl').textContent='Брони · '+lbl;
+  document.getElementById('kpi-occ-lbl').textContent='Загрузка · '+lbl;
+  document.getElementById('kpi-cl-lbl').textContent='Клиентов · '+lbl;
+  if(data.by_day?.length) renderBarChart(data.by_day); else renderBarFallback();
+  if(data.heatmap) renderHeatmapData(data.heatmap); else renderHeatmapFallback();
+}
+
+/* BAR CHART */
+function renderBarChart(byDay) {
+  const el=document.getElementById('barChart');
+  el.innerHTML='';
+  const maxV=Math.max(...byDay.map(d=>d.revenue||0),1);
+  const today=new Date().toISOString().slice(0,10);
+  byDay.forEach(d=>{
+    const px=Math.max(Math.round(((d.revenue||0)/maxV)*90),4);
+    const fmt=(d.revenue||0)>=1000?((d.revenue||0)/1000).toFixed(1).replace('.',',')+' т₽':(d.revenue||0)+'₽';
+    const lbl=d.label||(d.date||'').slice(5)||'';
+    el.innerHTML+=`<div class="bar-col"><span class="bar-amount">${fmt}</span><div class="bar${d.date===today?' today':''}" style="height:${px}px"><div class="bar-tooltip">${(d.revenue||0).toLocaleString('ru')} ₽</div></div><div class="bar-day">${lbl}</div></div>`;
+  });
+}
+function renderBarFallback() {
+  const el=document.getElementById('barChart');
+  const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const todayIdx=(new Date().getDay()||7)-1;
+  const vals=DAYS.map(()=>Math.round((8000+Math.random()*28000)/500)*500);
+  const maxV=Math.max(...vals);
+  el.innerHTML=vals.map((v,i)=>{
+    const px=Math.max(Math.round((v/maxV)*90),4);
+    const fmt=v>=1000?(v/1000).toFixed(1).replace('.',',')+' т₽':v+'₽';
+    return`<div class="bar-col"><span class="bar-amount">${fmt}</span><div class="bar${i===todayIdx?' today':''}" style="height:${px}px"><div class="bar-tooltip">${v.toLocaleString('ru')} ₽</div></div><div class="bar-day">${DAYS[i]}</div></div>`;
+  }).join('');
+}
+
+/* HEATMAP */
+function renderHeatmapData(hmData) {
+  const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const hm=document.getElementById('heatmap');
+  hm.innerHTML='<div class="hm-lbl"></div>'+DAYS.map(d=>`<div class="hm-lbl">${d}</div>`).join('');
+  for(let h=10;h<=22;h++){
+    hm.innerHTML+=`<div class="hm-time">${h}:00</div>`;
+    DAYS.forEach((_,di)=>{const s=hmData?.[di]?.[h]||'0';hm.innerHTML+=`<div class="hm-cell hm-${s}"></div>`;});
+  }
+}
+function renderHeatmapFallback() {
+  const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  function mockS(h,di){const we=di>=5,r=Math.random(),busy=(we?.35:.15)+(h>=17&&h<=21?.45:h>=11&&h<17?.25:.1);if(r>busy)return'0';const s=Math.random();return(h>=17||we)?(s<.65?'paid':s<.85?'pend':'hold'):(s<.35?'paid':s<.65?'pend':'hold');}
+  const hm=document.getElementById('heatmap');
+  hm.innerHTML='<div class="hm-lbl"></div>'+DAYS.map(d=>`<div class="hm-lbl">${d}</div>`).join('');
+  for(let h=10;h<=22;h++){hm.innerHTML+=`<div class="hm-time">${h}:00</div>`;DAYS.forEach((_,di)=>{hm.innerHTML+=`<div class="hm-cell hm-${mockS(h,di)}"></div>`;});}
+}
+
+/* GAUGE */
+async function loadGauge(hallId) {
+  const today=new Date().toISOString().slice(0,10);
+  const q=hallId&&hallId!=='all'?`&hall_id=${hallId}`:'';
+  const data=await api(`/admin/analytics?from=${today}&to=${today}${q}`);
+  const occ=data?.total?.occupancy??0;
+  renderGauge(Math.round(occ/100*12*10)/10, 12);
+}
+function renderGauge(bookedH,totalH) {
+  const svg=document.getElementById('gauge-svg');svg.innerHTML='';
+  const cx=130,cy=138,R=110,progress=Math.min(bookedH/totalH,1);
+  function polar(a,r){return{x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)};}
+  const p1=polar(Math.PI,R),p2=polar(0,R);
+  const track=document.createElementNS('http://www.w3.org/2000/svg','path');
+  track.setAttribute('d',`M${p1.x},${p1.y} A${R},${R} 0 0 1 ${p2.x},${p2.y}`);
+  track.setAttribute('stroke','rgba(255,255,255,.06)');track.setAttribute('stroke-width','3');track.setAttribute('fill','none');
+  svg.appendChild(track);
+  if(progress>0){
+    const fa=Math.PI-progress*Math.PI,pf=polar(fa,R),la=progress>.5?1:0;
+    const fill=document.createElementNS('http://www.w3.org/2000/svg','path');
+    fill.setAttribute('d',`M${p1.x},${p1.y} A${R},${R} 0 ${la} 1 ${pf.x},${pf.y}`);
+    fill.setAttribute('stroke','rgba(217,217,217,.65)');fill.setAttribute('stroke-width','3');fill.setAttribute('fill','none');
+    svg.appendChild(fill);
+  }
+  for(let i=0;i<=totalH;i++){
+    const t=i/totalH,angle=Math.PI-t*Math.PI,active=t<=progress,maj=i%2===0;
+    const pt1=polar(angle,R+4),pt2=polar(angle,R+(maj?16:10));
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',pt1.x);ln.setAttribute('y1',pt1.y);ln.setAttribute('x2',pt2.x);ln.setAttribute('y2',pt2.y);
+    ln.setAttribute('stroke',active?'rgba(217,217,217,.7)':'rgba(255,255,255,.1)');
+    ln.setAttribute('stroke-width',maj?'2.5':'1.5');ln.setAttribute('stroke-linecap','round');
+    svg.appendChild(ln);
+    if(maj){
+      const lp=polar(angle,R+30);
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',lp.x);txt.setAttribute('y',lp.y+4);txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('font-size','8');txt.setAttribute('font-family','Unbounded,sans-serif');
+      txt.setAttribute('fill',active?'rgba(217,217,217,.55)':'rgba(255,255,255,.15)');
+      txt.textContent=i+' ч';svg.appendChild(txt);
+    }
+  }
+  const np=polar(Math.PI-progress*Math.PI,R);
+  const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('cx',np.x);dot.setAttribute('cy',np.y);dot.setAttribute('r','5');dot.setAttribute('fill','#fff');
+  svg.appendChild(dot);
+  document.getElementById('gauge-val').textContent=bookedH+' ч.';
+  document.getElementById('gauge-lbl').textContent=`из ${totalH} ч. сегодня`;
+  document.getElementById('gauge-pill').textContent=`${bookedH} из ${totalH} часов · ${Math.round(progress*100)}%`;
+  document.getElementById('gauge-sub').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+}
+function toggleHallDd(){document.getElementById('hall-dd').classList.toggle('open');}
+function selectHall(el,id){
+  document.querySelectorAll('.hall-dd-item').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');_gaugeHallId=id;
+  document.getElementById('hall-dd').classList.remove('open');
+  loadGauge(id);
+}
+
+/* CLIENTS WIDGET */
+async function loadClientsWidget() {
+  const data=await api('/admin/clients?limit=5');
+  const items=data?.data||[];
+  document.getElementById('cl-sub').textContent=(data?.total||items.length)+' клиентов';
+  const colors=['#376FFF','#27AE60','#F39C12','#9B59B6','#E74C3C','#1ABC9C'];
+  const cl=document.getElementById('clientList');
+  if(!items.length){cl.innerHTML='<div class="empty-state"><div class="empty-sub">Нет клиентов</div></div>';return;}
+  cl.innerHTML=items.slice(0,5).map((c,i)=>{
+    const ini=(c.name||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const spent=c.total_paid||c.total_spent||0;
+    return`<div class="client-item" onclick="switchTab('users')"><div class="c-avatar" style="background:${colors[i%colors.length]}">${ini}</div><div><div class="c-name">${c.name||'—'}</div><div class="c-sub">${c.bookings_count||0} броней · ${spent>=1000?Math.round(spent/1000)+'т':'0'} ₽</div></div><div class="c-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></div></div>`;
+  }).join('');
+}
+
+/* BLACKLIST WIDGET */
+async function loadBlacklistWidget() {
+  const data=await api('/admin/clients?blacklisted=1&limit=3');
+  const items=data?.data||[];
+  const bl=document.getElementById('blackList');
+  document.getElementById('bl-sub').textContent=items.length?items.length+' клиентов':'Пусто';
+  if(items.length){const b=document.getElementById('badge-bl');b.textContent=items.length;b.style.display='';}
+  if(!items.length){bl.innerHTML='<div class="empty-state"><div class="empty-sub">Пусто</div></div>';return;}
+  bl.innerHTML=items.map(c=>{
+    const ini=(c.name||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return`<div class="client-item" onclick="switchTab('blacklist')"><div class="c-avatar" style="background:#C0392B">${ini}</div><div><div class="c-name">${c.name||'—'} <span class="bl-reason">${c.blacklist_reason||'Заблокирован'}</span></div><div class="c-sub">С ${(c.blacklisted_at||'').slice(0,10)||'—'}</div></div><div class="c-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></div></div>`;
+  }).join('');
+}
+
+/* LOG WIDGET */
+async function loadLogWidget() {
+  const data=await api('/admin/log?limit=7');
+  const items=data?.data||[];
+  const ll=document.getElementById('logList');
+  if(!items.length){ll.innerHTML='<div class="empty-state"><div class="empty-sub">Лог пуст</div></div>';return;}
+  const dot={'booking.create':'log-dot-create','booking.pay':'log-dot-pay','booking.cancel':'log-dot-cancel','booking.confirm':'log-dot-edit','client.blacklist':'log-dot-block'};
+  const tag={'booking.create':'la-create','booking.pay':'la-pay','booking.cancel':'la-cancel','booking.confirm':'la-edit','client.blacklist':'la-block'};
+  ll.innerHTML=items.map(l=>{
+    const dt=new Date(l.created_at||l.time||'');
+    const ts=isNaN(dt)?l.time||'—':`${String(dt.getDate()).padStart(2,'0')}.${String(dt.getMonth()+1).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+    return`<div class="log-item"><div class="log-dot ${dot[l.action]||'log-dot-edit'}"></div><div class="log-time">${ts}</div><div class="log-user">${l.user||l.causer||'—'}</div><span class="log-tag ${tag[l.action]||'la-edit'}">${l.action||'—'}</span></div>`;
+  }).join('');
+}
+
+/* PENDING BADGE */
+async function loadPendingBadge() {
+  const data=await api('/admin/bookings?status=pending&limit=1');
+  const n=data?.total||0;
+  if(n>0){const b=document.getElementById('badge-bookings');b.textContent=n;b.style.display='';}
+}
+
+/* INIT */
+async function init() {
+  initUser();
+  loadHalls();
+  renderBarFallback();
+  renderHeatmapFallback();
+  renderGauge(0,12);
+  loadAnalytics();
+  loadGauge(null);
+  loadClientsWidget();
+  loadBlacklistWidget();
+  loadLogWidget();
+  loadPendingBadge();
+}
+
+init();
+</script>
+</body>
 </html>

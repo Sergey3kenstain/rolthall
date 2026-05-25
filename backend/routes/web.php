@@ -78,8 +78,8 @@ $statusPageLayout = fn(string $icon, string $title, string $text, string $extra 
 </html>
 HTML);
 
-Route::get('/dashboard', function () {
-    return response(file_get_contents(public_path('dashboard.html')));
+Route::get('/admin', function () {
+    return response(file_get_contents(public_path('admin.html')));
 });
 
 Route::get('/booking/success', function () use ($statusPageLayout) {

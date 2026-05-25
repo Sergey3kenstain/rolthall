@@ -431,23 +431,31 @@ async function doLogin() {
   const digits   = rawPhone.replace(/\D/g, '');
   const phone    = digits.length === 11 ? '+' + digits : rawPhone;
   const email    = document.getElementById('lEmail').value.trim();
-  const err   = document.getElementById('loginError');
-  const btn   = document.getElementById('loginBtn');
+  const btn      = document.getElementById('loginBtn');
 
   if (!phone || !email) { showErr('Заполните оба поля'); return; }
 
   btn.disabled = true; btn.textContent = 'Проверяем...';
 
   try {
-    const res  = await fetch('/api/profile/login', {
+    const res  = await fetch('/api/auth/unified-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ phone, email }),
     });
     const data = await res.json();
     if (!data.ok) { showErr(data.error || 'Ошибка входа'); return; }
+
+    if (data.redirect_to === '/admin') {
+      localStorage.setItem('rh_token', data.token);
+      localStorage.setItem('rh_user', JSON.stringify(data.user));
+      window.location.href = '/admin';
+      return;
+    }
+
+    // Клиент — остаёмся на странице профиля
     sessionStorage.setItem(TOKEN_KEY, data.token);
-    showBookingsView(data.name, data.token);
+    showBookingsView(data.user?.name || '', data.token);
   } catch(e) {
     showErr('Ошибка соединения');
   } finally {
