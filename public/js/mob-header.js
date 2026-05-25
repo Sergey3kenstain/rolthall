@@ -24,7 +24,7 @@
   align-items:center;justify-content:space-between;
 }
 .rh-mob-top-logo{display:flex;align-items:center;text-decoration:none;}
-.rh-mob-top-logo svg{max-width: 210px;width:auto;display:block;}
+.rh-mob-top-logo svg{height:14px;width:auto;max-width:210px;display:block;}
 .rh-mob-top-btn{
   width:32px;height:32px;border:1px solid rgba(255,255,255,.15);border-radius:50%;
   display:flex;align-items:center;justify-content:center;cursor:pointer;

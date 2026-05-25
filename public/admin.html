@@ -33,7 +33,7 @@ button{font-family:var(--font);}
 /* ── SIDEBAR ── */
 .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;}
 .sidebar-logo{padding:20px 18px 14px;}
-.sidebar-logo svg{height:19px;width:auto;display:block;}
+.sidebar-logo svg{height:12px;width:auto;display:block;max-width:190px;}
 .sidebar-profile{padding:12px 14px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .s-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;}
 .s-name{font-size:.76rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -330,7 +330,7 @@ select.inp option{background:var(--bg-card);}
 .card{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r-lg);}
 
 /* ── ALL-BOOKINGS / LOG TABLE ── */
-.ab-table{width:100%;border-collapse:collapse;font-size:.72rem;min-width:640px;}
+.ab-table{width:100%;border-collapse:collapse;font-size:.72rem;min-width:760px;}
 .ab-table th{font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-d);padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
 .ab-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
 .ab-table tbody tr:hover{background:rgba(255,255,255,.025);}
@@ -365,6 +365,47 @@ select.inp option{background:var(--bg-card);}
 .role-card-email{font-size:.65rem;color:var(--text-m);margin-top:2px;}
 .role-select{font-family:var(--font);font-size:.68rem;background:rgba(55,111,255,.1);color:#7ea8ff;border:1px solid rgba(55,111,255,.3);border-radius:var(--r);padding:4px 8px;cursor:pointer;outline:none;}
 .role-select option{background:var(--bg-card);color:var(--text);}
+
+/* ── CLIENT ROW (list) ── */
+.cl-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .13s;}
+.cl-row:last-child{border-bottom:none;}
+.cl-row:hover{background:var(--bg-hover);}
+.cl-av{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;background:rgba(255,255,255,.12);border:1px solid var(--border);overflow:hidden;}
+.cl-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.cl-main{flex:1;min-width:0;}
+.cl-row-name{font-size:.78rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cl-contacts{display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap;}
+.cl-link{font-size:.64rem;color:var(--text-m);text-decoration:none;transition:color .15s;white-space:nowrap;}
+.cl-link:hover{color:var(--white);}
+.cl-link svg{width:10px;height:10px;margin-right:2px;vertical-align:middle;opacity:.6;}
+.cl-arrow{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-d);transition:all .13s;}
+.cl-arrow svg{width:11px;height:11px;}
+.cl-row:hover .cl-arrow{border-color:rgba(255,255,255,.2);color:var(--white);}
+.cl-ban{font-size:.56rem;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--red-bg);color:var(--red);flex-shrink:0;}
+
+/* ── CLIENT DETAIL MODAL ── */
+.cd-head{display:flex;align-items:center;gap:14px;padding:16px;}
+.cd-av{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;background:rgba(255,255,255,.12);border:1px solid var(--border);overflow:hidden;}
+.cd-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.cd-name{font-size:.95rem;font-weight:800;color:var(--white);}
+.cd-role{font-size:.62rem;color:var(--text-m);margin-top:3px;}
+.cd-contacts{display:flex;flex-direction:column;gap:6px;padding:0 16px 14px;}
+.cd-contact-row{display:flex;align-items:center;gap:8px;}
+.cd-contact-label{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);width:72px;flex-shrink:0;}
+.cd-contact-val{font-size:.75rem;color:var(--text);text-decoration:none;transition:color .15s;}
+.cd-contact-val:hover{color:var(--white);}
+.cd-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.cd-stat{text-align:center;}
+.cd-stat-val{font-size:.95rem;font-weight:800;color:var(--white);}
+.cd-stat-lbl{font-size:.56rem;color:var(--text-d);margin-top:2px;text-transform:uppercase;letter-spacing:.06em;}
+.cd-bookings-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);padding:12px 16px 6px;}
+.cd-booking-row{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid rgba(255,255,255,.04);}
+.cd-booking-row:last-child{border-bottom:none;}
+.cd-bk-date{font-size:.68rem;color:var(--text-m);width:70px;flex-shrink:0;}
+.cd-bk-hall{font-size:.72rem;font-weight:600;flex:1;}
+.cd-bk-time{font-size:.65rem;color:var(--text-d);}
+.cd-bk-amt{font-size:.72rem;font-weight:700;color:var(--white);}
+.cd-note-area{margin:0 16px 12px;}
 
 /* ── NOTIFICATIONS ── */
 .notif-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
@@ -706,22 +747,23 @@ select.inp option{background:var(--bg-card);}
 
   <!-- ЗАЛЫ -->
   <div class="tab-pane" id="tab-halls">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-size:.9rem;font-weight:700;">Залы</div>
-      <button class="btn btn-w btn-sm" onclick="openHallModal(null)">+ Добавить</button>
-    </div>
+    <div style="font-size:.9rem;font-weight:700;margin-bottom:16px;">Залы</div>
     <div id="halls-list"></div>
   </div>
 
   <!-- КЛИЕНТЫ -->
   <div class="tab-pane" id="tab-users">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
       <div style="font-size:.9rem;font-weight:700;">Клиенты</div>
-      <button id="csv-btn" class="btn btn-ghost btn-sm" onclick="downloadClientsCSV()" style="display:none;">Скачать CSV</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="search" class="inp" id="clients-search" placeholder="Поиск по имени, телефону, TG…" style="font-size:.72rem;padding:7px 12px;width:220px;" oninput="onClientsSearch(this.value)">
+        <button id="csv-btn" class="btn btn-ghost btn-sm" onclick="downloadClientsCSV()" style="display:none;white-space:nowrap;">Скачать CSV</button>
+      </div>
     </div>
-    <div style="font-size:.65rem;color:var(--text-d);line-height:1.6;margin-bottom:16px;">Управление пользователями: просмотр данных, блокировка, назначение ролей.</div>
-    <div id="clients-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;"></div>
-    <div id="clients-empty" class="empty" style="display:none;"><div class="empty-title">Клиентов нет</div></div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
+      <div id="clients-list"></div>
+      <div id="clients-empty" class="empty" style="display:none;"><div class="empty-title">Клиентов нет</div></div>
+    </div>
   </div>
 
   <!-- ЛОГ -->
@@ -826,6 +868,55 @@ select.inp option{background:var(--bg-card);}
   </div>
 
 </main>
+
+<!-- MODAL: КЛИЕНТ -->
+<div class="modal-ov" id="client-modal" onclick="if(event.target===this)closeClientModal()">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div><div class="modal-title">Карточка клиента</div></div>
+      <button class="modal-close" onclick="closeClientModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;gap:0;">
+      <!-- Шапка -->
+      <div class="cd-head">
+        <div class="cd-av" id="cd-av"><span id="cd-av-ini">??</span><img id="cd-av-img" src="" alt="" style="display:none;"></div>
+        <div>
+          <div class="cd-name" id="cd-name">—</div>
+          <div class="cd-role" id="cd-role"></div>
+          <div style="display:flex;gap:6px;margin-top:6px;" id="cd-status-row"></div>
+        </div>
+      </div>
+      <!-- Контакты -->
+      <div class="cd-contacts" id="cd-contacts"></div>
+      <!-- Статистика -->
+      <div class="cd-stats">
+        <div class="cd-stat"><div class="cd-stat-val" id="cd-bookings">—</div><div class="cd-stat-lbl">Броней</div></div>
+        <div class="cd-stat"><div class="cd-stat-val" id="cd-total">—</div><div class="cd-stat-lbl">Оплачено</div></div>
+        <div class="cd-stat"><div class="cd-stat-val" id="cd-since">—</div><div class="cd-stat-lbl">Клиент с</div></div>
+      </div>
+      <!-- Роль + статус (dev only) -->
+      <div id="cd-dev-row" style="display:none;padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <label style="font-size:.65rem;color:var(--text-m);">Роль:</label>
+        <select class="role-select" id="cd-role-sel" onchange="setClientRole(this.value)"></select>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:var(--text-m);cursor:pointer;margin-left:auto;">
+          <input type="checkbox" id="cd-ban-cb" onchange="toggleClientBan(this.checked)"> Заблокирован
+        </label>
+      </div>
+      <!-- Заметка -->
+      <div class="cd-note-area">
+        <label class="form-lbl" style="padding-top:12px;display:block;">Заметка</label>
+        <textarea class="inp" id="cd-note" placeholder="Заметка для внутреннего использования…" style="min-height:56px;" onchange="saveClientNote()"></textarea>
+      </div>
+      <!-- Брони клиента -->
+      <div class="cd-bookings-title">История броней</div>
+      <div id="cd-bookings-list" style="max-height:240px;overflow-y:auto;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-md" onclick="closeClientModal()" style="flex:1;">Закрыть</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL: ПАРАМЕТРЫ ЗАЛА -->
 <div class="modal-ov" id="hall-modal" onclick="if(event.target===this)closeHallModal()">
@@ -1340,8 +1431,8 @@ function renderAllBookings() {
 
 /* ══ HALLS TAB ══ */
 async function loadHallsTab() {
-  const data = await api('/halls');
-  renderHallsTab(data?.data || []);
+  const data = await api('/admin/halls');
+  renderHallsTab(Array.isArray(data) ? data : (data?.data || []));
 }
 
 function renderHallsTab(halls) {
@@ -1349,14 +1440,16 @@ function renderHallsTab(halls) {
   if (!halls.length) { list.innerHTML='<div class="empty-state"><div class="empty-sub">Залы не найдены</div></div>'; return; }
   list.innerHTML = halls.map(h => {
     const isOn = h.is_active !== false;
-    const tags = (h.amenities || []).slice(0,3).map(a=>`<span class="hall-tag">${a}</span>`).join('');
-    const thumb = h.cover_photo || h.photos?.[0] || '';
+    const equip = (h.equipment || []).slice(0,3);
+    const tags = equip.map(a=>`<span class="hall-tag">${a}</span>`).join('');
+    const photos = h.photos || [];
+    const thumb = photos[0] || '';
     return `<div class="hall-card" onclick="openHallModal(${h.id})">
-      ${thumb ? `<img src="${thumb}" alt="${h.name}" class="hall-thumb" onerror="this.style.display='none'">` : ''}
+      ${thumb ? `<img src="${thumb}" alt="${h.name}" class="hall-thumb" onerror="this.style.display='none'">` : '<div class="hall-thumb" style="background:var(--bg-card);display:flex;align-items:center;justify-content:center;opacity:.4;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>'}
       <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
         <div class="hall-body">
           <div class="hall-name">${h.name}</div>
-          <div class="hall-meta">${h.area?h.area+' м²':''}${h.capacity?' · до '+h.capacity+' чел':''}</div>
+          <div class="hall-meta">${h.area_m2?h.area_m2+' м²':''}${h.capacity?' · до '+h.capacity+' чел':''}</div>
           <div class="hall-tags">${tags}</div>
         </div>
         <div class="hall-footer">
@@ -1380,15 +1473,20 @@ function openHallModal(id) {
   ['hall-name','hall-area','hall-cap','hall-desc','hall-amenities'].forEach(i => { const el=document.getElementById(i); if(el) el.value=''; });
   document.getElementById('photo-grid').innerHTML = '';
   if (id) {
-    api('/halls/'+id).then(data => {
+    api('/admin/halls/'+id).then(data => {
       const h = data?.data || data;
       if (!h) return;
       document.getElementById('hall-name').value = h.name||'';
-      document.getElementById('hall-area').value = h.area||'';
+      document.getElementById('hall-area').value = h.area_m2||'';
       document.getElementById('hall-cap').value = h.capacity||'';
       document.getElementById('hall-desc').value = h.description||'';
-      document.getElementById('hall-amenities').value = (h.amenities||[]).join(', ');
+      document.getElementById('hall-amenities').value = (h.equipment||[]).join(', ');
       document.getElementById('hall-status').value = h.is_active ? '1' : '0';
+      // Photos
+      const grid = document.getElementById('photo-grid');
+      (h.photos||[]).forEach((url,i) => {
+        grid.innerHTML += `<div class="photo-thumb">${i===0?'<span class="photo-cover-badge">Обложка</span>':''}<img src="${url}" alt=""><button class="photo-thumb-del" onclick="this.closest('.photo-thumb').remove()">✕</button></div>`;
+      });
     });
   }
   document.getElementById('hall-modal').classList.add('open');
@@ -1400,15 +1498,14 @@ async function saveHall() {
   if (!name) { alert('Введите название'); return; }
   const payload = {
     name,
-    area: +document.getElementById('hall-area').value || null,
+    area_m2: +document.getElementById('hall-area').value || null,
     capacity: +document.getElementById('hall-cap').value || null,
     description: document.getElementById('hall-desc').value,
-    amenities: document.getElementById('hall-amenities').value.split(',').map(s=>s.trim()).filter(Boolean),
+    equipment: document.getElementById('hall-amenities').value.split(',').map(s=>s.trim()).filter(Boolean),
     is_active: document.getElementById('hall-status').value === '1',
   };
-  const res = _editHallId
-    ? await api('/halls/'+_editHallId, {method:'PUT', body:JSON.stringify(payload)})
-    : await api('/halls', {method:'POST', body:JSON.stringify(payload)});
+  if (!_editHallId) { alert('Создание залов доступно только через бэкенд-консоль'); return; }
+  const res = await api('/admin/halls/'+_editHallId, {method:'PUT', body:JSON.stringify(payload)});
   if (res?.ok || res?.data) { closeHallModal(); loadHallsTab(); }
 }
 
@@ -1454,65 +1551,147 @@ function handlePhotoUpload(input) {
 }
 
 /* ══ CLIENTS TAB ══ */
+let _clientsAll = [];
+let _clientSearchTimer = null;
+let _openClientId = null;
+
 async function loadClientsTab() {
-  const data = await api('/admin/users');
-  renderClientsTab(data?.data || []);
+  const data = await api('/admin/clients');
+  _clientsAll = data?.clients || [];
+  renderClientsList(_clientsAll);
+  const myRole = _me?.role;
+  if (myRole==='owner'||myRole==='developer') { const b=document.getElementById('csv-btn'); if(b) b.style.display=''; }
 }
 
-function renderClientsTab(items) {
-  const grid  = document.getElementById('clients-grid');
+function onClientsSearch(q) {
+  clearTimeout(_clientSearchTimer);
+  _clientSearchTimer = setTimeout(() => {
+    const lq = q.toLowerCase();
+    const filtered = lq
+      ? _clientsAll.filter(c=>(c.name||'').toLowerCase().includes(lq)||(c.phone||'').includes(lq)||(c.telegram||'').toLowerCase().includes(lq)||(c.email||'').toLowerCase().includes(lq))
+      : _clientsAll;
+    renderClientsList(filtered);
+  }, 200);
+}
+
+const CL_COLORS = ['#376FFF','#27AE60','#F39C12','#9B59B6','#E74C3C','#1ABC9C','#16A085','#8E44AD'];
+
+function renderClientsList(items) {
+  const list  = document.getElementById('clients-list');
   const empty = document.getElementById('clients-empty');
-  if (!items.length) { grid.innerHTML=''; empty.style.display=''; return; }
+  if (!items.length) { list.innerHTML=''; empty.style.display=''; return; }
   empty.style.display = 'none';
-  const myRole = _me?.role;
-  const COLORS = ['#376FFF','#27AE60','#F39C12','#9B59B6','#E74C3C','#1ABC9C'];
-  const ROLE_LABELS = {owner:'Владелец',admin:'Администратор',manager:'Менеджер',developer:'Разработчик',client:'Клиент'};
-  grid.innerHTML = items.map((u,i) => {
-    const ini = (u.name||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const color = COLORS[i%COLORS.length];
-    const rLabel = ROLE_LABELS[u.role]||u.role||'—';
-    const roleCtrl = myRole==='developer'
-      ? `<select class="role-select" onchange="setUserRole(${u.id},this.value)">
-           <option value="client"${u.role==='client'?' selected':''}>Клиент</option>
-           <option value="manager"${u.role==='manager'?' selected':''}>Менеджер</option>
-           <option value="admin"${u.role==='admin'?' selected':''}>Админ</option>
-           <option value="owner"${u.role==='owner'?' selected':''}>Владелец</option>
-           <option value="developer"${u.role==='developer'?' selected':''}>Разработчик</option>
-         </select>`
-      : `<span style="font-size:.65rem;color:var(--text-d);">${rLabel}</span>`;
-    return `<div class="role-card">
-      <div class="role-card-head">
-        <div class="av" style="width:40px;height:40px;background:${color};">${ini}</div>
-        <div style="flex:1;min-width:0;">
-          <div class="role-card-name">${u.name||'—'}${u.is_blacklisted?'<span class="bl-reason" style="margin-left:6px;">Бан</span>':''}</div>
-          <div class="role-card-email">${u.email||u.phone||'—'}</div>
-        </div>
-        ${roleCtrl}
+  list.innerHTML = items.map((c,i) => {
+    const ini = (c.name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const color = CL_COLORS[i % CL_COLORS.length];
+    const avImg = c.avatar_url ? `<img src="${c.avatar_url}" alt="" onerror="this.style.display='none'">` : '';
+    const avBg  = c.avatar_url ? '' : `background:${color};`;
+    const phone  = c.phone  ? `<a class="cl-link" href="tel:${c.phone}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.75a19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 6.18 2 2 0 014.11 4h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6z"/></svg>${c.phone}</a>` : '';
+    const tg     = c.telegram ? `<a class="cl-link" href="https://t.me/${c.telegram.replace('@','')}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>${c.telegram}</a>` : '';
+    const email  = c.email  ? `<a class="cl-link" href="mailto:${c.email}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>${c.email}</a>` : '';
+    const ban    = c.is_blacklisted ? '<span class="cl-ban">БАН</span>' : '';
+    return `<div class="cl-row" onclick="openClientModal(${c.id})">
+      <div class="cl-av" style="${avBg}">${avImg}${!c.avatar_url?ini:''}</div>
+      <div class="cl-main">
+        <div class="cl-row-name">${c.name||'—'} ${ban}</div>
+        <div class="cl-contacts">${phone}${tg}${email}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.65rem;color:var(--text-m);">
-          <input type="checkbox" ${u.is_blacklisted?'checked':''} onchange="toggleUserBlacklist(${u.id},this.checked)"> Заблокирован
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.65rem;color:var(--text-m);">
-          <input type="checkbox" ${u.is_active!==false?'checked':''} onchange="toggleUserActive(${u.id},this.checked)"> Активен
-        </label>
-      </div>
+      <div class="cl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></div>
     </div>`;
   }).join('');
 }
 
+async function openClientModal(id) {
+  _openClientId = id;
+  document.getElementById('client-modal').classList.add('open');
+  const data = await api(`/admin/clients/${id}`);
+  if (!data?.ok) return;
+  const c = data.client, bk = data.bookings || [];
+  const ini = (c.name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const ROLE_LABELS = {owner:'Владелец',admin:'Администратор',manager:'Менеджер',developer:'Разработчик',client:'Клиент'};
+  // Avatar
+  document.getElementById('cd-av-ini').textContent = ini;
+  const avImg = document.getElementById('cd-av-img');
+  if (c.avatar_url) { avImg.src=c.avatar_url; avImg.style.display='block'; document.getElementById('cd-av-ini').style.display='none'; }
+  else { avImg.style.display='none'; document.getElementById('cd-av-ini').style.display=''; }
+  document.getElementById('cd-name').textContent = c.name||'—';
+  document.getElementById('cd-role').textContent = ROLE_LABELS[c.role]||c.role||'Клиент';
+  // Status badges
+  const sr = document.getElementById('cd-status-row');
+  sr.innerHTML = c.is_blacklisted ? '<span class="st-badge err">Заблокирован</span>' : '<span class="st-badge ok">Активен</span>';
+  // Contacts
+  const phone = c.phone  ? `<div class="cd-contact-row"><span class="cd-contact-label">Телефон</span><a class="cd-contact-val" href="tel:${c.phone}">${c.phone}</a></div>` : '';
+  const tg    = c.telegram ? `<div class="cd-contact-row"><span class="cd-contact-label">Telegram</span><a class="cd-contact-val" href="https://t.me/${c.telegram.replace('@','')}" target="_blank">${c.telegram}</a></div>` : '';
+  const em    = c.email   ? `<div class="cd-contact-row"><span class="cd-contact-label">Email</span><a class="cd-contact-val" href="mailto:${c.email}">${c.email}</a></div>` : '';
+  const tgid  = (_me?.role==='developer'&&c.telegram_id) ? `<div class="cd-contact-row"><span class="cd-contact-label">TG ID</span><span class="cd-contact-val" style="font-family:monospace;font-size:.7rem;">${c.telegram_id}</span></div>` : '';
+  document.getElementById('cd-contacts').innerHTML = phone + tg + em + tgid;
+  // Stats
+  const firstBk = bk.length ? bk[bk.length-1].date : '—';
+  const lastBk  = bk.length ? bk[0].date : '—';
+  document.getElementById('cd-bookings').textContent = c.bookings_count || bk.length || 0;
+  document.getElementById('cd-total').textContent = c.total_paid ? Number(c.total_paid).toLocaleString('ru')+'₽' : '0₽';
+  document.getElementById('cd-since').textContent = (c.created_at||'—').slice(0,7).replace('-','.');
+  // Dev controls
+  const devRow = document.getElementById('cd-dev-row');
+  if (_me?.role==='developer'||_me?.role==='owner') {
+    devRow.style.display='flex';
+    document.getElementById('cd-ban-cb').checked = !!c.is_blacklisted;
+    const roleSel = document.getElementById('cd-role-sel');
+    roleSel.innerHTML = ['client','manager','admin','owner','developer'].map(r=>`<option value="${r}"${c.role===r?' selected':''}>${ROLE_LABELS[r]}</option>`).join('');
+  } else { devRow.style.display='none'; }
+  // Note
+  document.getElementById('cd-note').value = c.admin_note||'';
+  // Bookings
+  const bkList = document.getElementById('cd-bookings-list');
+  if (!bk.length) { bkList.innerHTML='<div style="padding:12px 16px;font-size:.68rem;color:var(--text-d);">Броней нет</div>'; }
+  else {
+    bkList.innerHTML = bk.map(b=>{
+      const sc=AB_STATUS_CLASS[b.status]||'gray', sl=AB_STATUS_LABELS[b.status]||b.status||'—';
+      return `<div class="cd-booking-row">
+        <span class="cd-bk-date">${b.date||'—'}</span>
+        <span class="cd-bk-hall">${b.hall||'—'}</span>
+        <span class="cd-bk-time">${b.time_start||''}–${b.time_end||''}</span>
+        <span class="st-badge ${sc}" style="margin-left:auto;">${sl}</span>
+        <span class="cd-bk-amt" style="margin-left:8px;">${Number(b.total||0).toLocaleString('ru')}₽</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function closeClientModal() { document.getElementById('client-modal').classList.remove('open'); }
+
+async function setClientRole(role) {
+  if (!_openClientId) return;
+  await api(`/admin/clients/${_openClientId}`,{method:'PUT',body:JSON.stringify({role})});
+}
+async function toggleClientBan(val) {
+  if (!_openClientId) return;
+  await api(`/admin/clients/${_openClientId}`,{method:'PUT',body:JSON.stringify({is_blacklisted:val})});
+  loadClientsTab();
+}
+async function saveClientNote() {
+  if (!_openClientId) return;
+  const note = document.getElementById('cd-note').value;
+  await api(`/admin/clients/${_openClientId}/note`,{method:'POST',body:JSON.stringify({note})});
+}
 async function setUserRole(userId, role) { await api(`/admin/users/${userId}/role`,{method:'PUT',body:JSON.stringify({role})}); }
 async function toggleUserBlacklist(userId, val) { await api(`/admin/users/${userId}`,{method:'PUT',body:JSON.stringify({is_blacklisted:val})}); }
 async function toggleUserActive(userId, val) { await api(`/admin/users/${userId}`,{method:'PUT',body:JSON.stringify({is_active:val})}); }
 
 async function downloadClientsCSV() {
-  const data = await api('/admin/users');
-  const items = data?.data || [];
-  if (!items.length) return;
-  const rows=[['ID','Имя','Email','Телефон','Роль','Заблокирован']];
-  items.forEach(u=>rows.push([u.id,u.name||'',u.email||'',u.phone||'',u.role||'',u.is_blacklisted?'Да':'Нет']));
-  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);a.download='clients.csv';a.click();
+  const btn = document.getElementById('csv-btn');
+  if (btn) { btn.disabled=true; btn.textContent='Загрузка…'; }
+  try {
+    const r = await fetch(API+'/admin/clients/csv', {headers:{Authorization:'Bearer '+_token}});
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'clients_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } finally {
+    if (btn) { btn.disabled=false; btn.textContent='Скачать CSV'; }
+  }
 }
 
 /* ══ LOG TAB ══ */
@@ -1521,7 +1700,12 @@ async function loadLogTab() {
   const items = data?.data || [];
   const tbody = document.getElementById('log-tab-tbody');
   const empty = document.getElementById('log-tab-empty');
-  if (!items.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  if (!items.length) {
+    tbody.innerHTML='';
+    empty.innerHTML='<div class="empty-title">Лог пуст</div><div class="empty-sub">Таблица action_logs ещё не создана на бэкенде</div>';
+    empty.style.display='';
+    return;
+  }
   empty.style.display='none';
   const tagCls={'booking.create':'la-create','booking.pay':'la-pay','booking.cancel':'la-cancel','booking.confirm':'la-edit','client.blacklist':'la-block'};
   const ROLE_LABELS={owner:'Владелец',admin:'Администратор',manager:'Менеджер',developer:'Разработчик',client:'Клиент'};
