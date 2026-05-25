@@ -342,6 +342,13 @@ select.inp option{background:var(--bg-card);}
 .st-badge.info{background:rgba(55,111,255,.14);color:#7ea8ff;}
 .st-badge.err{background:var(--red-bg);color:var(--red);}
 .st-badge.gray{background:rgba(255,255,255,.07);color:var(--text-m);}
+.abf-status-btn{display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;background:var(--bg-card2);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:.7rem;padding:7px 10px;border-radius:var(--r);flex:1;min-width:100px;max-width:180px;transition:border-color .2s;}
+.abf-status-btn:hover{border-color:rgba(255,255,255,.3);}
+.st-opt-row{display:flex;align-items:center;gap:10px;padding:11px 14px;background:none;border:1px solid transparent;border-radius:var(--r);cursor:pointer;color:var(--text);font-family:var(--font);font-size:.78rem;width:100%;text-align:left;transition:background .15s,border-color .15s;}
+.st-opt-row:hover{background:rgba(255,255,255,.05);}
+.st-opt-row.selected{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.06);}
+.st-opt-check{margin-left:auto;opacity:0;color:var(--text-d);}
+.st-opt-row.selected .st-opt-check{opacity:1;}
 
 /* ── HEATMAP TAB (full table style) ── */
 .hm-table-full{border-collapse:collapse;font-size:.65rem;width:100%;}
@@ -725,22 +732,16 @@ select.inp option{background:var(--bg-card);}
     <div style="margin-top:32px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-size:.9rem;font-weight:700;">Все брони</div>
-        <select class="inp" id="abf-status" onchange="renderAllBookings()" style="flex:1;min-width:100px;max-width:140px;font-size:.7rem;padding:7px 10px;">
-          <option value="">Все статусы</option>
-          <option value="hold">Холд</option>
-          <option value="pending_payment">Ожидает оплаты</option>
-          <option value="paid">Оплачена</option>
-          <option value="confirmed">Подтверждена</option>
-          <option value="completed">Завершена</option>
-          <option value="cancelled">Отменена</option>
-        </select>
-        <!-- <button class="btn btn-ghost btn-sm" onclick="loadAllBookings()">Обновить</button> -->
+        <button type="button" class="abf-status-btn" id="abf-status-btn" onclick="openStatusModal()">
+          <span id="abf-status-lbl">Все статусы</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <input type="hidden" id="abf-status" value="">
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        
-        <select class="inp" id="abf-hall" onchange="renderAllBookings()" style="display: none;flex:1;min-width:110px;font-size:.7rem;padding:7px 10px;"><option value="">Все залы</option></select>
-        <input type="date" class="inp" id="abf-from" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
-        <input type="date" class="inp" id="abf-to" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
+        <select class="inp" id="abf-hall" onchange="renderAllBookings()" style="display:none;flex:1;min-width:110px;font-size:.7rem;padding:7px 10px;"><option value="">Все залы</option></select>
+        <input type="date" class="inp" id="abf-from" min="2026-01-01" max="2999-12-31" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
+        <input type="date" class="inp" id="abf-to" min="2026-01-01" max="2999-12-31" onchange="renderAllBookings()" style="flex:1;min-width:120px;font-size:.7rem;padding:7px 10px;">
       </div>
       <div style="overflow-x:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);">
         <table class="ab-table">
@@ -998,6 +999,47 @@ select.inp option{background:var(--bg-card);}
     <div class="modal-foot">
       <button class="btn btn-ghost btn-md" onclick="closeBlockModal()" style="flex:1;">Отмена</button>
       <button class="btn btn-w btn-md" onclick="saveBlock()" style="flex:2;">Заблокировать</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS FILTER MODAL -->
+<div class="modal-ov" id="status-modal" onclick="if(event.target===this)closeStatusModal()">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title">Фильтр по статусу</div>
+      <button class="modal-close" onclick="closeStatusModal()">✕</button>
+    </div>
+    <div class="modal-body" style="gap:6px;">
+      <button type="button" class="st-opt-row" id="sopt-" onclick="pickStatus('','Все статусы')">
+        <span class="st-badge gray">Все</span><span>Все статусы</span>
+        <svg class="st-opt-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </button>
+      <button type="button" class="st-opt-row" id="sopt-hold" onclick="pickStatus('hold','Холд')">
+        <span class="st-badge warn">Холд</span><span>Холд</span>
+        <svg class="st-opt-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </button>
+      <button type="button" class="st-opt-row" id="sopt-pending_payment" onclick="pickStatus('pending_payment','Ожидает оплаты')">
+        <span class="st-badge warn">Ожидает</span><span>Ожидает оплаты</span>
+        <svg class="st-opt-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </button>
+      <button type="button" class="st-opt-row" id="sopt-paid" onclick="pickStatus('paid','Оплачена')">
+        <span class="st-badge ok">Оплачена</span><span>Оплачена</span>
+        <svg class="st-opt-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </button>
+      <button type="button" class="st-opt-row" id="sopt-confirmed" onclick="pickStatus('confirmed','Подтверждена')">
+        <span class="st-badge ok">Подтверждена</span><span>Подтверждена</span>
+        <svg class="st-opt-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </button>
+      <button type="button" class="st-opt-row" id="sopt-completed" onclick="pickStatus('completed','Завершена')">
+        <span class="st-badge ok">Завершена</span><span>Завершена</span>
+        <svg class="st-opt-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </button>
+      <button type="button" class="st-opt-row" id="sopt-cancelled" onclick="pickStatus('cancelled','Отменена')">
+        <span class="st-badge err">Отменена</span><span>Отменена</span>
+        <svg class="st-opt-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -1555,6 +1597,22 @@ function openHallModal(id) {
   document.getElementById('hall-modal').classList.add('open');
 }
 function closeHallModal() { document.getElementById('hall-modal').classList.remove('open'); }
+
+/* ── Status filter modal ── */
+function openStatusModal() {
+  const cur = document.getElementById('abf-status').value;
+  document.querySelectorAll('.st-opt-row').forEach(r => r.classList.remove('selected'));
+  const sel = document.getElementById('sopt-' + cur);
+  if (sel) sel.classList.add('selected');
+  document.getElementById('status-modal').classList.add('open');
+}
+function closeStatusModal() { document.getElementById('status-modal').classList.remove('open'); }
+function pickStatus(val, label) {
+  document.getElementById('abf-status').value = val;
+  document.getElementById('abf-status-lbl').textContent = label;
+  closeStatusModal();
+  renderAllBookings();
+}
 
 async function saveHall() {
   const name = document.getElementById('hall-name').value.trim();
