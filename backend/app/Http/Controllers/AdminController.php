@@ -183,9 +183,15 @@ class AdminController extends Controller
             return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
         }
 
-        $search = $request->query('q');
+        $search      = $request->query('q');
+        $blacklisted = $request->query('blacklisted');
+        $limit       = (int) $request->query('limit', 0);
 
         $query = Client::with('user')->withCount('bookings')->orderByDesc('created_at');
+
+        if ($blacklisted !== null) {
+            $query->where('is_blacklisted', (bool) $blacklisted);
+        }
 
         if ($search) {
             $q = '%' . $search . '%';
@@ -197,7 +203,7 @@ class AdminController extends Controller
             });
         }
 
-        $clients = $query->get()->map(function ($c) {
+        $clients = ($limit > 0 ? $query->limit($limit) : $query)->get()->map(function ($c) {
             $lastBooking = $c->bookings()->orderByDesc('date')->value('date');
             return [
                 'id'              => $c->id,

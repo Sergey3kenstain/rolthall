@@ -401,7 +401,7 @@ button{font-family:var(--font);}
         </div>
         <div class="gauge-body">
           <div class="gauge-svg-wrap">
-            <svg id="gauge-svg" viewBox="0 0 260 148" style="width:100%;display:block;"></svg>
+            <svg id="gauge-svg" viewBox="0 0 260 148" style="height: 190px;width:100%;display:block;"></svg>
             <div class="gauge-center">
               <span class="gauge-val" id="gauge-val">—</span>
               <span class="gauge-lbl" id="gauge-lbl">из 12 ч.</span>
@@ -613,8 +613,7 @@ async function loadAnalytics() {
   const data=await api(`/admin/analytics?from=${from}&to=${to}`);
   if(!data) return;
   const rev=data.total?.revenue??0,books=data.total?.bookings??0,occ=data.total?.occupancy??0,cls=data.total?.clients??0;
-  const fmtRev=rev>=1000000?(rev/1000000).toFixed(1)+' млн ₽':rev>=1000?Math.round(rev/1000)+' т₽':rev+' ₽';
-  document.getElementById('kpi-rev').textContent=fmtRev;
+  document.getElementById('kpi-rev').textContent=Number(rev).toLocaleString('ru')+' ₽';
   document.getElementById('kpi-book').textContent=books;
   document.getElementById('kpi-occ').textContent=Math.round(occ)+'%';
   document.getElementById('kpi-cl').textContent=cls;
@@ -624,8 +623,8 @@ async function loadAnalytics() {
   document.getElementById('kpi-book-lbl').textContent='Брони · '+lbl;
   document.getElementById('kpi-occ-lbl').textContent='Загрузка · '+lbl;
   document.getElementById('kpi-cl-lbl').textContent='Клиентов · '+lbl;
-  if(data.by_day?.length) renderBarChart(data.by_day); else renderBarFallback();
-  if(data.heatmap) renderHeatmapData(data.heatmap); else renderHeatmapFallback();
+  const byDay=Object.entries(data.by_day||{}).map(([date,val])=>({date,...val}));
+  if(byDay.length) renderBarChart(byDay); else renderBarFallback();
 }
 
 /* BAR CHART */
@@ -655,13 +654,23 @@ function renderBarFallback() {
 }
 
 /* HEATMAP */
-function renderHeatmapData(hmData) {
+async function loadHeatmap() {
+  const data=await api('/admin/heatmap');
+  if(data?.heatmap) renderHeatmapData(data.heatmap, data.max||1);
+  else renderHeatmapFallback();
+}
+function renderHeatmapData(hmData, maxVal) {
   const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   const hm=document.getElementById('heatmap');
   hm.innerHTML='<div class="hm-lbl"></div>'+DAYS.map(d=>`<div class="hm-lbl">${d}</div>`).join('');
+  const mx=maxVal||1;
   for(let h=10;h<=22;h++){
     hm.innerHTML+=`<div class="hm-time">${h}:00</div>`;
-    DAYS.forEach((_,di)=>{const s=hmData?.[di]?.[h]||'0';hm.innerHTML+=`<div class="hm-cell hm-${s}"></div>`;});
+    DAYS.forEach((_,di)=>{
+      const cnt=hmData?.[h]?.[di]??0;
+      const cls=cnt===0?'hm-0':cnt/mx>.66?'hm-paid':cnt/mx>.33?'hm-hold':'hm-pend';
+      hm.innerHTML+=`<div class="hm-cell ${cls}" title="${cnt} броней"></div>`;
+    });
   }
 }
 function renderHeatmapFallback() {
@@ -717,8 +726,8 @@ function renderGauge(bookedH,totalH) {
   const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
   dot.setAttribute('cx',np.x);dot.setAttribute('cy',np.y);dot.setAttribute('r','5');dot.setAttribute('fill','#fff');
   svg.appendChild(dot);
-  document.getElementById('gauge-val').textContent=bookedH+' ч.';
-  document.getElementById('gauge-lbl').textContent=`из ${totalH} ч. сегодня`;
+  document.getElementById('gauge-val').textContent=bookedH+' часов';
+  document.getElementById('gauge-lbl').textContent=`из ${totalH} часов · сегодня`;
   document.getElementById('gauge-pill').textContent=`${bookedH} из ${totalH} часов · ${Math.round(progress*100)}%`;
   document.getElementById('gauge-sub').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
 }
@@ -733,7 +742,7 @@ function selectHall(el,id){
 /* CLIENTS WIDGET */
 async function loadClientsWidget() {
   const data=await api('/admin/clients?limit=5');
-  const items=data?.data||[];
+  const items=data?.clients||[];
   document.getElementById('cl-sub').textContent=(data?.total||items.length)+' клиентов';
   const colors=['#376FFF','#27AE60','#F39C12','#9B59B6','#E74C3C','#1ABC9C'];
   const cl=document.getElementById('clientList');
@@ -748,7 +757,7 @@ async function loadClientsWidget() {
 /* BLACKLIST WIDGET */
 async function loadBlacklistWidget() {
   const data=await api('/admin/clients?blacklisted=1&limit=3');
-  const items=data?.data||[];
+  const items=data?.clients||[];
   const bl=document.getElementById('blackList');
   document.getElementById('bl-sub').textContent=items.length?items.length+' клиентов':'Пусто';
   if(items.length){const b=document.getElementById('badge-bl');b.textContent=items.length;b.style.display='';}
@@ -789,6 +798,7 @@ async function init() {
   renderHeatmapFallback();
   renderGauge(0,12);
   loadAnalytics();
+  loadHeatmap();
   loadGauge(null);
   loadClientsWidget();
   loadBlacklistWidget();
