@@ -974,6 +974,11 @@ select.inp option{background:var(--bg-card);}
         <div class="form-group"><label class="form-lbl">Bot Token</label><input type="text" class="inp" id="tg-token" placeholder="1234567890:AAH…"></div>
         <div class="form-group"><label class="form-lbl">Admin Chat ID</label><input type="text" class="inp" id="tg-chat" placeholder="-1002048316794"></div>
         <div class="form-group"><label class="form-lbl">Thread ID (топик группы)</label><input type="text" class="inp" id="tg-thread" placeholder="312"></div>
+        <div class="form-group">
+          <label class="form-lbl">Для тестирования клиентских уведомлений</label>
+          <input type="text" class="inp" id="tg-test-client" placeholder="123456789 (Telegram Platform ID)">
+          <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Числовой TG ID пользователя — куда слать тестовые клиентские шаблоны</div>
+        </div>
         <div style="font-size:.62rem;color:var(--text-d);line-height:1.7;">Webhook проксируется через Cloudflare Worker.<br>Изменение токена требует перерегистрации webhook.</div>
         <button class="btn btn-w btn-md btn-full" onclick="saveTelegram()">Сохранить</button>
       </div>
@@ -989,8 +994,9 @@ select.inp option{background:var(--bg-card);}
           <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="tpl-body" style="display:none;">
-          <textarea class="inp" id="tpl-new_booking" rows="6" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
-          <div class="tpl-vars">Переменные: {name} {phone} {date} {time} {hours} {hall} {amount}</div>
+          <textarea class="inp" id="tpl-new_booking" rows="9" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{name} {phone} {email} {telegram} {tg_id} {date} {time} {hours} {format} {hall} {amount} {txn_id} {guests}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testTpl('new_booking')">✈ Тест</button></div>
         </div>
       </div>
       <!-- booking_confirmed -->
@@ -1000,8 +1006,9 @@ select.inp option{background:var(--bg-card);}
           <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="tpl-body" style="display:none;">
-          <textarea class="inp" id="tpl-booking_confirmed" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
-          <div class="tpl-vars">Переменные: {name} {date} {time} {hall}</div>
+          <textarea class="inp" id="tpl-booking_confirmed" rows="6" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{name} {date} {time} {hours} {format} {hall}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testTpl('booking_confirmed')">✈ Тест</button></div>
         </div>
       </div>
       <!-- booking_cancelled -->
@@ -1012,7 +1019,8 @@ select.inp option{background:var(--bg-card);}
         </div>
         <div class="tpl-body" style="display:none;">
           <textarea class="inp" id="tpl-booking_cancelled" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
-          <div class="tpl-vars">Переменные: {name} {date} {time} {hall}</div>
+          <div class="tpl-vars">{name} {date} {time} {hall} {format}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testTpl('booking_cancelled')">✈ Тест</button></div>
         </div>
       </div>
       <!-- payment_received -->
@@ -1022,8 +1030,9 @@ select.inp option{background:var(--bg-card);}
           <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="tpl-body" style="display:none;">
-          <textarea class="inp" id="tpl-payment_received" rows="6" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
-          <div class="tpl-vars">Переменные: {name} {date} {time} {hall} {amount}</div>
+          <textarea class="inp" id="tpl-payment_received" rows="8" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{name} {phone} {email} {telegram} {tg_id} {date} {time} {format} {hall} {amount} {txn_id}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testTpl('payment_received')">✈ Тест</button></div>
         </div>
       </div>
       <!-- reminder_3h -->
@@ -1034,7 +1043,8 @@ select.inp option{background:var(--bg-card);}
         </div>
         <div class="tpl-body" style="display:none;">
           <textarea class="inp" id="tpl-reminder_3h" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
-          <div class="tpl-vars">Переменные: {name} {date} {time} {hall}</div>
+          <div class="tpl-vars">{name} {date} {time} {hall}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testTpl('reminder_3h')">✈ Тест</button></div>
         </div>
       </div>
     </div>
@@ -2577,11 +2587,11 @@ async function handleAvatarUpload(input) {
 
 /* ══ TELEGRAM TAB ══ */
 const TPL_DEFAULTS = {
-  new_booking:       '🔔 Новая бронь\n\nКлиент: {name}\nТелефон: {phone}\nДата: {date}\nВремя: {time} ({hours} ч)\nЗал: {hall}\nСумма: {amount} ₽',
-  booking_confirmed: '✅ Ваша бронь подтверждена!\n\nДата: {date}\nВремя: {time}\nЗал: {hall}\n\nДо встречи!',
-  booking_cancelled: '❌ Бронь отменена\n\nДата: {date}\nВремя: {time}\nЗал: {hall}',
-  payment_received:  '💳 Оплата получена — {amount} ₽\n\nКлиент: {name}\nДата: {date}\nВремя: {time}\nЗал: {hall}',
-  reminder_3h:       '⏰ Напоминание\n\nЧерез 3 часа начинается ваша аренда\n{date} в {time}\nЗал: {hall}',
+  new_booking:       '🏠 Новая бронь — RoltHall\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n✉️ Email: {email}\n💬 Телеграм: {telegram}\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n👥 Гостей: {guests}\n\n💰 Сумма: {amount} ₽\n🔑 Транзакция: {txn_id}',
+  booking_confirmed: '✅ Ваша бронь подтверждена!\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n🏠 Зал: {hall}\n\nДо встречи!',
+  booking_cancelled: '❌ Бронь отменена\n\n📅 Дата: {date}\n🕐 Время: {time}\n📋 Формат: {format}\n🏠 Зал: {hall}',
+  payment_received:  '💳 Оплата получена — {amount} ₽\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n✉️ Email: {email}\n💬 Телеграм: {telegram}\n\n📅 Дата: {date}\n🕐 Время: {time}\n📋 Формат: {format}\n🏠 Зал: {hall}\n🔑 Транзакция: {txn_id}',
+  reminder_3h:       '⏰ Напоминание о брони\n\nЧерез 3 часа начинается аренда\n📅 {date} в {time}\n🏠 Зал: {hall}',
 };
 
 function toggleTpl(head) {
@@ -2595,9 +2605,10 @@ function toggleTpl(head) {
 async function loadTelegramTab() {
   const data = await api('/admin/telegram/settings');
   if (!data) return;
-  document.getElementById('tg-token').value  = data.token     || '';
-  document.getElementById('tg-chat').value   = data.chat_id   || '';
-  document.getElementById('tg-thread').value = data.thread_id || '';
+  document.getElementById('tg-token').value       = data.token           || '';
+  document.getElementById('tg-chat').value        = data.chat_id         || '';
+  document.getElementById('tg-thread').value      = data.thread_id       || '';
+  document.getElementById('tg-test-client').value = data.test_client_tg_id || '';
   const tpls = data.templates || {};
   Object.keys(TPL_DEFAULTS).forEach(k => {
     const el = document.getElementById('tpl-' + k);
@@ -2607,9 +2618,10 @@ async function loadTelegramTab() {
 
 async function saveTelegram() {
   const payload = {
-    token:     document.getElementById('tg-token').value.trim(),
-    chat_id:   document.getElementById('tg-chat').value.trim(),
-    thread_id: document.getElementById('tg-thread').value.trim(),
+    token:             document.getElementById('tg-token').value.trim(),
+    chat_id:           document.getElementById('tg-chat').value.trim(),
+    thread_id:         document.getElementById('tg-thread').value.trim(),
+    test_client_tg_id: document.getElementById('tg-test-client').value.trim(),
   };
   const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify(payload)});
   if (res?.ok) { const b=document.querySelector('#tab-telegram .card .btn-w'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000); }
@@ -2623,6 +2635,18 @@ async function saveTplTemplates() {
   });
   const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify({templates})});
   if (res?.ok) { const b=document.querySelector('#tab-telegram .btn-w[onclick*="saveTplTemplates"]'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить шаблоны',2000); }
+}
+
+async function testTpl(key) {
+  const el = document.getElementById('tpl-' + key);
+  if (!el) return;
+  const btn = el.closest('.tpl-body').querySelector('button');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '…';
+  const res = await api('/admin/telegram/test-template', {method:'POST', body:JSON.stringify({key, text: el.value})});
+  if (res?.ok) { btn.textContent = '✓ Отправлено'; }
+  else { btn.textContent = '✕ ' + (res?.error || 'Ошибка'); }
+  setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
 }
 
 /* ══ NOTIFICATIONS TAB ══ */

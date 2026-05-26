@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/debug/log',                [AdminController::class, 'debugLog']);
     Route::get('/telegram/settings',        [AdminController::class, 'telegramSettings']);
     Route::post('/telegram/settings',       [AdminController::class, 'saveTelegramSettings']);
+    Route::post('/telegram/test-template',  [AdminController::class, 'testTemplate']);
 });
 
 // ── Halls ─────────────────────────────────────────────────────────────

@@ -125,29 +125,88 @@ class AdminController extends Controller
         $file  = storage_path('app/telegram_settings.json');
         $saved = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
         return response()->json([
-            'ok'        => true,
-            'token'     => $saved['token']     ?? config('services.telegram.bot_token'),
-            'chat_id'   => $saved['chat_id']   ?? config('services.telegram.admin_chat_id'),
-            'thread_id' => $saved['thread_id'] ?? config('services.telegram.admin_thread_id'),
-            'templates' => $saved['templates'] ?? null,
+            'ok'                => true,
+            'token'             => $saved['token']             ?? config('services.telegram.bot_token'),
+            'chat_id'           => $saved['chat_id']           ?? config('services.telegram.admin_chat_id'),
+            'thread_id'         => $saved['thread_id']         ?? config('services.telegram.admin_thread_id'),
+            'test_client_tg_id' => $saved['test_client_tg_id'] ?? null,
+            'templates'         => $saved['templates']         ?? null,
         ]);
     }
 
     public function saveTelegramSettings(Request $request): JsonResponse
     {
-        $file    = storage_path('app/telegram_settings.json');
+        $file     = storage_path('app/telegram_settings.json');
         $existing = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
 
         $rules = [];
-        if ($request->has('token'))     $rules['token']     = 'required|string';
-        if ($request->has('chat_id'))   $rules['chat_id']   = 'required|string';
-        if ($request->has('thread_id')) $rules['thread_id'] = 'nullable|string';
-        if ($request->has('templates')) $rules['templates']  = 'nullable|array';
+        if ($request->has('token'))             $rules['token']             = 'required|string';
+        if ($request->has('chat_id'))           $rules['chat_id']           = 'required|string';
+        if ($request->has('thread_id'))         $rules['thread_id']         = 'nullable|string';
+        if ($request->has('test_client_tg_id')) $rules['test_client_tg_id'] = 'nullable|string';
+        if ($request->has('templates'))         $rules['templates']         = 'nullable|array';
 
         $data   = $request->validate($rules);
         $merged = array_merge($existing, $data);
         file_put_contents($file, json_encode($merged, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         return response()->json(['ok' => true]);
+    }
+
+    public function testTemplate(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'key'  => 'required|string|in:new_booking,booking_confirmed,booking_cancelled,payment_received,reminder_3h',
+            'text' => 'required|string|max:4096',
+        ]);
+
+        $file     = storage_path('app/telegram_settings.json');
+        $settings = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+
+        $token    = $settings['token']             ?? config('services.telegram.bot_token');
+        $chatId   = $settings['chat_id']           ?? config('services.telegram.admin_chat_id');
+        $threadId = (int) ($settings['thread_id']  ?? config('services.telegram.admin_thread_id') ?? 0);
+        $testClientId = $settings['test_client_tg_id'] ?? null;
+
+        $adminKeys = ['new_booking', 'payment_received'];
+        $isAdmin   = in_array($data['key'], $adminKeys);
+        $targetId  = $isAdmin ? $chatId : $testClientId;
+
+        if (!$targetId) {
+            $msg = $isAdmin
+                ? 'Не задан Admin Chat ID в настройках Telegram.'
+                : 'Не задан тестовый TG ID клиента.';
+            return response()->json(['ok' => false, 'error' => $msg], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $dummies = [
+            '{name}'     => 'Иван Иваныч',
+            '{phone}'    => '+79086850838',
+            '{email}'    => 'ivan@example.com',
+            '{date}'     => '25.05.2026',
+            '{time}'     => '10:00–22:00',
+            '{hours}'    => '12',
+            '{hall}'     => 'RoltHall',
+            '{amount}'   => '5 000',
+            '{format}'   => 'Весь день',
+            '{txn_id}'   => '8541823676',
+            '{telegram}' => '@test_user',
+            '{tg_id}'    => '123456789',
+            '{guests}'   => '—',
+        ];
+
+        $text = '[ТЕСТ] ' . str_replace(array_keys($dummies), array_values($dummies), $data['text']);
+
+        try {
+            $telegram = new \Telegram\Bot\Api($token);
+            $params   = ['chat_id' => $targetId, 'text' => $text, 'parse_mode' => 'HTML'];
+            if ($isAdmin && $threadId) {
+                $params['message_thread_id'] = $threadId;
+            }
+            $telegram->sendMessage($params);
+            return response()->json(['ok' => true]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422, [], JSON_UNESCAPED_UNICODE);
+        }
     }
 
     // ── File upload ───────────────────────────────────────────────────────
