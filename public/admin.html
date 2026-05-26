@@ -272,6 +272,19 @@ select.inp option{background:var(--bg-card);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .form-group{display:flex;flex-direction:column;gap:6px;}
 .form-divider{height:1px;background:var(--border);margin:4px 0;}
+.cms-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;display:flex;flex-direction:column;gap:12px;}
+.cms-section-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);padding-bottom:10px;border-bottom:1px solid var(--border);}
+.cms-upload-row{display:flex;gap:8px;align-items:center;}
+.cms-img-preview{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;}
+.cms-img-preview img{height:60px;width:auto;border-radius:var(--r);object-fit:cover;border:1px solid var(--border);}
+.cms-carousel-list{display:flex;flex-direction:column;gap:6px;}
+.cms-carousel-item{display:flex;align-items:center;gap:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:.72rem;}
+.cms-carousel-item img{height:36px;width:52px;object-fit:cover;border-radius:4px;flex-shrink:0;}
+.cms-carousel-item input{flex:1;background:none;border:none;color:var(--text);font-family:var(--font);font-size:.72rem;outline:none;}
+.cms-del-btn{background:none;border:none;color:var(--text-d);cursor:pointer;padding:2px 4px;font-size:.85rem;flex-shrink:0;}
+.cms-del-btn:hover{color:var(--red);}
+.cms-list-item{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;}
+.cms-list-item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 
 /* ── PHOTO UPLOAD ── */
 .photo-upload-zone{border:1px dashed rgba(255,255,255,.2);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;}
@@ -753,13 +766,123 @@ select.inp option{background:var(--bg-card);}
     </div>
   </div>
 
-  <!-- ЗАЛЫ -->
+  <!-- ЗАЛ CMS -->
   <div class="tab-pane" id="tab-halls">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div style="font-size:.9rem;font-weight:700;">Залы</div>
-      <button class="btn btn-w btn-sm" onclick="openHallModal(null)">+ Создать зал</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:.9rem;font-weight:700;">Настройки зала</div>
+      <button class="btn btn-w btn-sm" id="cms-publish-btn" onclick="publishHallCms()">Опубликовать</button>
     </div>
-    <div id="halls-list"></div>
+
+    <!-- HERO -->
+    <div class="cms-section">
+      <div class="cms-section-title">Hero — главный экран</div>
+      <div class="form-group"><label class="form-lbl">Фоновое изображение</label>
+        <div class="cms-upload-row">
+          <input type="text" class="inp" id="cms-hero-image" placeholder="/images/rolthall.png" style="flex:1;">
+          <button class="btn btn-ghost btn-sm" onclick="cmsUpload('hero','cms-hero-image')">Загрузить</button>
+        </div>
+        <div id="cms-hero-preview" class="cms-img-preview"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Заголовок</label><input type="text" class="inp" id="cms-hero-title" placeholder="346 м² свободы"></div>
+        <div class="form-group"><label class="form-lbl">Вертикальная надпись</label><input type="text" class="inp" id="cms-hero-vertical" placeholder="г. Краснодар — ул. Коммунаров, 278/1 — 346 м²"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Подзаголовок</label><textarea class="inp" id="cms-hero-desc" style="min-height:56px;" placeholder="Пространство для тренировок…"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Цена от (₽/час)</label><input type="number" class="inp" id="cms-hero-price" placeholder="3500"></div>
+        <div class="form-group"><label class="form-lbl">Мин. бронь (ч)</label><input type="number" class="inp" id="cms-hero-minhours" placeholder="1"></div>
+        <div class="form-group"><label class="form-lbl">Вместимость (чел)</label><input type="number" class="inp" id="cms-hero-capacity" placeholder="150"></div>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="cms-section">
+      <div class="cms-section-title">О зале</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Заголовок секции</label><input type="text" class="inp" id="cms-about-title" placeholder="Зал, который не ограничивает"></div>
+        <div class="form-group"><label class="form-lbl">Площадь (лейбл)</label><input type="text" class="inp" id="cms-about-area" placeholder="346 м²"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Блок 1 — название</label><input type="text" class="inp" id="cms-f1-title" placeholder="Масштаб"></div>
+      <div class="form-group"><label class="form-lbl">Блок 1 — текст</label><textarea class="inp" id="cms-f1-text" style="min-height:56px;"></textarea></div>
+      <div class="form-group"><label class="form-lbl">Блок 2 — название</label><input type="text" class="inp" id="cms-f2-title" placeholder="Свет и звук"></div>
+      <div class="form-group"><label class="form-lbl">Блок 2 — текст</label><textarea class="inp" id="cms-f2-text" style="min-height:56px;"></textarea></div>
+      <div class="form-group"><label class="form-lbl">Блок 3 — название</label><input type="text" class="inp" id="cms-f3-title" placeholder="Комфорт"></div>
+      <div class="form-group"><label class="form-lbl">Блок 3 — текст</label><textarea class="inp" id="cms-f3-text" style="min-height:56px;"></textarea></div>
+      <div class="form-group" style="margin-top:8px;"><label class="form-lbl">Фото карусели (до 1 МБ каждое)</label>
+        <div id="cms-carousel-list" class="cms-carousel-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsUpload('carousel',null)">+ Добавить фото</button>
+      </div>
+    </div>
+
+    <!-- PRICING -->
+    <div class="cms-section">
+      <div class="cms-section-title">Тарифы</div>
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;">Почасовая аренда</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.75rem;" id="cms-hourly-table">
+        <thead><tr style="color:var(--text-d);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;">
+          <th style="padding:6px 8px;text-align:left;">День</th>
+          <th style="padding:6px 8px;text-align:left;">Описание</th>
+          <th style="padding:6px 8px;text-align:left;width:110px;">₽ / час</th>
+          <th style="padding:6px 8px;text-align:center;width:60px;">В систему</th>
+        </tr></thead>
+        <tbody id="cms-hourly-tbody"></tbody>
+      </table>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddHourlyRow()">+ Строка</button>
+      <div class="form-group" style="margin-top:12px;"><label class="form-lbl">Сноска к таблице</label><input type="text" class="inp" id="cms-hourly-note" placeholder="* Если более 30 человек — стоимость согласовывается индивидуально."></div>
+      <div class="form-divider" style="margin:16px 0;"></div>
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;">Пакеты мероприятий</div>
+      <div id="cms-events-list"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddEventCard()">+ Пакет</button>
+    </div>
+
+    <!-- RULES -->
+    <div class="cms-section">
+      <div class="cms-section-title">Правила</div>
+      <div class="form-group"><label class="form-lbl">Заметка (rules-note)</label><textarea class="inp" id="cms-rules-note" style="min-height:56px;" placeholder="Соглашаясь с бронированием…"></textarea></div>
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin:12px 0 8px;">Аккордеон правил</div>
+      <div id="cms-rules-accordion"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddRule()">+ Правило</button>
+      <div class="form-divider" style="margin:16px 0;"></div>
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;">Блок запретов</div>
+      <div class="form-group"><label class="form-lbl">Заголовок (ban-label)</label><input type="text" class="inp" id="cms-ban-label" placeholder="Категорически запрещено…"></div>
+      <div class="form-group"><label class="form-lbl">Подзаголовок (ban-title)</label><input type="text" class="inp" id="cms-ban-title" placeholder="Нарушение = прекращение аренды без возврата"></div>
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin:12px 0 8px;">Пункты запретов</div>
+      <div id="cms-ban-items"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddBanItem()">+ Пункт</button>
+    </div>
+
+    <!-- FAQ -->
+    <div class="cms-section">
+      <div class="cms-section-title">FAQ</div>
+      <div id="cms-faq-list"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddFaq()">+ Вопрос</button>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="cms-section">
+      <div class="cms-section-title">Контакты</div>
+      <div class="form-group"><label class="form-lbl">Адрес</label><input type="text" class="inp" id="cms-addr" placeholder="г. Краснодар, ул. Коммунаров, 278/1"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Телефон</label><input type="tel" class="inp" id="cms-phone" placeholder="+7 (861) …"></div>
+        <div class="form-group"><label class="form-lbl">Telegram</label><input type="text" class="inp" id="cms-tg" placeholder="https://t.me/…"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">WhatsApp</label><input type="text" class="inp" id="cms-wa" placeholder="https://wa.me/…"></div>
+        <div class="form-group"><label class="form-lbl">Instagram</label><input type="text" class="inp" id="cms-ig" placeholder="https://instagram.com/…"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Яндекс.Карты iframe src</label><input type="text" class="inp" id="cms-map-src" placeholder="https://yandex.ru/map-widget/v1/?…"></div>
+      <div class="form-group"><label class="form-lbl">Яндекс.Карты ссылка</label><input type="text" class="inp" id="cms-map-link" placeholder="https://yandex.ru/maps/…"></div>
+      <div class="form-divider" style="margin:16px 0;"></div>
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;">График работы</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Будни</label><input type="text" class="inp" id="cms-hours-wd" placeholder="по записи"></div>
+        <div class="form-group"><label class="form-lbl">Выходные</label><input type="text" class="inp" id="cms-hours-we" placeholder="по записи"></div>
+      </div>
+    </div>
+
+    <div style="padding:20px 0 40px;display:flex;justify-content:flex-end;">
+      <button class="btn btn-w btn-md" onclick="publishHallCms()" style="min-width:180px;">Опубликовать</button>
+    </div>
   </div>
 
   <!-- КЛИЕНТЫ -->
@@ -1544,39 +1667,274 @@ function renderAllBookings() {
 }
 
 /* ══ HALLS TAB ══ */
+/* ══ HALL CMS ══ */
+const HALL_ID = 1;
+
 async function loadHallsTab() {
-  const data = await api('/admin/halls');
-  renderHallsTab(Array.isArray(data) ? data : (data?.data || []));
+  const h = await api('/admin/halls/' + HALL_ID);
+  if (!h) return;
+  const cms = h.cms || {};
+
+  // Hero
+  const g = (id, v) => { const el=document.getElementById(id); if(el) el.value = v||''; };
+  g('cms-hero-image',    cms.hero?.image);
+  g('cms-hero-title',    cms.hero?.title);
+  g('cms-hero-vertical', cms.hero?.vertical);
+  g('cms-hero-desc',     cms.hero?.desc);
+  g('cms-hero-price',    cms.hero?.price_from);
+  g('cms-hero-minhours', cms.hero?.min_hours);
+  g('cms-hero-capacity', cms.hero?.capacity);
+  cmsUpdateHeroPreview(cms.hero?.image);
+
+  // About
+  const f = cms.about?.features || [{},{},{}];
+  g('cms-about-title', cms.about?.section_title);
+  g('cms-about-area',  cms.about?.area_label);
+  g('cms-f1-title', f[0]?.title); g('cms-f1-text', f[0]?.text);
+  g('cms-f2-title', f[1]?.title); g('cms-f2-text', f[1]?.text);
+  g('cms-f3-title', f[2]?.title); g('cms-f3-text', f[2]?.text);
+  cmsRenderCarousel(cms.about?.carousel || []);
+
+  // Pricing
+  cmsRenderHourly(cms.pricing?.hourly || []);
+  g('cms-hourly-note', cms.pricing?.hourly_note);
+  cmsRenderEvents(cms.pricing?.events || []);
+
+  // Rules
+  g('cms-rules-note', cms.rules?.note);
+  cmsRenderRulesAccordion(cms.rules?.accordion || []);
+  g('cms-ban-label', cms.rules?.ban?.label);
+  g('cms-ban-title', cms.rules?.ban?.title);
+  cmsRenderBanItems(cms.rules?.ban?.items || []);
+
+  // FAQ
+  cmsRenderFaq(cms.faq || []);
+
+  // Contacts
+  g('cms-addr',     cms.contacts?.address);
+  g('cms-phone',    cms.contacts?.phone);
+  g('cms-tg',       cms.contacts?.telegram);
+  g('cms-wa',       cms.contacts?.whatsapp);
+  g('cms-ig',       cms.contacts?.instagram);
+  g('cms-map-src',  cms.contacts?.map_src);
+  g('cms-map-link', cms.contacts?.map_link);
+  g('cms-hours-wd', cms.contacts?.hours_wd);
+  g('cms-hours-we', cms.contacts?.hours_we);
 }
 
-function renderHallsTab(halls) {
-  const list = document.getElementById('halls-list');
-  if (!halls.length) { list.innerHTML='<div class="empty-state"><div class="empty-sub">Залы не найдены</div></div>'; return; }
-  list.innerHTML = halls.map(h => {
-    const isOn = h.is_active !== false;
-    const equip = (h.equipment || []).slice(0,3);
-    const tags = equip.map(a=>`<span class="hall-tag">${a}</span>`).join('');
-    const photos = h.photos || [];
-    const thumb = photos[0] || '';
-    return `<div class="hall-card" onclick="openHallModal(${h.id})">
-      ${thumb ? `<img src="${thumb}" alt="${h.name}" class="hall-thumb" onerror="this.style.display='none'">` : '<div class="hall-thumb" style="background:var(--bg-card);display:flex;align-items:center;justify-content:center;opacity:.4;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>'}
-      <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
-        <div class="hall-body">
-          <div class="hall-name">${h.name}</div>
-          <div class="hall-meta">${h.area_m2?h.area_m2+' м²':''}${h.capacity?' · до '+h.capacity+' чел':''}</div>
-          <div class="hall-tags">${tags}</div>
-        </div>
-        <div class="hall-footer">
-          <button class="status-pill ${isOn?'on':'off'}" onclick="event.stopPropagation();toggleHallStatus(this,${h.id})"><span class="status-dot"></span>${isOn?'Активен':'Отключён'}</button>
-          <label class="block-toggle" onclick="event.stopPropagation();">
-            <input type="checkbox" onchange="onBlockToggle(this,'${h.name}',${h.id})">
-            <span class="block-toggle-track"></span>
-            <span class="block-toggle-label">Блок дат</span>
-          </label>
-        </div>
+/* ── Hero preview ── */
+function cmsUpdateHeroPreview(url) {
+  const el = document.getElementById('cms-hero-preview');
+  if (!el) return;
+  el.innerHTML = url ? `<img src="${url}" alt="hero">` : '';
+}
+
+/* ── Carousel ── */
+function cmsRenderCarousel(items) {
+  const list = document.getElementById('cms-carousel-list');
+  list.innerHTML = items.map((url, i) => `
+    <div class="cms-carousel-item" data-idx="${i}">
+      <img src="${url}" onerror="this.style.display='none'">
+      <input value="${url}" onchange="cmsCarouselUpdate(${i},this.value)" placeholder="/uploads/halls/slide.jpg">
+      <button class="cms-del-btn" onclick="cmsCarouselDel(${i})">✕</button>
+    </div>`).join('');
+}
+function cmsCarouselUpdate(i, val) {
+  const items = cmsGetCarousel();
+  items[i] = val;
+  cmsRenderCarousel(items);
+}
+function cmsCarouselDel(i) {
+  const items = cmsGetCarousel();
+  items.splice(i, 1);
+  cmsRenderCarousel(items);
+}
+function cmsGetCarousel() {
+  return [...document.querySelectorAll('#cms-carousel-list .cms-carousel-item input')].map(el=>el.value);
+}
+
+/* ── Hourly pricing ── */
+function cmsRenderHourly(rows) {
+  const tbody = document.getElementById('cms-hourly-tbody');
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr data-i="${i}">
+      <td style="padding:4px 8px;">
+        <select class="inp" style="font-size:.72rem;padding:5px 8px;" onchange="void 0">
+          <option value="weekday"${r.day_type==='weekday'?' selected':''}>Будни</option>
+          <option value="weekend"${r.day_type==='weekend'?' selected':''}>Выходные</option>
+        </select>
+      </td>
+      <td style="padding:4px 8px;"><input class="inp" style="font-size:.72rem;padding:5px 8px;" value="${r.desc||''}" placeholder="Тренировки…"></td>
+      <td style="padding:4px 8px;"><input class="inp" type="number" style="font-size:.72rem;padding:5px 8px;" value="${r.price||''}"></td>
+      <td style="padding:4px 8px;text-align:center;"><input type="checkbox" title="Синхронизировать с движком бронирования"${r.engine?' checked':''}></td>
+      <td style="padding:4px 4px;"><button class="cms-del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+    </tr>`).join('');
+}
+function cmsAddHourlyRow() {
+  const tbody = document.getElementById('cms-hourly-tbody');
+  const i = tbody.rows.length;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding:4px 8px;"><select class="inp" style="font-size:.72rem;padding:5px 8px;"><option value="weekday">Будни</option><option value="weekend">Выходные</option></select></td>
+    <td style="padding:4px 8px;"><input class="inp" style="font-size:.72rem;padding:5px 8px;" placeholder="Тренировки…"></td>
+    <td style="padding:4px 8px;"><input class="inp" type="number" style="font-size:.72rem;padding:5px 8px;" placeholder="3500"></td>
+    <td style="padding:4px 8px;text-align:center;"><input type="checkbox" title="Синхронизировать с движком бронирования"></td>
+    <td style="padding:4px 4px;"><button class="cms-del-btn" onclick="this.closest('tr').remove()">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function cmsGetHourly() {
+  return [...document.querySelectorAll('#cms-hourly-tbody tr')].map(tr => {
+    const cells = tr.querySelectorAll('td');
+    return {
+      day_type: cells[0].querySelector('select').value,
+      desc:     cells[1].querySelector('input').value,
+      price:    +cells[2].querySelector('input').value || 0,
+      engine:   cells[3].querySelector('input').checked,
+    };
+  });
+}
+
+/* ── Event packages ── */
+function cmsRenderEvents(items) {
+  const list = document.getElementById('cms-events-list');
+  list.innerHTML = items.map((c, i) => `
+    <div class="cms-list-item">
+      <div class="cms-list-item-head">
+        <span style="font-size:.68rem;color:var(--text-d);">Пакет ${i+1}</span>
+        <button class="cms-del-btn" onclick="this.closest('.cms-list-item').remove()">✕</button>
       </div>
-    </div>`;
-  }).join('');
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Лейбл</label><input class="inp" value="${c.label||''}" placeholder="Весь день — базовый"></div>
+        <div class="form-group"><label class="form-lbl">Цена ₽</label><input class="inp" type="number" value="${c.price||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Заголовок</label><input class="inp" value="${c.title||''}" placeholder="День мероприятия"></div>
+      <div class="form-group"><label class="form-lbl">Описание</label><textarea class="inp" style="min-height:48px;">${c.desc||''}</textarea></div>
+      <div class="form-group"><label class="form-lbl" style="display:flex;align-items:center;gap:8px;"><input type="checkbox"${c.featured?' checked':''}> Featured (выделенная карточка)</label></div>
+    </div>`).join('');
+}
+function cmsAddEventCard() {
+  const list = document.getElementById('cms-events-list');
+  const div = document.createElement('div');
+  div.className = 'cms-list-item';
+  div.innerHTML = `
+    <div class="cms-list-item-head"><span style="font-size:.68rem;color:var(--text-d);">Новый пакет</span><button class="cms-del-btn" onclick="this.closest('.cms-list-item').remove()">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-lbl">Лейбл</label><input class="inp" placeholder="Весь день — базовый"></div>
+      <div class="form-group"><label class="form-lbl">Цена ₽</label><input class="inp" type="number"></div>
+    </div>
+    <div class="form-group"><label class="form-lbl">Заголовок</label><input class="inp" placeholder="День мероприятия"></div>
+    <div class="form-group"><label class="form-lbl">Описание</label><textarea class="inp" style="min-height:48px;"></textarea></div>
+    <div class="form-group"><label class="form-lbl" style="display:flex;align-items:center;gap:8px;"><input type="checkbox"> Featured</label></div>`;
+  list.appendChild(div);
+}
+function cmsGetEvents() {
+  return [...document.querySelectorAll('#cms-events-list .cms-list-item')].map(el => {
+    const inps = el.querySelectorAll('input, textarea');
+    return { label: inps[0].value, price: +inps[1].value||0, title: inps[2].value, desc: inps[3].value, featured: inps[4].checked };
+  });
+}
+
+/* ── Rules accordion ── */
+function cmsRenderRulesAccordion(items) {
+  const c = document.getElementById('cms-rules-accordion');
+  c.innerHTML = items.map((r,i)=>`
+    <div class="cms-list-item">
+      <div class="cms-list-item-head"><span style="font-size:.68rem;color:var(--text-d);">Пункт ${i+1}</span><button class="cms-del-btn" onclick="this.closest('.cms-list-item').remove()">✕</button></div>
+      <div class="form-group"><label class="form-lbl">Заголовок</label><input class="inp" value="${r.title||''}" placeholder="Время и доступ"></div>
+      <div class="form-group"><label class="form-lbl">Текст</label><textarea class="inp" style="min-height:56px;">${r.text||''}</textarea></div>
+    </div>`).join('');
+}
+function cmsAddRule() {
+  const c = document.getElementById('cms-rules-accordion');
+  const div = document.createElement('div'); div.className='cms-list-item';
+  div.innerHTML=`<div class="cms-list-item-head"><span style="font-size:.68rem;color:var(--text-d);">Новый пункт</span><button class="cms-del-btn" onclick="this.closest('.cms-list-item').remove()">✕</button></div><div class="form-group"><label class="form-lbl">Заголовок</label><input class="inp" placeholder="Время и доступ"></div><div class="form-group"><label class="form-lbl">Текст</label><textarea class="inp" style="min-height:56px;"></textarea></div>`;
+  c.appendChild(div);
+}
+function cmsGetRulesAccordion() {
+  return [...document.querySelectorAll('#cms-rules-accordion .cms-list-item')].map(el=>{
+    const inps=el.querySelectorAll('input,textarea'); return {title:inps[0].value, text:inps[1].value};
+  });
+}
+
+/* ── Ban items ── */
+function cmsRenderBanItems(items) {
+  const c = document.getElementById('cms-ban-items');
+  c.innerHTML = items.map((t,i)=>`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+      <input class="inp" style="flex:1;font-size:.72rem;padding:6px 10px;" value="${t||''}">
+      <button class="cms-del-btn" onclick="this.closest('div').remove()">✕</button>
+    </div>`).join('');
+}
+function cmsAddBanItem() {
+  const c = document.getElementById('cms-ban-items');
+  const div = document.createElement('div'); div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+  div.innerHTML=`<input class="inp" style="flex:1;font-size:.72rem;padding:6px 10px;" placeholder="Курение и вейпы"><button class="cms-del-btn" onclick="this.closest('div').remove()">✕</button>`;
+  c.appendChild(div);
+}
+function cmsGetBanItems() {
+  return [...document.querySelectorAll('#cms-ban-items input')].map(el=>el.value).filter(Boolean);
+}
+
+/* ── FAQ ── */
+function cmsRenderFaq(items) {
+  const c = document.getElementById('cms-faq-list');
+  c.innerHTML = items.map((f,i)=>`
+    <div class="cms-list-item">
+      <div class="cms-list-item-head"><span style="font-size:.68rem;color:var(--text-d);">Вопрос ${i+1}</span><button class="cms-del-btn" onclick="this.closest('.cms-list-item').remove()">✕</button></div>
+      <div class="form-group"><label class="form-lbl">Вопрос</label><input class="inp" value="${f.q||''}" placeholder="Как работает бронирование?"></div>
+      <div class="form-group"><label class="form-lbl">Ответ</label><textarea class="inp" style="min-height:56px;">${f.a||''}</textarea></div>
+    </div>`).join('');
+}
+function cmsAddFaq() {
+  const c = document.getElementById('cms-faq-list');
+  const div=document.createElement('div'); div.className='cms-list-item';
+  div.innerHTML=`<div class="cms-list-item-head"><span style="font-size:.68rem;color:var(--text-d);">Новый вопрос</span><button class="cms-del-btn" onclick="this.closest('.cms-list-item').remove()">✕</button></div><div class="form-group"><label class="form-lbl">Вопрос</label><input class="inp" placeholder="Как работает бронирование?"></div><div class="form-group"><label class="form-lbl">Ответ</label><textarea class="inp" style="min-height:56px;"></textarea></div>`;
+  c.appendChild(div);
+}
+function cmsGetFaq() {
+  return [...document.querySelectorAll('#cms-faq-list .cms-list-item')].map(el=>{
+    const inps=el.querySelectorAll('input,textarea'); return {q:inps[0].value, a:inps[1].value};
+  }).filter(f=>f.q);
+}
+
+/* ── Upload ── */
+async function cmsUpload(type, targetId) {
+  const input = document.createElement('input');
+  input.type='file'; input.accept='image/*';
+  input.onchange = async () => {
+    const file = input.files[0]; if (!file) return;
+    const maxMb = type==='hero' ? 1.5 : 1;
+    if (file.size > maxMb*1024*1024) { alert(`Максимальный размер: ${maxMb} МБ`); return; }
+    const fd = new FormData(); fd.append('file', file); fd.append('type', type);
+    const res = await fetch(API+'/admin/upload', {method:'POST', headers:{Authorization:'Bearer '+_token}, body:fd});
+    const data = await res.json();
+    if (!data.ok) { alert('Ошибка загрузки'); return; }
+    if (targetId) {
+      document.getElementById(targetId).value = data.url;
+      if (targetId==='cms-hero-image') cmsUpdateHeroPreview(data.url);
+    } else {
+      const items = cmsGetCarousel(); items.push(data.url); cmsRenderCarousel(items);
+    }
+  };
+  input.click();
+}
+
+/* ── Publish ── */
+async function publishHallCms() {
+  const btn = document.getElementById('cms-publish-btn');
+  btn.disabled=true; btn.textContent='Публикация…';
+  const val = id => document.getElementById(id)?.value || '';
+  const cms = {
+    hero: { image:val('cms-hero-image'), title:val('cms-hero-title'), vertical:val('cms-hero-vertical'), desc:val('cms-hero-desc'), price_from:+val('cms-hero-price')||null, min_hours:+val('cms-hero-minhours')||null, capacity:+val('cms-hero-capacity')||null },
+    about: { section_title:val('cms-about-title'), area_label:val('cms-about-area'), features:[{title:val('cms-f1-title'),text:val('cms-f1-text')},{title:val('cms-f2-title'),text:val('cms-f2-text')},{title:val('cms-f3-title'),text:val('cms-f3-text')}], carousel:cmsGetCarousel() },
+    pricing: { hourly:cmsGetHourly(), hourly_note:val('cms-hourly-note'), events:cmsGetEvents() },
+    rules: { note:val('cms-rules-note'), accordion:cmsGetRulesAccordion(), ban:{label:val('cms-ban-label'),title:val('cms-ban-title'),items:cmsGetBanItems()} },
+    faq: cmsGetFaq(),
+    contacts: { address:val('cms-addr'), phone:val('cms-phone'), telegram:val('cms-tg'), whatsapp:val('cms-wa'), instagram:val('cms-ig'), map_src:val('cms-map-src'), map_link:val('cms-map-link'), hours_wd:val('cms-hours-wd'), hours_we:val('cms-hours-we') },
+  };
+  const res = await api('/admin/halls/'+HALL_ID+'/publish', {method:'POST', body:JSON.stringify({cms})});
+  btn.disabled=false; btn.textContent='Опубликовать';
+  if (res?.ok) { btn.textContent='✓ Опубликовано'; setTimeout(()=>{btn.textContent='Опубликовать';},3000); }
 }
 
 let _editHallId = null;
