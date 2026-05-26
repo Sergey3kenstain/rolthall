@@ -49,9 +49,12 @@ footer{background:var(--charcoal-deep);border-top:1px solid var(--border);}
 .footer-dev{font-size:9px;font-weight:300;color:rgba(217,217,217,.2);}
 .footer-dev a{color:rgba(217,217,217,.4);text-decoration:none;transition:color .2s;}
 .footer-dev a:hover{color:var(--light);}
+@media(max-width:1023px){
+  nav{display:none;}
+  .page{padding-top:72px;}
+}
 @media(max-width:768px){
-  nav{padding:0 20px;}
-  .page{padding:40px 20px 60px;}
+  .page{padding-left:20px;padding-right:20px;padding-bottom:60px;}
   .footer-top{grid-template-columns:1fr;gap:32px;padding:36px 20px 28px;}
   .footer-legal-col{align-items:flex-start;}
   .footer-nav-col{align-items:flex-start;display:grid;gap:10px;}
@@ -59,7 +62,7 @@ footer{background:var(--charcoal-deep);border-top:1px solid var(--border);}
 }
 </style>
 </head>
-<body>
+<body data-mob-nav="page">
 
 <nav>
   <a href="/" class="nav-logo">
@@ -202,5 +205,6 @@ footer{background:var(--charcoal-deep);border-top:1px solid var(--border);}
   </div>
 </footer>
 
+<script src="/js/mob-header.js"></script>
 </body>
 </html>
