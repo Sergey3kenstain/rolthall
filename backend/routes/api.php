@@ -48,6 +48,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::put('/users/{id}',               [AdminController::class, 'updateUser']);
     Route::put('/users/{id}/role',          [AdminController::class, 'setUserRole']);
     Route::get('/debug/log',                [AdminController::class, 'debugLog']);
+    Route::get('/telegram/settings',        [AdminController::class, 'telegramSettings']);
+    Route::post('/telegram/settings',       [AdminController::class, 'saveTelegramSettings']);
 });
 
 // ── Halls ─────────────────────────────────────────────────────────────

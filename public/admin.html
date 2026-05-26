@@ -500,7 +500,7 @@ select.inp option{background:var(--bg-card);}
     </button>
     <button class="nav-item" data-tab="halls">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-      Залы
+      Холл
     </button>
     <button class="nav-item" data-tab="users">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
@@ -564,7 +564,7 @@ select.inp option{background:var(--bg-card);}
     </button>
     <button class="mob-nav-item" data-tab="halls">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Залы
+      Холл
     </button>
     <button class="mob-nav-item" data-tab="users">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -999,6 +999,7 @@ select.inp option{background:var(--bg-card);}
         </div>
       </div>
     </div>
+    <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveNotifications()">Сохранить</button>
   </div>
 
 </main>
@@ -2296,22 +2297,18 @@ function renderBlacklistTab(items) {
   if (!items.length) { list.innerHTML=''; empty.style.display=''; return; }
   empty.style.display='none';
   list.innerHTML = items.map(c => {
-    const ini=(c.name||'??').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `<div class="bl-card">
-      <div class="av" style="width:40px;height:40px;background:#C0392B;">${ini}</div>
-      <div class="bl-info">
-        <div class="bl-name">${c.name||'—'}</div>
-        <div class="bl-reason-text">${c.blacklist_reason||'Нет причины'} · ${(c.blacklisted_at||'').slice(0,10)||'—'}</div>
-        <div style="font-size:.62rem;color:var(--text-d);margin-top:2px;">${c.phone||''} ${c.email||''}</div>
+    const ini = (c.name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const since = (c.blacklisted_at||'').slice(0,10);
+    return `<div class="cl-row" onclick="openClientModal(${c.id})">
+      <div class="av" style="width:34px;height:34px;min-width:34px;font-size:.72rem;background:#C0392B;">${ini}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="cl-row-name">${c.name||'—'} <span class="cl-ban">БАН</span></div>
+        <div class="cl-row-sub">${c.phone||''} ${c.email||''}</div>
+        <div class="cl-row-sub" style="color:#E74C3C;margin-top:1px;">${c.blacklist_reason||'—'}${since?' · '+since:''}</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="unblockClient(${c.id})">Разблокировать</button>
+      <div class="cl-arrow">›</div>
     </div>`;
   }).join('');
-}
-
-async function unblockClient(id) {
-  const res = await api(`/admin/clients/${id}`,{method:'PUT',body:JSON.stringify({is_blacklisted:false})});
-  if (res?.ok||res?.data) loadBlacklistTab();
 }
 
 /* ══ PROFILE TAB ══ */
@@ -2352,30 +2349,39 @@ async function handleAvatarUpload(input) {
 
 /* ══ TELEGRAM TAB ══ */
 async function loadTelegramTab() {
-  const data=await api('/admin/settings/telegram');
-  if(!data) return;
-  document.getElementById('tg-token').value=data.token||'';
-  document.getElementById('tg-chat').value=data.chat_id||'';
-  document.getElementById('tg-thread').value=data.thread_id||'';
+  const data = await api('/admin/telegram/settings');
+  if (!data) return;
+  document.getElementById('tg-token').value  = data.token   || '';
+  document.getElementById('tg-chat').value   = data.chat_id || '';
+  document.getElementById('tg-thread').value = data.thread_id || '';
 }
 
 async function saveTelegram() {
-  const payload={token:document.getElementById('tg-token').value.trim(),chat_id:document.getElementById('tg-chat').value.trim(),thread_id:document.getElementById('tg-thread').value.trim()};
-  const res=await api('/admin/settings/telegram',{method:'POST',body:JSON.stringify(payload)});
-  if(res?.ok) alert('Сохранено');
+  const payload = {
+    token:     document.getElementById('tg-token').value.trim(),
+    chat_id:   document.getElementById('tg-chat').value.trim(),
+    thread_id: document.getElementById('tg-thread').value.trim(),
+  };
+  const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify(payload)});
+  if (res?.ok) { const b=document.querySelector('#tab-telegram .btn-w'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000); }
 }
 
 /* ══ NOTIFICATIONS TAB ══ */
-async function loadNotificationsTab() {
-  const data=await api('/admin/settings/notifications');
-  if(!data) return;
-  Object.entries(data).forEach(([key,val])=>{ const el=document.getElementById('notif-'+key); if(el) el.checked=!!val; });
+function loadNotificationsTab() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('rh_notif') || '{}');
+    document.querySelectorAll('#tab-notifications [data-notif]').forEach(el => {
+      if (el.dataset.notif in saved) el.checked = !!saved[el.dataset.notif];
+    });
+  } catch(e) {}
 }
 
-async function saveNotifications() {
-  const settings={};
-  document.querySelectorAll('#tab-notifications [data-notif]').forEach(el=>{settings[el.dataset.notif]=el.checked;});
-  await api('/admin/settings/notifications',{method:'POST',body:JSON.stringify(settings)});
+function saveNotifications() {
+  const settings = {};
+  document.querySelectorAll('#tab-notifications [data-notif]').forEach(el => { settings[el.dataset.notif] = el.checked; });
+  localStorage.setItem('rh_notif', JSON.stringify(settings));
+  const b = document.querySelector('#tab-notifications .btn-w');
+  if (b) { b.textContent = '✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000); }
 }
 
 /* INIT */

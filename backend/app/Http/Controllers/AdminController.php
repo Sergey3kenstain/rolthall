@@ -118,6 +118,31 @@ class AdminController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    // ── Telegram settings ────────────────────────────────────────────────
+
+    public function telegramSettings(): JsonResponse
+    {
+        $file = storage_path('app/telegram_settings.json');
+        $saved = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
+        return response()->json([
+            'ok'        => true,
+            'token'     => $saved['token']     ?? config('services.telegram.bot_token'),
+            'chat_id'   => $saved['chat_id']   ?? config('services.telegram.admin_chat_id'),
+            'thread_id' => $saved['thread_id'] ?? config('services.telegram.admin_thread_id'),
+        ]);
+    }
+
+    public function saveTelegramSettings(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'token'     => 'required|string',
+            'chat_id'   => 'required|string',
+            'thread_id' => 'nullable|string',
+        ]);
+        file_put_contents(storage_path('app/telegram_settings.json'), json_encode($data));
+        return response()->json(['ok' => true]);
+    }
+
     // ── File upload ───────────────────────────────────────────────────────
 
     public function upload(Request $request): JsonResponse
