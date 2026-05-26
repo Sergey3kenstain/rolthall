@@ -39,19 +39,50 @@ class HallController extends Controller
      */
     public function pricing(Hall $hall, Request $request): JsonResponse
     {
-        $date    = $request->input('date', now()->toDateString());
-        $dayType = $this->getDayType($date);
-        $rules   = $hall->getPricingFor($dayType);
+        $date       = $request->input('date', now()->toDateString());
+        $format     = $request->input('format', 'hourly'); // hourly|event|allday
+        $guestCount = (int)$request->input('guest_count', 1);
+        $dayType    = $this->getDayType($date);
+
+        // Гостевой тир только для почасовой
+        $guestTier = 'any';
+        if ($format === 'hourly') {
+            $guestTier = $guestCount > 30 ? 'above30' : 'below30';
+        }
+
+        $rules = $hall->pricingRules()
+            ->where('booking_format', $format)
+            ->where('day_type', $dayType)
+            ->where('guest_tier', $guestTier)
+            ->where('is_active', true)
+            ->get();
+
+        // Для формата all — возвращаем оба варианта (со светом и без)
+        $allRules = $format === 'allday'
+            ? $hall->pricingRules()->where('booking_format', 'allday')->where('is_active', true)->get()
+            : collect();
 
         return response()->json([
-            'hall_id'  => $hall->id,
-            'date'     => $date,
-            'day_type' => $dayType,
-            'rules'    => $rules->map(fn($r) => [
-                'min_hours'      => $r->min_hours,
-                'max_hours'      => $r->max_hours,
-                'price_per_hour' => $r->price_per_hour,
-                'range_label'    => $r->getRangeLabel(),
+            'hall_id'     => $hall->id,
+            'date'        => $date,
+            'day_type'    => $dayType,
+            'format'      => $format,
+            'guest_tier'  => $guestTier,
+            'rules'       => $rules->map(fn($r) => [
+                'id'                 => $r->id,
+                'min_hours'          => $r->min_hours,
+                'max_hours'          => $r->max_hours,
+                'price_per_hour'     => $r->price_per_hour,
+                'price_per_day'      => $r->price_per_day,
+                'prepayment_percent' => $r->prepayment_percent,
+                'description'        => $r->description,
+            ]),
+            'allday_options' => $allRules->map(fn($r) => [
+                'id'                 => $r->id,
+                'day_type'           => $r->day_type,
+                'price_per_day'      => $r->price_per_day,
+                'prepayment_percent' => $r->prepayment_percent,
+                'description'        => $r->description,
             ]),
         ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }

@@ -237,22 +237,31 @@ class AdminController extends Controller
 
     public function pricing(): JsonResponse
     {
-        return response()->json(PricingRule::all(['id', 'hall_id', 'day_type', 'min_hours', 'max_hours', 'price_per_hour', 'is_active']), 200, [], JSON_UNESCAPED_UNICODE);
+        $rules = PricingRule::all([
+            'id', 'hall_id', 'booking_format', 'day_type', 'guest_tier',
+            'min_hours', 'max_hours', 'price_per_hour', 'price_per_day',
+            'prepayment_percent', 'description', 'is_active',
+        ]);
+        return response()->json($rules, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function updatePricing(Request $request): JsonResponse
     {
-        $rules = $request->validate([
-            'rules'                    => 'required|array',
-            'rules.*.id'               => 'required|integer|exists:pricing_rules,id',
-            'rules.*.price_per_hour'   => 'required|integer|min:0',
-            'rules.*.is_active'        => 'required|boolean',
+        $validated = $request->validate([
+            'rules'                          => 'required|array',
+            'rules.*.id'                     => 'required|integer|exists:pricing_rules,id',
+            'rules.*.price_per_hour'         => 'nullable|integer|min:0',
+            'rules.*.price_per_day'          => 'nullable|integer|min:0',
+            'rules.*.prepayment_percent'     => 'nullable|integer|min:0|max:100',
+            'rules.*.is_active'              => 'required|boolean',
         ]);
-        foreach ($rules['rules'] as $r) {
-            PricingRule::where('id', $r['id'])->update([
-                'price_per_hour' => $r['price_per_hour'],
-                'is_active'      => $r['is_active'],
-            ]);
+        foreach ($validated['rules'] as $r) {
+            PricingRule::where('id', $r['id'])->update(array_filter([
+                'price_per_hour'     => $r['price_per_hour']     ?? null,
+                'price_per_day'      => $r['price_per_day']      ?? null,
+                'prepayment_percent' => $r['prepayment_percent']  ?? null,
+                'is_active'          => $r['is_active'],
+            ], fn($v) => $v !== null));
         }
         return response()->json(['ok' => true]);
     }

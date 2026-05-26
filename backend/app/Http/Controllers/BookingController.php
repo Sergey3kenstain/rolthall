@@ -26,9 +26,11 @@ class BookingController extends Controller
     {
         $data = $request->validate([
             'hall_id'        => 'required|integer|exists:halls,id',
+            'format'         => 'nullable|in:hourly,event,allday',
+            'guest_count'    => 'nullable|integer|min:1|max:500',
             'date'           => 'required|date|after_or_equal:today',
-            'time_start'     => 'required|regex:/^\d{2}:\d{2}$/',
-            'time_end'       => 'required|regex:/^\d{2}:\d{2}$/',
+            'time_start'     => 'nullable|regex:/^\d{2}:\d{2}$/',
+            'time_end'       => 'nullable|regex:/^\d{2}:\d{2}$/',
             'name'           => 'required|string|max:191',
             'phone'          => 'required|string|max:30',
             'email'          => 'nullable|email|max:191',

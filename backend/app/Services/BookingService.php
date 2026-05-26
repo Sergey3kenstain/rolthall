@@ -18,11 +18,21 @@ class BookingService
      */
     public function createHold(array $data): Booking
     {
-        $hall      = Hall::findOrFail($data['hall_id']);
-        $date      = $data['date'];
-        $timeStart = $data['time_start'] . ':00';
-        $timeEnd   = $data['time_end']   . ':00';
-        $hours     = $this->calcHours($data['time_start'], $data['time_end']);
+        $hall       = Hall::findOrFail($data['hall_id']);
+        $date       = $data['date'];
+        $format     = $data['format']      ?? 'hourly';
+        $guestCount = (int)($data['guest_count'] ?? 1);
+        $dayType    = $this->getDayType($date);
+
+        if ($format === 'allday') {
+            $timeStart = '09:00:00';
+            $timeEnd   = '22:00:00';
+            $hours     = 13;
+        } else {
+            $timeStart = $data['time_start'] . ':00';
+            $timeEnd   = $data['time_end']   . ':00';
+            $hours     = $this->calcHours($data['time_start'], $data['time_end']);
+        }
 
         // Проверяем конфликт слотов
         $conflict = Booking::where('hall_id', $hall->id)
@@ -36,13 +46,17 @@ class BookingService
             throw new \RuntimeException('Выбранное время уже занято. Пожалуйста, выберите другое.');
         }
 
-        // Рассчитываем стоимость
-        $dayType      = $this->getDayType($date);
-        $pricePerHour = $this->getPrice($hall->id, $dayType, $hours);
-        $total        = $pricePerHour * $hours;
-        $prepayment   = $total; // почасовая — 100% сразу
+        // Рассчитываем стоимость по новой матрице тарифов
+        $rule = $this->getPricingRule($hall->id, $dayType, $format, $hours, $guestCount);
 
-        return DB::transaction(function () use ($data, $hall, $date, $timeStart, $timeEnd, $hours, $total, $prepayment) {
+        $total = $format === 'allday'
+            ? ($rule?->price_per_day ?? 0)
+            : ($rule?->price_per_hour ?? 0) * $hours;
+
+        $prepaymentPct = $rule?->prepayment_percent ?? 100;
+        $prepayment    = (int) round($total * $prepaymentPct / 100);
+
+        return DB::transaction(function () use ($data, $hall, $date, $timeStart, $timeEnd, $hours, $guestCount, $format, $total, $prepayment) {
             $client = $this->resolveClient($data);
 
             return Booking::create([
@@ -52,7 +66,8 @@ class BookingService
                 'time_start'        => $timeStart,
                 'time_end'          => $timeEnd,
                 'duration_hours'    => $hours,
-                'format'            => 'single',
+                'guest_count'       => $guestCount,
+                'format'            => $format,
                 'status'            => Booking::STATUS_HOLD,
                 'total_amount'      => $total,
                 'prepayment_amount' => $prepayment,
@@ -193,16 +208,24 @@ class BookingService
         return in_array(date('N', strtotime($date)), [6, 7]) ? 'weekend' : 'weekday';
     }
 
-    private function getPrice(int $hallId, string $dayType, int $hours): int
+    private function getPricingRule(int $hallId, string $dayType, string $format, int $hours, int $guestCount): ?PricingRule
     {
-        $rule = PricingRule::where('hall_id', $hallId)
+        // Для почасовой — гостевой тир, для остальных — any
+        $guestTier = 'any';
+        if ($format === 'hourly') {
+            $guestTier = $guestCount > 30 ? 'above30' : 'below30';
+        }
+
+        return PricingRule::where('hall_id', $hallId)
+            ->where('booking_format', $format)
             ->where('day_type', $dayType)
+            ->where('guest_tier', $guestTier)
             ->where('is_active', true)
-            ->where('min_hours', '<=', $hours)
-            ->where(fn($q) => $q->whereNull('max_hours')->orWhere('max_hours', '>=', $hours))
+            ->when($format !== 'allday', function ($q) use ($hours) {
+                $q->where('min_hours', '<=', $hours)
+                  ->where(fn($q2) => $q2->whereNull('max_hours')->orWhere('max_hours', '>=', $hours));
+            })
             ->orderBy('min_hours', 'desc')
             ->first();
-
-        return $rule?->price_per_hour ?? 0;
     }
 }
