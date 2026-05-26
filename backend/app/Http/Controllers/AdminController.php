@@ -249,6 +249,40 @@ class AdminController extends Controller
         return response()->json(['ok' => true, 'booking' => $booking->id], 201, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function bookingDetail(int $id): JsonResponse
+    {
+        $b = Booking::with(['hall', 'client'])->findOrFail($id);
+        return response()->json(['ok' => true, 'booking' => [
+            'id'                => $b->id,
+            'hall'              => $b->hall?->name,
+            'hall_id'           => $b->hall_id,
+            'date'              => $b->date?->format('Y-m-d'),
+            'time_start'        => substr($b->time_start, 0, 5),
+            'time_end'          => substr($b->time_end,   0, 5),
+            'duration_hours'    => $b->duration_hours,
+            'format'            => $b->format,
+            'status'            => $b->status,
+            'total_amount'      => $b->total_amount,
+            'prepayment_amount' => $b->prepayment_amount,
+            'notes'             => $b->notes,
+            'admin_notes'       => $b->admin_notes,
+            'transaction_id'    => $b->transaction_id,
+            'created_at'        => $b->created_at?->format('Y-m-d H:i'),
+            'client_id'         => $b->client_id,
+            'client_name'       => $b->client?->name,
+            'client_phone'      => $b->client?->phone,
+            'client_email'      => $b->client?->email,
+            'client_telegram'   => $b->client?->telegram_username,
+        ]], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function saveBookingAdminNote(Request $request, int $id): JsonResponse
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->update(['admin_notes' => $request->input('admin_notes', '')]);
+        return response()->json(['ok' => true]);
+    }
+
     public function cancelBooking(Request $request, int $id): JsonResponse
     {
         $booking = Booking::findOrFail($id);

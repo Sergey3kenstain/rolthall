@@ -31,10 +31,12 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/upload',                  [AdminController::class, 'upload']);
     Route::get('/pricing',                  [AdminController::class, 'pricing']);
     Route::put('/pricing',                  [AdminController::class, 'updatePricing']);
-    Route::get('/bookings',                 [AdminController::class, 'bookings']);
-    Route::get('/bookings/all',             [AdminController::class, 'allBookings']);
-    Route::post('/bookings',                [AdminController::class, 'createBooking']);
-    Route::post('/bookings/{id}/cancel',    [AdminController::class, 'cancelBooking']);
+    Route::get('/bookings',                      [AdminController::class, 'bookings']);
+    Route::get('/bookings/all',                  [AdminController::class, 'allBookings']);
+    Route::get('/bookings/{id}',                 [AdminController::class, 'bookingDetail']);
+    Route::post('/bookings',                     [AdminController::class, 'createBooking']);
+    Route::post('/bookings/{id}/cancel',         [AdminController::class, 'cancelBooking']);
+    Route::put('/bookings/{id}/admin-note',      [AdminController::class, 'saveBookingAdminNote']);
     Route::get('/analytics',                [AdminController::class, 'analytics']);
     Route::get('/heatmap',                  [AdminController::class, 'heatmap']);
     Route::get('/log',                      [AdminController::class, 'actionLog']);
