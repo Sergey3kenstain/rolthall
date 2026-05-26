@@ -278,9 +278,13 @@ select.inp option{background:var(--bg-card);}
 .cms-img-preview{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;}
 .cms-img-preview img{height:60px;width:auto;border-radius:var(--r);object-fit:cover;border:1px solid var(--border);}
 .cms-carousel-list{display:flex;flex-direction:column;gap:6px;}
-.cms-carousel-item{display:flex;align-items:center;gap:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:.72rem;}
+.cms-carousel-item{display:flex;align-items:center;gap:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:.72rem;transition:outline .1s;}
+.cms-carousel-item.drag-over{outline:2px dashed rgba(255,255,255,.35);outline-offset:-2px;}
 .cms-carousel-item img{height:36px;width:52px;object-fit:cover;border-radius:4px;flex-shrink:0;}
-.cms-carousel-item input{flex:1;background:none;border:none;color:var(--text);font-family:var(--font);font-size:.72rem;outline:none;}
+.cms-carousel-item input{flex:1;background:none;border:none;color:var(--text);font-family:var(--font);font-size:.72rem;outline:none;min-width:0;}
+.cms-drag-handle{cursor:grab;color:var(--text-d);flex-shrink:0;user-select:none;font-size:.95rem;line-height:1;padding:0 2px;}
+.cms-drag-handle:active{cursor:grabbing;}
+.cms-main-badge{font-size:.5rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(55,111,255,.9);margin-bottom:2px;}
 .cms-del-btn{background:none;border:none;color:var(--text-d);cursor:pointer;padding:2px 4px;font-size:.85rem;flex-shrink:0;}
 .cms-del-btn:hover{color:var(--red);}
 .cms-list-item{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;}
@@ -2043,14 +2047,49 @@ function cmsUpdateHeroPreview(url) {
 }
 
 /* ── Carousel ── */
+let _cmsDragSrc = null;
+
 function cmsRenderCarousel(items) {
   const list = document.getElementById('cms-carousel-list');
   list.innerHTML = items.map((url, i) => `
-    <div class="cms-carousel-item" data-idx="${i}">
+    <div class="cms-carousel-item" data-idx="${i}" draggable="true"
+      ondragstart="cmsCarouselDragStart(event,${i})"
+      ondragend="cmsCarouselDragEnd(event)"
+      ondragover="cmsCarouselDragOver(event,${i})"
+      ondrop="cmsCarouselDrop(event,${i})">
+      <span class="cms-drag-handle">⠿</span>
       <img src="${url}" onerror="this.style.display='none'">
-      <input value="${url}" onchange="cmsCarouselUpdate(${i},this.value)" placeholder="/uploads/halls/slide.jpg">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;">
+        ${i === 0 ? '<div class="cms-main-badge">Главное</div>' : ''}
+        <input value="${url}" onchange="cmsCarouselUpdate(${i},this.value)" placeholder="/uploads/halls/slide.jpg">
+      </div>
       <button class="cms-del-btn" onclick="cmsCarouselDel(${i})">✕</button>
     </div>`).join('');
+}
+function cmsCarouselDragStart(e, i) {
+  _cmsDragSrc = i;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.currentTarget.style.opacity = '.4', 0);
+}
+function cmsCarouselDragEnd(e) {
+  e.currentTarget.style.opacity = '';
+  document.querySelectorAll('.cms-carousel-item').forEach(el => el.classList.remove('drag-over'));
+}
+function cmsCarouselDragOver(e, i) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.cms-carousel-item').forEach(el => el.classList.remove('drag-over'));
+  if (_cmsDragSrc !== i) e.currentTarget.classList.add('drag-over');
+}
+function cmsCarouselDrop(e, i) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (_cmsDragSrc === null || _cmsDragSrc === i) return;
+  const items = cmsGetCarousel();
+  const [moved] = items.splice(_cmsDragSrc, 1);
+  items.splice(i, 0, moved);
+  _cmsDragSrc = null;
+  cmsRenderCarousel(items);
 }
 function cmsCarouselUpdate(i, val) {
   const items = cmsGetCarousel();
