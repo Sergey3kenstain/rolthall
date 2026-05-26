@@ -2057,7 +2057,7 @@ function cmsRenderCarousel(items) {
       ondragend="cmsCarouselDragEnd(event)"
       ondragover="cmsCarouselDragOver(event,${i})"
       ondrop="cmsCarouselDrop(event,${i})">
-      <span class="cms-drag-handle">⠿</span>
+      <span class="cms-drag-handle" ontouchstart="cmsTouchStart(event,${i})">⠿</span>
       <img src="${url}" onerror="this.style.display='none'">
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;">
         ${i === 0 ? '<div class="cms-main-badge">Главное</div>' : ''}
@@ -2090,6 +2090,39 @@ function cmsCarouselDrop(e, i) {
   items.splice(i, 0, moved);
   _cmsDragSrc = null;
   cmsRenderCarousel(items);
+}
+function cmsTouchStart(e, i) {
+  e.preventDefault();
+  _cmsDragSrc = i;
+  e.currentTarget.closest('.cms-carousel-item').style.opacity = '.4';
+  document.addEventListener('touchmove', cmsTouchMove, {passive: false});
+  document.addEventListener('touchend', cmsTouchEnd, {once: true});
+}
+function cmsTouchMove(e) {
+  if (_cmsDragSrc === null) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  const over = document.elementFromPoint(t.clientX, t.clientY)?.closest('.cms-carousel-item');
+  document.querySelectorAll('#cms-carousel-list .cms-carousel-item').forEach(el => el.classList.remove('drag-over'));
+  if (over && parseInt(over.dataset.idx) !== _cmsDragSrc) over.classList.add('drag-over');
+}
+function cmsTouchEnd(e) {
+  document.removeEventListener('touchmove', cmsTouchMove);
+  if (_cmsDragSrc === null) return;
+  const t = e.changedTouches[0];
+  const over = document.elementFromPoint(t.clientX, t.clientY)?.closest('.cms-carousel-item');
+  const targetIdx = over ? parseInt(over.dataset.idx) : null;
+  document.querySelectorAll('#cms-carousel-list .cms-carousel-item').forEach(el => {
+    el.classList.remove('drag-over');
+    el.style.opacity = '';
+  });
+  if (targetIdx !== null && _cmsDragSrc !== targetIdx) {
+    const items = cmsGetCarousel();
+    const [moved] = items.splice(_cmsDragSrc, 1);
+    items.splice(targetIdx, 0, moved);
+    cmsRenderCarousel(items);
+  }
+  _cmsDragSrc = null;
 }
 function cmsCarouselUpdate(i, val) {
   const items = cmsGetCarousel();
