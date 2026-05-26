@@ -1125,7 +1125,7 @@ select.inp option{background:var(--bg-card);}
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);">
         <span id="bm-status-badge" class="st-badge">—</span>
         <div style="text-align:right;">
-          <div style="font-size:.72rem;color:var(--text-d);" id="bm-amounts-lbl">Оплачено</div>
+          <div style="margin:.5em 0 .5em 0;font-size:.72rem;color:var(--text-d);" id="bm-amounts-lbl">Оплачено</div>
           <div style="font-size:.88rem;font-weight:700;" id="bm-amounts">—</div>
         </div>
       </div>
@@ -1144,21 +1144,21 @@ select.inp option{background:var(--bg-card);}
       <!-- Клиент -->
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:10px;">Клиент</div>
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <div id="bm-av" class="av" style="width:52px;height:52px;min-width:52px;font-size:.85rem;background:var(--accent-dim);flex-shrink:0;">
+        <div style="display:flex;gap:5vw;align-items:center;">
+          <div id="bm-av" class="av" style="width:120px;height:120px;min-width:120px;font-size:.85rem;background:var(--accent-dim);flex-shrink:0;">
             <span id="bm-av-ini">??</span>
             <img id="bm-av-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;">
           </div>
           <div style="flex:1;min-width:0;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+            <div style="display:flex;flex-direction:column;gap:5px;">
               <div><div class="qa-sub">Имя</div><div class="qa-label" id="bm-cname">—</div></div>
               <div><div class="qa-sub">Телефон</div><div class="qa-label" id="bm-cphone">—</div></div>
               <div><div class="qa-sub">Email</div><div class="qa-label" id="bm-cemail" style="font-size:.7rem;word-break:break-all;">—</div></div>
               <div><div class="qa-sub">Telegram</div><div class="qa-label" id="bm-ctg">—</div></div>
             </div>
-            <button class="btn btn-ghost btn-sm" id="bm-open-client" style="margin-top:8px;" onclick="openClientFromBooking()">Карточка клиента →</button>
           </div>
         </div>
+        <button class="btn btn-ghost btn-sm" id="bm-open-client" style="margin-top:16px;" onclick="openClientFromBooking()">Карточка клиента →</button>
       </div>
       <!-- Заметки -->
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
