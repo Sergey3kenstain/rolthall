@@ -1125,8 +1125,8 @@ select.inp option{background:var(--bg-card);}
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);">
         <span id="bm-status-badge" class="st-badge">—</span>
         <div style="text-align:right;">
-          <div style="font-size:.72rem;color:var(--text-d);">Итого / Предоплата</div>
-          <div style="font-size:.88rem;font-weight:700;" id="bm-amounts">— / —</div>
+          <div style="font-size:.72rem;color:var(--text-d);" id="bm-amounts-lbl">Оплачено</div>
+          <div style="font-size:.88rem;font-weight:700;" id="bm-amounts">—</div>
         </div>
       </div>
       <!-- Детали брони -->
@@ -1142,15 +1142,23 @@ select.inp option{background:var(--bg-card);}
         </div>
       </div>
       <!-- Клиент -->
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
-        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:4px;">Клиент</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          <div><div class="qa-sub">Имя</div><div class="qa-label" id="bm-cname">—</div></div>
-          <div><div class="qa-sub">Телефон</div><div class="qa-label" id="bm-cphone">—</div></div>
-          <div><div class="qa-sub">Email</div><div class="qa-label" id="bm-cemail" style="font-size:.7rem;word-break:break-all;">—</div></div>
-          <div><div class="qa-sub">Telegram</div><div class="qa-label" id="bm-ctg">—</div></div>
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:10px;">Клиент</div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div id="bm-av" class="av" style="width:52px;height:52px;min-width:52px;font-size:.85rem;background:var(--accent-dim);flex-shrink:0;">
+            <span id="bm-av-ini">??</span>
+            <img id="bm-av-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;">
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+              <div><div class="qa-sub">Имя</div><div class="qa-label" id="bm-cname">—</div></div>
+              <div><div class="qa-sub">Телефон</div><div class="qa-label" id="bm-cphone">—</div></div>
+              <div><div class="qa-sub">Email</div><div class="qa-label" id="bm-cemail" style="font-size:.7rem;word-break:break-all;">—</div></div>
+              <div><div class="qa-sub">Telegram</div><div class="qa-label" id="bm-ctg">—</div></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="bm-open-client" style="margin-top:8px;" onclick="openClientFromBooking()">Карточка клиента →</button>
+          </div>
         </div>
-        <button class="btn btn-ghost btn-sm" id="bm-open-client" style="align-self:flex-start;margin-top:4px;" onclick="openClientFromBooking()">Открыть карточку клиента →</button>
       </div>
       <!-- Заметки -->
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
@@ -1446,10 +1454,10 @@ async function loadHeatmap() {
   // Fetch all 7 days in parallel
   const results = await Promise.all(days.map(date => api(`/admin/bookings?date=${date}`)));
 
-  // Build matrix [hour][dayIdx] = 'paid'|'pend'|'hold'|'0'
+  // Build matrix [hour][dayIdx] = {s:'paid'|'pend'|'hold'|'0', id:bookingId|null}
   const ST_PRIORITY = {paid:4, confirmed:4, completed:4, pending_payment:3, hold:2};
   const matrix = {};
-  for (let h=10; h<=22; h++) matrix[h] = Array(7).fill('0');
+  for (let h=10; h<=22; h++) matrix[h] = Array(7).fill(null).map(()=>({s:'0',id:null}));
 
   results.forEach((data, di) => {
     (data?.bookings || data?.data || []).forEach(b => {
@@ -1460,11 +1468,13 @@ async function loadHeatmap() {
       for (let h=sh; h<eh && h<=22; h++) {
         if (h<10) continue;
         const cur = matrix[h][di];
-        const curPri = ST_PRIORITY[{paid:'paid',pend:'pending_payment',hold:'hold'}[cur]] || 0;
+        const curPri = ST_PRIORITY[{paid:'paid',pend:'pending_payment',hold:'hold'}[cur.s]] || 0;
         if (pri > curPri) {
-          if (['paid','confirmed','completed'].includes(b.status)) matrix[h][di]='paid';
-          else if (b.status==='pending_payment') matrix[h][di]='pend';
-          else if (b.status==='hold') matrix[h][di]='hold';
+          let s = '0';
+          if (['paid','confirmed','completed'].includes(b.status)) s='paid';
+          else if (b.status==='pending_payment') s='pend';
+          else if (b.status==='hold') s='hold';
+          matrix[h][di] = {s, id: b.id};
         }
       }
     });
@@ -1486,8 +1496,9 @@ function renderHeatmapWeek(days, matrix) {
     hm.innerHTML += `<div class="hm-time">${h}:00</div>`;
     days.forEach((_,di) => {
       const st = matrix[h][di];
-      const cls = st==='paid'?'hm-paid':st==='pend'?'hm-pend':st==='hold'?'hm-hold':'hm-0';
-      hm.innerHTML += `<div class="hm-cell ${cls}"></div>`;
+      const cls = st.s==='paid'?'hm-paid':st.s==='pend'?'hm-pend':st.s==='hold'?'hm-hold':'hm-0';
+      const click = st.id ? ` onclick="openBookingModal(${st.id})" title="Открыть бронь #${st.id}"` : '';
+      hm.innerHTML += `<div class="hm-cell ${cls}"${click}></div>`;
     });
   }
 }
@@ -1671,7 +1682,7 @@ function renderBookList(items, dateStr) {
     const ts = `${(b.time_start||'').slice(0,5)}–${(b.time_end||'').slice(0,5)}`;
     const hall = b.hall?.name || b.hall || '—';
     const amt = b.total ? Number(b.total).toLocaleString('ru')+' ₽' : '—';
-    return `<div class="booking-card st-${st}">
+    return `<div class="booking-card st-${st}" onclick="openBookingModal(${b.id})">
       <div class="bc-top"><span class="bc-hall">${hall}</span><span class="bc-time">${ts}</span><span class="bc-amount">${amt}</span></div>
       <div class="bc-bottom">
         <div class="bc-avatar" style="display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;">${ini}</div>
@@ -1754,9 +1765,16 @@ async function openBookingModal(id) {
   const badge = document.getElementById('bm-status-badge');
   badge.className = 'st-badge ' + sc; badge.textContent = sl;
 
-  document.getElementById('bm-amounts').textContent =
-    Number(b.total_amount||0).toLocaleString('ru') + ' ₽ / ' +
-    Number(b.prepayment_amount||0).toLocaleString('ru') + ' ₽';
+  const total = Number(b.total_amount||0), prepay = Number(b.prepayment_amount||0);
+  const amtEl = document.getElementById('bm-amounts');
+  const lblEl = document.getElementById('bm-amounts-lbl');
+  if (prepay >= total) {
+    if (lblEl) lblEl.textContent = 'Оплачено';
+    amtEl.textContent = total.toLocaleString('ru') + ' ₽';
+  } else {
+    if (lblEl) lblEl.textContent = 'Итого / Предоплата 50%';
+    amtEl.textContent = total.toLocaleString('ru') + ' ₽ / ' + prepay.toLocaleString('ru') + ' ₽';
+  }
 
   document.getElementById('bm-hall').textContent    = b.hall || '—';
   document.getElementById('bm-format').textContent  = b.format || '—';
@@ -1768,6 +1786,11 @@ async function openBookingModal(id) {
   document.getElementById('bm-cphone').textContent  = b.client_phone || '—';
   document.getElementById('bm-cemail').textContent  = b.client_email || '—';
   document.getElementById('bm-ctg').textContent     = b.client_telegram ? '@'+b.client_telegram : '—';
+  // Avatar
+  const ini = (b.client_name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('bm-av-ini').textContent = ini;
+  const avImg = document.getElementById('bm-av-img');
+  avImg.style.display = 'none'; avImg.src = '';
   document.getElementById('bm-notes').textContent   = b.notes || '—';
   document.getElementById('bm-admin-notes').value   = b.admin_notes || '';
 
