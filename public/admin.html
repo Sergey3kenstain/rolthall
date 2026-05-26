@@ -1047,6 +1047,18 @@ select.inp option{background:var(--bg-card);}
           <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testTpl('reminder_3h')">✈ Тест</button></div>
         </div>
       </div>
+      <!-- reschedule_request -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Запрос переноса</div><div class="qa-sub">→ в чат администраторов</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="tpl-reschedule_request" rows="8" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{booking_id} {name} {phone} {email} {telegram} {old_date} {old_time} {new_date} {new_time} {comment} {hall}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testTpl('reschedule_request')">✈ Тест</button></div>
+        </div>
+      </div>
     </div>
     <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveTplTemplates()">Сохранить шаблоны</button>
   </div>
@@ -2587,11 +2599,12 @@ async function handleAvatarUpload(input) {
 
 /* ══ TELEGRAM TAB ══ */
 const TPL_DEFAULTS = {
-  new_booking:       '🏠 Новая бронь — RoltHall\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n✉️ Email: {email}\n💬 Телеграм: {telegram}\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n👥 Гостей: {guests}\n\n💰 Сумма: {amount} ₽\n🔑 Транзакция: {txn_id}',
-  booking_confirmed: '✅ Ваша бронь подтверждена!\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n🏠 Зал: {hall}\n\nДо встречи!',
-  booking_cancelled: '❌ Бронь отменена\n\n📅 Дата: {date}\n🕐 Время: {time}\n📋 Формат: {format}\n🏠 Зал: {hall}',
-  payment_received:  '💳 Оплата получена — {amount} ₽\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n✉️ Email: {email}\n💬 Телеграм: {telegram}\n\n📅 Дата: {date}\n🕐 Время: {time}\n📋 Формат: {format}\n🏠 Зал: {hall}\n🔑 Транзакция: {txn_id}',
-  reminder_3h:       '⏰ Напоминание о брони\n\nЧерез 3 часа начинается аренда\n📅 {date} в {time}\n🏠 Зал: {hall}',
+  new_booking:         '🏠 Новая бронь — RoltHall\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n✉️ Email: {email}\n💬 Телеграм: {telegram}\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n👥 Гостей: {guests}\n\n💰 Сумма: {amount} ₽\n🔑 Транзакция: {txn_id}',
+  booking_confirmed:   '✅ Ваша бронь подтверждена!\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n🏠 Зал: {hall}\n\nДо встречи!',
+  booking_cancelled:   '❌ Бронь отменена\n\n📅 Дата: {date}\n🕐 Время: {time}\n📋 Формат: {format}\n🏠 Зал: {hall}',
+  payment_received:    '💳 Оплата получена — {amount} ₽\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n✉️ Email: {email}\n💬 Телеграм: {telegram}\n\n📅 Дата: {date}\n🕐 Время: {time}\n📋 Формат: {format}\n🏠 Зал: {hall}\n🔑 Транзакция: {txn_id}',
+  reminder_3h:         '⏰ Напоминание о брони\n\nЧерез 3 часа начинается аренда\n📅 {date} в {time}\n🏠 Зал: {hall}',
+  reschedule_request:  '📅 Запрос переноса брони #{booking_id}\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n💬 Телеграм: {telegram}\n\nТекущая дата: {old_date} ({old_time})\n🆕 Желаемая дата: {new_date}\n🕐 Желаемое время: {new_time}\n\n💬 Комментарий: {comment}',
 };
 
 function toggleTpl(head) {

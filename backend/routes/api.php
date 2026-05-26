@@ -65,8 +65,9 @@ Route::get('/halls/{hall}/availability',    [HallController::class, 'availabilit
 Route::post('/debug/frontend',  [AdminController::class, 'debugFrontendReceive']);
 
 // ── Profile ───────────────────────────────────────────────────────────
-Route::post('/profile/login',    [ProfileController::class, 'login']);
-Route::get('/profile/bookings',  [ProfileController::class, 'bookings']);
+Route::post('/profile/login',               [ProfileController::class, 'login']);
+Route::get('/profile/bookings',             [ProfileController::class, 'bookings']);
+Route::post('/profile/reschedule-request',  [ProfileController::class, 'rescheduleRequest']);
 
 // ── Landing ───────────────────────────────────────────────────────────
 Route::post('/landing/booking', [LandingController::class, 'booking']);

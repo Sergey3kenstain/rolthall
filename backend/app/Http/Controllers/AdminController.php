@@ -155,7 +155,7 @@ class AdminController extends Controller
     public function testTemplate(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'key'  => 'required|string|in:new_booking,booking_confirmed,booking_cancelled,payment_received,reminder_3h',
+            'key'  => 'required|string|in:new_booking,booking_confirmed,booking_cancelled,payment_received,reminder_3h,reschedule_request',
             'text' => 'required|string|max:4096',
         ]);
 
@@ -167,7 +167,7 @@ class AdminController extends Controller
         $threadId = (int) ($settings['thread_id']  ?? config('services.telegram.admin_thread_id') ?? 0);
         $testClientId = $settings['test_client_tg_id'] ?? null;
 
-        $adminKeys = ['new_booking', 'payment_received'];
+        $adminKeys = ['new_booking', 'payment_received', 'reschedule_request'];
         $isAdmin   = in_array($data['key'], $adminKeys);
         $targetId  = $isAdmin ? $chatId : $testClientId;
 
@@ -189,9 +189,15 @@ class AdminController extends Controller
             '{amount}'   => '5 000',
             '{format}'   => 'Весь день',
             '{txn_id}'   => '8541823676',
-            '{telegram}' => '@test_user',
-            '{tg_id}'    => '123456789',
-            '{guests}'   => '—',
+            '{telegram}'   => '@test_user',
+            '{tg_id}'      => '123456789',
+            '{guests}'     => '—',
+            '{booking_id}' => '42',
+            '{old_date}'   => '20.05.2026',
+            '{old_time}'   => '10:00–22:00',
+            '{new_date}'   => '28.05.2026',
+            '{new_time}'   => '12:00–18:00',
+            '{comment}'    => 'Изменились планы, прошу перенести',
         ];
 
         $text = '[ТЕСТ] ' . str_replace(array_keys($dummies), array_values($dummies), $data['text']);
