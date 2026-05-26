@@ -912,6 +912,7 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
   </div>
 </footer>
 
+<script src="/cms_data.js" onerror="void 0"></script>
 <script>
 // ╔══════════════════════════════════════╗
 // ║   НАСТРОЙКИ TELEGRAM БОТА           ║
@@ -920,6 +921,92 @@ const TELEGRAM_BOT_TOKEN = 'ВСТАВЬ_ТОКЕН_СЮДА';
 const TELEGRAM_CHAT_ID   = 'ВСТАВЬ_ID_ЧАТА';
 const TELEGRAM_THREAD_ID = 'ВСТАВЬ_ID_ВЕТКИ';
 // ╚══════════════════════════════════════╝
+
+// ── CMS data injection ──
+function applyCms() {
+  const C = window.HALL_CMS;
+  if (!C) return;
+  // Hero
+  if (C.hero) {
+    const h = C.hero;
+    if (h.image)    { const el=document.querySelector('#hero .hero-bg img'); if(el) el.src=h.image; }
+    if (h.title)    { const el=document.querySelector('.hero-title'); if(el) el.innerHTML=h.title.replace(/\n/g,'<br>'); }
+    if (h.desc)     { const el=document.querySelector('.hero-desc');  if(el) el.textContent=h.desc; }
+    if (h.vertical) { const el=document.querySelector('.hero-vertical'); if(el) el.textContent=h.vertical; }
+    if (h.price_from){ const el=document.querySelector('.div-hero-price .hero-stat-num'); if(el) el.textContent=Number(h.price_from).toLocaleString('ru-RU')+' ₽'; }
+    if (h.min_hours) { const el=document.querySelector('.div-hero-time .hero-stat-num');  if(el) el.textContent=h.min_hours+' час'; }
+    if (h.capacity)  { const el=document.querySelector('.div-hero-min-price .hero-stat-num'); if(el) el.textContent=h.capacity+' чел'; }
+  }
+  // About
+  if (C.about) {
+    const a=C.about;
+    if (a.section_title){ const el=document.querySelector('#about .section-title'); if(el) el.innerHTML=a.section_title.replace(/\n/g,'<br>'); }
+    if (a.area_label)   { const el=document.querySelector('.hall-area'); if(el) el.textContent=a.area_label; }
+    if (a.features?.length) {
+      document.querySelectorAll('#about .feature-item').forEach((item,i)=>{
+        if(!a.features[i]) return;
+        const t=item.querySelector('.feature-title'); if(t&&a.features[i].title) t.textContent=a.features[i].title;
+        const x=item.querySelector('.feature-text');  if(x&&a.features[i].text)  x.textContent=a.features[i].text;
+      });
+    }
+    if (a.carousel?.length) {
+      const track=document.getElementById('track-a'), dots=document.getElementById('dots-a');
+      if(track) track.innerHTML=a.carousel.map(url=>`<img src="${url}" alt="Зал">`).join('');
+      if(dots)  dots.innerHTML =a.carousel.map((_,i)=>`<div class="cdot${i===0?' active':''}" onclick="carGo(event,'a',${i})"></div>`).join('');
+    }
+  }
+  // Pricing
+  if (C.pricing) {
+    const p=C.pricing;
+    if (p.hourly?.length) {
+      const tbody=document.querySelector('#tab-hourly tbody');
+      if(tbody) tbody.innerHTML=p.hourly.map(r=>`<tr><td>${r.day_type||''}</td><td>${r.label||r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`).join('');
+    }
+    if (p.hourly_note){ const el=document.querySelector('#tab-hourly > p'); if(el) el.textContent=p.hourly_note; }
+    if (p.events?.length) {
+      const wrap=document.querySelector('.event-cards');
+      if(wrap) wrap.innerHTML=p.events.map((e,i)=>`<div class="event-card${e.featured?' featured':''} reveal${i?' reveal-delay-'+i:''}"><span class="event-card-label">${e.subtitle||''}</span><div class="event-card-price"><span class="event-card-currency">₽</span>${Number(e.price).toLocaleString('ru-RU')}</div><div class="event-card-title">${e.title||''}</div><div class="event-card-desc">${e.description||''}</div></div>`).join('');
+    }
+  }
+  // Rules
+  if (C.rules) {
+    const r=C.rules;
+    if (r.note){ const el=document.querySelector('.rules-note'); if(el) el.textContent=r.note; }
+    if (r.accordion?.length) {
+      const acc=document.querySelector('#rules .accordion');
+      if(acc) acc.innerHTML=r.accordion.map((item,i)=>`<div class="accordion-item"><button class="accordion-header" onclick="toggleAccordion(this)"><div class="accordion-header-left"><span class="accordion-num">${String(i+1).padStart(2,'0')}</span><span class="accordion-title">${item.title||''}</span></div><div class="accordion-icon"></div></button><div class="accordion-body"><p>${item.body||''}</p></div></div>`).join('');
+    }
+    if (r.ban) {
+      if(r.ban.label){ const el=document.querySelector('.ban-label'); if(el) el.textContent=r.ban.label; }
+      if(r.ban.title){ const el=document.querySelector('.ban-title'); if(el) el.textContent=r.ban.title; }
+      if(r.ban.items?.length){ const ul=document.querySelector('.ban-list'); if(ul) ul.innerHTML=r.ban.items.map(x=>`<li>${x}</li>`).join(''); }
+    }
+  }
+  // FAQ
+  if (C.faq?.length) {
+    const col=document.querySelector('#faq .faq-grid > div:first-child');
+    if(col) col.innerHTML=C.faq.map((item,i)=>`<div class="faq-item reveal${i?' reveal-delay-'+i:''}"><div class="faq-q">${item.q||''}</div><div class="faq-a">${item.a||''}</div></div>`).join('');
+  }
+  // Contacts
+  if (C.contacts) {
+    const c=C.contacts;
+    if(c.address){ const el=document.querySelector('.contact-address'); if(el) el.innerHTML=c.address.replace(/,\s*/g,',<br>'); }
+    if(c.phone){
+      const el=document.querySelector('a.contact-link[href^="tel"]');
+      if(el){ el.href='tel:'+c.phone.replace(/\D/g,''); const tn=el.childNodes[el.childNodes.length-1]; if(tn) tn.textContent=' '+c.phone; }
+    }
+    if(c.telegram){ const el=document.querySelector('a.contact-link[href*="t.me"]');  if(el) el.href=c.telegram; }
+    if(c.whatsapp){ const el=document.querySelector('a.contact-link[href*="wa.me"]'); if(el) el.href=c.whatsapp; }
+    if(c.map_src) { const iframe=document.querySelector('.map-wrap iframe'); if(iframe) iframe.src=c.map_src; }
+    if(c.map_link){ const a=document.querySelector('.map-col > a'); if(a) a.href=c.map_link; }
+    if(c.hours_wd||c.hours_we){
+      const col=document.querySelector('#contacts .contacts-layout > .reveal');
+      const divs=col?col.querySelectorAll('div[style]'):null;
+      if(divs?.length){ const hrs=divs[divs.length-1]; hrs.innerHTML=`Пн — Пт: ${c.hours_wd||'по записи'}<br>Сб — Вс: ${c.hours_we||'по записи'}<br>Бронирование — онлайн`; }
+    }
+  }
+}
+applyCms();
 
 // ── NAV scroll ──
 window.addEventListener('scroll', () => {
