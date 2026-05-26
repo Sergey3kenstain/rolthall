@@ -27,8 +27,8 @@ class PricingRulesSeeder extends Seeder
             ['booking_format'=>'event','day_type'=>'weekend','guest_tier'=>'any','min_hours'=>1,'max_hours'=>null,'price_per_hour'=>15000,'price_per_day'=>null,'prepayment_percent'=>100,'description'=>'Событие, выходные'],
 
             // ── Весь день ───────────────────────────────────────────────
-            ['booking_format'=>'allday','day_type'=>'weekday','guest_tier'=>'any','min_hours'=>null,'max_hours'=>null,'price_per_hour'=>null,'price_per_day'=>100000,'prepayment_percent'=>50,'description'=>'Весь день, без света и звука'],
-            ['booking_format'=>'allday','day_type'=>'weekend','guest_tier'=>'any','min_hours'=>null,'max_hours'=>null,'price_per_hour'=>null,'price_per_day'=>150000,'prepayment_percent'=>50,'description'=>'Весь день, со светом и звуком'],
+            ['booking_format'=>'allday','day_type'=>'weekday','guest_tier'=>'any','min_hours'=>0,'max_hours'=>null,'price_per_hour'=>0,'price_per_day'=>100000,'prepayment_percent'=>50,'description'=>'Весь день, без света и звука'],
+            ['booking_format'=>'allday','day_type'=>'weekend','guest_tier'=>'any','min_hours'=>0,'max_hours'=>null,'price_per_hour'=>0,'price_per_day'=>150000,'prepayment_percent'=>50,'description'=>'Весь день, со светом и звуком'],
         ];
 
         foreach ($rules as $rule) {
