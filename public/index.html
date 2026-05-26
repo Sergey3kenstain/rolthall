@@ -830,23 +830,29 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
     <div class="reveal">
       <div class="contact-address">г. Краснодар,<br>ул. Коммунаров, 278/1</div>
       <div class="contact-links">
-        <a href="tel:+7ВСТАВЬ_ТЕЛЕФОН" class="contact-link">
+        <a href="tel:" class="contact-link" id="cl-phone" style="display:none">
           <div class="contact-link-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </div>
-          +7 (___) ___-__-__ <!-- ВСТАВЬ ТЕЛЕФОН -->
+          <span class="contact-link-text">+7 (___) ___-__-__</span>
         </a>
-        <a href="https://t.me/ВСТАВЬ_USERNAME" class="contact-link" target="_blank">
+        <a href="#" class="contact-link" id="cl-tg" target="_blank" style="display:none">
           <div class="contact-link-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
           </div>
-          Telegram <!-- ВСТАВЬ @username -->
+          <span class="contact-link-text">Telegram</span>
         </a>
-        <a href="https://wa.me/ВСТАВЬ_НОМЕР" class="contact-link" target="_blank">
+        <a href="#" class="contact-link" id="cl-wa" target="_blank" style="display:none">
           <div class="contact-link-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           </div>
-          WhatsApp <!-- ВСТАВЬ НОМЕР -->
+          <span class="contact-link-text">WhatsApp</span>
+        </a>
+        <a href="#" class="contact-link" id="cl-ig" target="_blank" style="display:none">
+          <div class="contact-link-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </div>
+          <span class="contact-link-text">Instagram</span>
         </a>
       </div>
       <div style="font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(217,217,217,.3);margin-bottom:12px">Режим работы</div>
@@ -991,13 +997,12 @@ function applyCms() {
   // Contacts
   if (C.contacts) {
     const c=C.contacts;
+    const clk=(id,href,text)=>{ const el=document.getElementById(id); if(!el) return; if(href){el.href=href; el.style.display=''; const sp=el.querySelector('.contact-link-text'); if(sp) sp.textContent=text||'';} };
     if(c.address){ const el=document.querySelector('.contact-address'); if(el) el.innerHTML=c.address.replace(/,\s*/g,',<br>'); }
-    if(c.phone){
-      const el=document.querySelector('a.contact-link[href^="tel"]');
-      if(el){ el.href='tel:'+c.phone.replace(/\D/g,''); const tn=el.childNodes[el.childNodes.length-1]; if(tn) tn.textContent=' '+c.phone; }
-    }
-    if(c.telegram){ const el=document.querySelector('a.contact-link[href*="t.me"]');  if(el) el.href=c.telegram; }
-    if(c.whatsapp){ const el=document.querySelector('a.contact-link[href*="wa.me"]'); if(el) el.href=c.whatsapp; }
+    if(c.phone)    clk('cl-phone','tel:'+c.phone.replace(/\D/g,''), c.phone);
+    if(c.telegram) clk('cl-tg', c.telegram, 'Telegram');
+    if(c.whatsapp) clk('cl-wa', c.whatsapp, 'WhatsApp');
+    if(c.instagram)clk('cl-ig', c.instagram, 'Instagram');
     if(c.map_src) { const iframe=document.querySelector('.map-wrap iframe'); if(iframe) iframe.src=c.map_src; }
     if(c.map_link){ const a=document.querySelector('.map-col > a'); if(a) a.href=c.map_link; }
     if(c.hours_wd||c.hours_we){
