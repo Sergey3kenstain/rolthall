@@ -78,9 +78,12 @@ $statusPageLayout = fn(string $icon, string $title, string $text, string $extra 
 </html>
 HTML);
 
-Route::get('/login',   function () { return response(file_get_contents(public_path('login.html'))); });
-Route::get('/profile', function () { return response(file_get_contents(public_path('profile.html'))); });
-Route::get('/admin',   function () { return response(file_get_contents(public_path('admin.html'))); });
+Route::get('/login',          function () { return response(file_get_contents(public_path('login.html'))); });
+Route::get('/profile',        function () { return response(file_get_contents(public_path('profile.html'))); });
+Route::get('/admin',          function () { return response(file_get_contents(public_path('admin.html'))); });
+Route::get('/cttp_opd',       function () { return response(file_get_contents(public_path('cttp_opd.html'))); });
+Route::get('/user_agreement', function () { return response(file_get_contents(public_path('user_agreement.html'))); });
+Route::get('/privacy_policy', function () { return response(file_get_contents(public_path('privacy_policy.html'))); });
 
 Route::get('/booking/success', function () use ($statusPageLayout) {
     return $statusPageLayout(

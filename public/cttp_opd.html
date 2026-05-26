@@ -1,168 +1,147 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Согласие на обработку персональных данных | РОЛТИХОЛ</title>
-    <!-- Подключение шрифта Inter для современного внешнего вида -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* Базовые настройки и темная тема */
-        :root {
-            --bg-color: #0d0d0d;
-            --surface-color: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-muted: #999999;
-            --accent-color: #ffffff;
-            --border-color: #333333;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Контейнер для центрирования и ограничения ширины (удобно читать) */
-        .legal-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 60px 20px;
-        }
-
-        /* Обертка для каждого документа */
-        .document-box {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 40px;
-        }
-
-        /* Типографика */
-        h1, h2, h3 {
-            color: var(--accent-color);
-            margin-top: 0;
-            font-weight: 700;
-        }
-
-        h1 {
-            font-size: 28px;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 15px;
-        }
-
-        h2 {
-            font-size: 20px;
-            margin-top: 40px;
-            margin-bottom: 15px;
-        }
-
-        h3 {
-            font-size: 16px;
-            margin-top: 25px;
-            margin-bottom: 10px;
-        }
-
-        p, li {
-            font-size: 15px;
-            font-weight: 300;
-            margin-bottom: 15px;
-        }
-
-        ul {
-            padding-left: 20px;
-            margin-bottom: 20px;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        strong {
-            font-weight: 600;
-            color: var(--accent-color);
-        }
-
-        .meta-info {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 30px;
-        }
-
-        /* Адаптивность для мобильных устройств */
-        @media (max-width: 600px) {
-            .legal-container {
-                padding: 30px 15px;
-            }
-            .document-box {
-                padding: 25px 20px;
-            }
-            h1 {
-                font-size: 22px;
-            }
-            h2 {
-                font-size: 18px;
-            }
-            p, li {
-                font-size: 14px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Согласие на обработку персональных данных — ROLTHALL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --charcoal:#2E2B35;--charcoal-deep:#1e1c24;--charcoal-mid:#26232e;
+  --light:#D9D9D9;--accent:#ffffff;--border:rgba(255,255,255,0.12);
+  --font:'Unbounded',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--charcoal-deep);color:var(--light);min-height:100vh;display:flex;flex-direction:column;}
+nav{position:sticky;top:0;z-index:100;height:68px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(30,28,36,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo svg{height:16px;width:auto;display:block;}
+.nav-back{font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:rgba(217,217,217,.45);text-decoration:none;transition:color .2s;}
+.nav-back:hover{color:var(--light);}
+.page{flex:1;padding:60px 24px 80px;}
+.doc{max-width:760px;margin:0 auto;}
+.doc-eyebrow{font-size:8px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:rgba(217,217,217,.3);margin-bottom:12px;}
+.doc-title{font-size:clamp(20px,3.5vw,30px);font-weight:800;color:var(--accent);letter-spacing:-.02em;margin-bottom:8px;line-height:1.2;}
+.doc-date{font-size:9px;font-weight:300;color:rgba(217,217,217,.3);margin-bottom:40px;letter-spacing:.08em;}
+.doc-section{margin-bottom:32px;}
+.doc-section h2{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(217,217,217,.6);margin-bottom:14px;}
+.doc-section p,.doc-section li{font-size:12px;font-weight:300;line-height:1.85;color:rgba(217,217,217,.7);margin-bottom:10px;}
+.doc-section ul,.doc-section ol{padding-left:20px;}
+.doc-section li{margin-bottom:6px;}
+.doc-section strong{font-weight:600;color:rgba(217,217,217,.9);}
+.doc-divider{border:none;border-top:1px solid var(--border);margin:32px 0;}
+footer{padding:24px 48px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-copy{font-size:9px;font-weight:300;letter-spacing:.1em;color:rgba(217,217,217,.2);}
+@media(max-width:768px){
+  nav{padding:0 20px;}
+  footer{padding:20px 20px;}
+  .page{padding:40px 20px 60px;}
+}
+</style>
 </head>
 <body>
 
-    <div class="legal-container">
+<nav>
+  <a href="/" class="nav-logo">
+    <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#c0)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="c0"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
+  </a>
+  <a href="/" class="nav-back">← На главную</a>
+</nav>
 
-        <div class="document-box">
-            <h1>Согласие на обработку персональных данных</h1>
-            
-            <p>Физическое лицо, оформляя заявку, совершая бронирование, оплату или регистрируясь на сайте <strong>https://hall.roltworld.com/</strong>, а также в телеграм-боте <strong>@rolthall_bot</strong> (далее — Сервисы), обязуется принять настоящее Согласие на обработку персональных данных (далее — Согласие).</p>
+<div class="page">
+  <div class="doc">
+    <div class="doc-eyebrow">Правовые документы</div>
+    <div class="doc-title">Согласие на обработку персональных данных</div>
+    <div class="doc-date">Редакция от 01.01.2025</div>
 
-            <p>Принятием Согласия является отправка любой формы сбора данных, активация (запуск командой /start) телеграм-бота или совершение платежа. Действуя свободно, своей волей и в своем интересе, а также подтверждая свою правоспособность, Пользователь дает свое согласие Индивидуальному предпринимателю Грачевой Елизавете Сергеевне (ОГРНИП 325237500025697, ИНН 231145729160) на обработку своих персональных данных со следующими условиями:</p>
-
-            <ol>
-                <li><strong>Данное Согласие дается на обработку персональных данных как без использования средств автоматизации, так и с их использованием.</strong></li>
-                <li><strong>Согласие дается на обработку следующих персональных данных Пользователя:</strong>
-                    <ul>
-                        <li>Фамилия, имя;</li>
-                        <li>Номер контактного телефона;</li>
-                        <li>Адрес электронной почты (e-mail);</li>
-                        <li>Идентификатор пользователя Telegram (Telegram ID);</li>
-                        <li>Данные о забронированных услугах, мастер-классах и датах посещения;</li>
-                        <li>Технические данные, автоматически передаваемые Сервисами в процессе их использования (в т.ч. файлы cookies, IP-адрес, данные Яндекс Метрики, информация о браузере и операционной системе).</li>
-                    </ul>
-                </li>
-                <li><strong>Цели обработки персональных данных:</strong>
-                    <ul>
-                        <li>Оформление бронирования, продажа билетов на мастер-классы и предоставление услуг танцевального пространства;</li>
-                        <li>Осуществление обратной связи, отправка уведомлений о статусе брони, напоминаний в Telegram и на e-mail;</li>
-                        <li>Обработка и прием платежей через интернет-эквайринг АО «ТБанк» (Оператор не хранит данные банковских карт);</li>
-                        <li>Аналитика поведения Пользователя на сайте с помощью системы «Яндекс Метрика» для улучшения работы Сервисов.</li>
-                    </ul>
-                </li>
-                <li><strong>Передача данных третьим лицам:</strong>
-                    <ul>
-                        <li>Пользователь соглашается с тем, что для приема оплаты Оператор передает необходимую информацию интернет-эквайрингу АО «ТБанк» в соответствии с его правилами.</li>
-                        <li>Для сбора аналитики и статистики данные обрабатываются ООО «ЯНДЕКС» с помощью счетчиков Яндекс Метрики.</li>
-                    </ul>
-                </li>
-                <li><strong>Срок действия:</strong> Согласие действует с момента его предоставления до момента достижения целей обработки или до отзыва Согласия Пользователем путем направления уведомления на e-mail Оператора, указанный в Политике конфиденциальности.</li>
-            </ol>
-        </div>
-
-
+    <div class="doc-section">
+      <p>Настоящее согласие предоставляется физическим лицом (далее — <strong>Субъект</strong>) Индивидуальному предпринимателю, осуществляющему деятельность под брендом <strong>ROLTHALL</strong> (г. Краснодар, ул. Коммунаров, 278/1; далее — <strong>Оператор</strong>), в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных».</p>
     </div>
+
+    <hr class="doc-divider">
+
+    <div class="doc-section">
+      <h2>1. Перечень персональных данных</h2>
+      <p>Субъект даёт согласие на обработку следующих персональных данных:</p>
+      <ul>
+        <li>Фамилия, имя, отчество;</li>
+        <li>Номер мобильного телефона;</li>
+        <li>Адрес электронной почты (email);</li>
+        <li>Имя пользователя и идентификатор Telegram;</li>
+        <li>Дата и параметры бронирования (дата, время, формат мероприятия, количество гостей);</li>
+        <li>История и статусы бронирований;</li>
+        <li>Информация об оплатах (суммы, идентификаторы транзакций).</li>
+      </ul>
+    </div>
+
+    <div class="doc-section">
+      <h2>2. Цели обработки</h2>
+      <p>Персональные данные обрабатываются в следующих целях:</p>
+      <ul>
+        <li>Заключение и исполнение договора аренды зала;</li>
+        <li>Идентификация клиента при обращении;</li>
+        <li>Обработка и подтверждение бронирований;</li>
+        <li>Приём и учёт платежей;</li>
+        <li>Направление уведомлений об операциях с бронированием (подтверждение, отмена, напоминание);</li>
+        <li>Обработка запросов на перенос даты аренды;</li>
+        <li>Ведение внутренней базы клиентов;</li>
+        <li>Исполнение требований законодательства Российской Федерации.</li>
+      </ul>
+    </div>
+
+    <div class="doc-section">
+      <h2>3. Способы обработки</h2>
+      <p>Обработка персональных данных осуществляется следующими способами: сбор, запись, систематизация, накопление, хранение, уточнение, использование, передача, обезличивание, блокирование, удаление и уничтожение. Обработка осуществляется как с использованием средств автоматизации, так и без таковых.</p>
+    </div>
+
+    <div class="doc-section">
+      <h2>4. Передача данных третьим лицам</h2>
+      <p>Персональные данные могут передаваться следующим категориям третьих лиц:</p>
+      <ul>
+        <li><strong>АО «ТБанк» (Тинькофф)</strong> — для проведения платёжных операций;</li>
+        <li><strong>Telegram Messenger Inc.</strong> — для направления уведомлений через мессенджер Telegram;</li>
+        <li><strong>Иным поставщикам ИТ-инфраструктуры</strong> — исключительно для обеспечения работы сервиса, на основании соглашений о конфиденциальности.</li>
+      </ul>
+      <p>Передача персональных данных в иных целях без согласия Субъекта не осуществляется.</p>
+    </div>
+
+    <div class="doc-section">
+      <h2>5. Срок обработки и хранения</h2>
+      <p>Персональные данные обрабатываются и хранятся в течение срока действия отношений между Субъектом и Оператором, а также в течение <strong>3 (трёх) лет</strong> после их прекращения, если иной срок не установлен действующим законодательством.</p>
+      <p>По истечении указанного срока персональные данные уничтожаются или обезличиваются.</p>
+    </div>
+
+    <div class="doc-section">
+      <h2>6. Права Субъекта</h2>
+      <p>Субъект персональных данных вправе:</p>
+      <ul>
+        <li>Получить сведения об обработке своих персональных данных;</li>
+        <li>Требовать уточнения, блокирования или уничтожения персональных данных в случае их неполноты, устаревания или незаконной обработки;</li>
+        <li>Отозвать настоящее согласие в любое время путём направления письменного заявления Оператору;</li>
+        <li>Обжаловать действия Оператора в уполномоченный орган по защите прав субъектов персональных данных (Роскомнадзор).</li>
+      </ul>
+    </div>
+
+    <div class="doc-section">
+      <h2>7. Порядок отзыва согласия</h2>
+      <p>Субъект вправе отозвать настоящее согласие, направив заявление по электронной почте или лично обратившись к Оператору по адресу: <strong>г. Краснодар, ул. Коммунаров, 278/1</strong>.</p>
+      <p>Отзыв согласия не влечёт автоматического удаления данных, если их обработка необходима для исполнения договора или требований закона.</p>
+    </div>
+
+    <div class="doc-section">
+      <h2>8. Порядок принятия согласия</h2>
+      <p>Согласие считается предоставленным с момента заполнения и отправки формы бронирования на сайте <strong>hall.roltworld.ru</strong> либо иного способа передачи персональных данных Оператору.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-copy">© 2025 ROLTHALL. Все права защищены.</div>
+  <div class="footer-copy">г. Краснодар, ул. Коммунаров, 278/1</div>
+</footer>
 
 </body>
 </html>
