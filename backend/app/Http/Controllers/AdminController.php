@@ -112,7 +112,7 @@ class AdminController extends Controller
 
         $payload = array_merge($cms, ['pricing_rules' => $rules]);
         $js = 'window.HALL_CMS=' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
-        $dir = env('CMS_PUBLIC_DIR', public_path());
+        $dir = config('cms.public_dir', public_path());
         file_put_contents(rtrim($dir, '/') . '/cms_data.js', $js);
 
         return response()->json(['ok' => true]);
