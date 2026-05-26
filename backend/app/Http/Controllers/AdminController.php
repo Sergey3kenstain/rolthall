@@ -39,20 +39,51 @@ class AdminController extends Controller
         return response()->json(Hall::with('pricingRules')->get(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function createHall(Request $request): JsonResponse
+    {
+        if (!$this->isOwner($request)) abort(403);
+
+        $data = $request->validate([
+            'name'           => 'required|string|max:191',
+            'description'    => 'nullable|string',
+            'area_m2'        => 'nullable|integer',
+            'capacity'       => 'nullable|integer',
+            'equipment'      => 'nullable|array',
+            'equipment.*'    => 'string|max:100',
+            'buffer_minutes' => 'nullable|integer',
+            'rules'          => 'nullable|string',
+            'contact_phone'  => 'nullable|string|max:30',
+            'is_active'      => 'boolean',
+        ]);
+
+        $hall = Hall::create(array_merge(['is_active' => true], $data));
+        return response()->json(['ok' => true, 'hall' => $hall->load('pricingRules')], 201, [], JSON_UNESCAPED_UNICODE);
+    }
+
     public function updateHall(Request $request, int $id): JsonResponse
     {
         $hall = Hall::findOrFail($id);
         $data = $request->validate([
             'name'           => 'sometimes|string|max:191',
-            'description'    => 'sometimes|string',
-            'area_m2'        => 'sometimes|numeric',
-            'capacity'       => 'sometimes|integer',
-            'buffer_minutes' => 'sometimes|integer',
-            'rules'          => 'sometimes|string',
-            'contact_phone'  => 'sometimes|string|max:30|nullable',
+            'description'    => 'sometimes|nullable|string',
+            'area_m2'        => 'sometimes|nullable|integer',
+            'capacity'       => 'sometimes|nullable|integer',
+            'equipment'      => 'sometimes|nullable|array',
+            'equipment.*'    => 'string|max:100',
+            'buffer_minutes' => 'sometimes|nullable|integer',
+            'rules'          => 'sometimes|nullable|string',
+            'contact_phone'  => 'sometimes|nullable|string|max:30',
+            'is_active'      => 'sometimes|boolean',
         ]);
         $hall->update($data);
-        return response()->json(['ok' => true, 'hall' => $hall], 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(['ok' => true, 'hall' => $hall->fresh('pricingRules')], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function deleteHall(Request $request, int $id): JsonResponse
+    {
+        if (!$this->isOwner($request)) abort(403);
+        Hall::findOrFail($id)->delete();
+        return response()->json(['ok' => true]);
     }
 
     // ── Pricing ───────────────────────────────────────────────────────────

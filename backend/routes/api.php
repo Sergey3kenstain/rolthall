@@ -23,8 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
 // ── Admin (owner + manager) ───────────────────────────────────────────
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/halls',                    [AdminController::class, 'halls']);
+    Route::post('/halls',                   [AdminController::class, 'createHall']);
     Route::get('/halls/{id}',               [AdminController::class, 'halls']);
     Route::put('/halls/{id}',               [AdminController::class, 'updateHall']);
+    Route::delete('/halls/{id}',            [AdminController::class, 'deleteHall']);
     Route::get('/pricing',                  [AdminController::class, 'pricing']);
     Route::put('/pricing',                  [AdminController::class, 'updatePricing']);
     Route::get('/bookings',                 [AdminController::class, 'bookings']);
