@@ -19,8 +19,9 @@ html{scroll-behavior:smooth;}
 body{font-family:var(--font);background:var(--charcoal-deep);color:var(--light);min-height:100vh;display:flex;flex-direction:column;}
 nav{position:sticky;top:0;z-index:100;height:68px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(30,28,36,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .nav-logo svg{height:16px;width:auto;display:block;}
-.nav-back{font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:rgba(217,217,217,.45);text-decoration:none;transition:color .2s;}
-.nav-back:hover{color:var(--light);}
+.nav-back{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;text-decoration:none;transition:opacity .2s,border-color .2s;flex-shrink:0;}
+.nav-back:hover{opacity:.65;}
+.nav-back svg{width:36px;height:36px;display:block;}
 .page{flex:1;padding:60px 24px 80px;}
 .doc{max-width:760px;margin:0 auto;}
 .doc-eyebrow{font-size:8px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:rgba(217,217,217,.3);margin-bottom:12px;}
@@ -33,12 +34,28 @@ nav{position:sticky;top:0;z-index:100;height:68px;padding:0 48px;display:flex;al
 .doc-section li{margin-bottom:6px;}
 .doc-section strong{font-weight:600;color:rgba(217,217,217,.9);}
 .doc-divider{border:none;border-top:1px solid var(--border);margin:32px 0;}
-footer{padding:24px 48px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-.footer-copy{font-size:9px;font-weight:300;letter-spacing:.1em;color:rgba(217,217,217,.2);}
+footer{background:var(--charcoal-deep);border-top:1px solid var(--border);}
+.footer-top{padding:48px 48px 36px;display:grid;grid-template-columns:1fr auto 1fr;gap:40px;align-items:start;}
+.footer-logo svg{height:16px;width:auto;opacity:.45;}
+.footer-tagline{font-size:9px;font-weight:300;letter-spacing:.12em;color:rgba(217,217,217,.25);margin-top:12px;}
+.footer-nav-col{display:flex;align-items:center;gap:16px;}
+.footer-nav-col a{font-size:9px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:rgba(217,217,217,.4);text-decoration:none;transition:color .2s;}
+.footer-nav-col a:hover{color:var(--light);}
+.footer-legal-col{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.footer-legal-col a{font-size:8px;font-weight:300;letter-spacing:.05em;color:rgba(217,217,217,.3);text-decoration:none;transition:color .2s;text-align:right;line-height:1.5;}
+.footer-legal-col a:hover{color:rgba(217,217,217,.7);}
+.footer-bottom{padding:20px 48px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-copy{font-size:9px;font-weight:300;letter-spacing:.08em;color:rgba(217,217,217,.2);}
+.footer-dev{font-size:9px;font-weight:300;color:rgba(217,217,217,.2);}
+.footer-dev a{color:rgba(217,217,217,.4);text-decoration:none;transition:color .2s;}
+.footer-dev a:hover{color:var(--light);}
 @media(max-width:768px){
   nav{padding:0 20px;}
-  footer{padding:20px 20px;}
   .page{padding:40px 20px 60px;}
+  .footer-top{grid-template-columns:1fr;gap:32px;padding:36px 20px 28px;}
+  .footer-legal-col{align-items:flex-start;}
+  .footer-nav-col{align-items:flex-start;display:grid;gap:10px;}
+  .footer-bottom{padding:16px 20px;flex-direction:column;align-items:flex-start;gap:8px;}
 }
 </style>
 </head>
@@ -48,7 +65,12 @@ footer{padding:24px 48px;border-top:1px solid var(--border);display:flex;align-i
   <a href="/" class="nav-logo">
     <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#c0)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="c0"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
   </a>
-  <a href="/" class="nav-back">← На главную</a>
+  <a href="/" class="nav-back" aria-label="На главную">
+    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="18" cy="18" r="17.5" stroke="rgba(255,255,255,0.22)"/>
+      <path d="M21 12l-6 6 6 6" stroke="rgba(217,217,217,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
 </nav>
 
 <div class="page">
@@ -157,8 +179,30 @@ footer{padding:24px 48px;border-top:1px solid var(--border);display:flex;align-i
 </div>
 
 <footer>
-  <div class="footer-copy">© 2025 ROLTHALL. Все права защищены.</div>
-  <div class="footer-copy">г. Краснодар, ул. Коммунаров, 278/1</div>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <svg width="1280" height="71" viewBox="0 0 1280 71" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#cf)"><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g><defs><clipPath id="cf"><rect width="1280" height="71" fill="white"/></clipPath></defs></svg>
+      </div>
+      <div class="footer-tagline">Профессиональное танцевальное пространство · Краснодар</div>
+    </div>
+    <div class="footer-nav-col">
+      <a href="/#about">Пространство</a>
+      <a href="/#pricing">Цены</a>
+      <a href="/#rules">Правила</a>
+      <a href="/#faq">FAQ</a>
+      <a href="/#contacts">Контакты</a>
+    </div>
+    <div class="footer-legal-col">
+      <a href="/cttp_opd" target="_blank">Согласие на обработку персональных данных</a>
+      <a href="/user_agreement" target="_blank">Пользовательское соглашение</a>
+      <a href="/privacy_policy" target="_blank">Политика конфиденциальности</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 ROLTHALL. Все права защищены.</div>
+    <div class="footer-dev">dev by <a href="https://t.me/Sergey_3kenstain" target="_blank">Sergey 3kenstain</a></div>
+  </div>
 </footer>
 
 </body>
