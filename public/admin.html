@@ -755,7 +755,10 @@ select.inp option{background:var(--bg-card);}
 
   <!-- ЗАЛЫ -->
   <div class="tab-pane" id="tab-halls">
-    <div style="font-size:.9rem;font-weight:700;margin-bottom:16px;">Залы</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:.9rem;font-weight:700;">Залы</div>
+      <button class="btn btn-w btn-sm" onclick="openHallModal(null)">+ Создать зал</button>
+    </div>
     <div id="halls-list"></div>
   </div>
 
@@ -946,6 +949,11 @@ select.inp option{background:var(--bg-card);}
       </div>
       <div class="form-group"><label class="form-lbl">Описание</label><textarea class="inp" id="hall-desc" placeholder="Танцевальный зал…"></textarea></div>
       <div class="form-group"><label class="form-lbl">Удобства (через запятую)</label><input type="text" class="inp" id="hall-amenities" placeholder="Зеркала, Звук, Сцена"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Буфер (мин)</label><input type="number" class="inp" id="hall-buffer" placeholder="30" min="0"></div>
+        <div class="form-group"><label class="form-lbl">Контактный телефон</label><input type="tel" class="inp" id="hall-phone" placeholder="+7 (___) ___-__-__"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Правила зала</label><textarea class="inp" id="hall-rules" placeholder="Сменная обувь обязательна…" style="min-height:60px;"></textarea></div>
       <div class="form-group"><label class="form-lbl">Статус</label>
         <select class="inp" id="hall-status"><option value="1">Активен</option><option value="0">Отключён</option></select>
       </div>
@@ -1576,7 +1584,8 @@ function openHallModal(id) {
   _editHallId = id;
   document.getElementById('hall-modal-title').textContent = id ? 'Редактировать зал' : 'Новый зал';
   document.getElementById('hall-modal-sub').textContent = id ? 'ID: '+id : 'Заполните параметры';
-  ['hall-name','hall-area','hall-cap','hall-desc','hall-amenities'].forEach(i => { const el=document.getElementById(i); if(el) el.value=''; });
+  ['hall-name','hall-area','hall-cap','hall-desc','hall-amenities','hall-buffer','hall-phone','hall-rules'].forEach(i => { const el=document.getElementById(i); if(el) el.value=''; });
+  document.getElementById('hall-status').value = '1';
   document.getElementById('photo-grid').innerHTML = '';
   if (id) {
     api('/admin/halls/'+id).then(data => {
@@ -1587,6 +1596,9 @@ function openHallModal(id) {
       document.getElementById('hall-cap').value = h.capacity||'';
       document.getElementById('hall-desc').value = h.description||'';
       document.getElementById('hall-amenities').value = (h.equipment||[]).join(', ');
+      document.getElementById('hall-buffer').value = h.buffer_minutes||'';
+      document.getElementById('hall-phone').value = h.contact_phone||'';
+      document.getElementById('hall-rules').value = h.rules||'';
       document.getElementById('hall-status').value = h.is_active ? '1' : '0';
       // Photos
       const grid = document.getElementById('photo-grid');
@@ -1620,21 +1632,26 @@ async function saveHall() {
   if (!name) { alert('Введите название'); return; }
   const payload = {
     name,
-    area_m2: +document.getElementById('hall-area').value || null,
-    capacity: +document.getElementById('hall-cap').value || null,
-    description: document.getElementById('hall-desc').value,
-    equipment: document.getElementById('hall-amenities').value.split(',').map(s=>s.trim()).filter(Boolean),
-    is_active: document.getElementById('hall-status').value === '1',
+    area_m2:        +document.getElementById('hall-area').value   || null,
+    capacity:       +document.getElementById('hall-cap').value    || null,
+    description:    document.getElementById('hall-desc').value    || null,
+    equipment:      document.getElementById('hall-amenities').value.split(',').map(s=>s.trim()).filter(Boolean),
+    buffer_minutes: +document.getElementById('hall-buffer').value || null,
+    contact_phone:  document.getElementById('hall-phone').value   || null,
+    rules:          document.getElementById('hall-rules').value   || null,
+    is_active:      document.getElementById('hall-status').value === '1',
   };
-  if (!_editHallId) { alert('Создание залов доступно только через бэкенд-консоль'); return; }
-  const res = await api('/admin/halls/'+_editHallId, {method:'PUT', body:JSON.stringify(payload)});
-  if (res?.ok || res?.data) { closeHallModal(); loadHallsTab(); }
+  const isNew = !_editHallId;
+  const res = isNew
+    ? await api('/admin/halls',            {method:'POST', body:JSON.stringify(payload)})
+    : await api('/admin/halls/'+_editHallId, {method:'PUT',  body:JSON.stringify(payload)});
+  if (res?.ok) { closeHallModal(); loadHallsTab(); }
 }
 
 async function toggleHallStatus(btn, id) {
   const isOn = btn.classList.contains('on');
-  const res = await api('/halls/'+id, {method:'PUT', body:JSON.stringify({is_active: !isOn})});
-  if (res?.ok || res?.data) {
+  const res = await api('/admin/halls/'+id, {method:'PUT', body:JSON.stringify({is_active: !isOn})});
+  if (res?.ok) {
     btn.classList.toggle('on', !isOn); btn.classList.toggle('off', isOn);
     btn.innerHTML = `<span class="status-dot"></span>${!isOn?'Активен':'Отключён'}`;
   }
