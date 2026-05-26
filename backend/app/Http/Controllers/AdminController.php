@@ -86,6 +86,55 @@ class AdminController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    // ── Hall CMS publish ─────────────────────────────────────────────────
+
+    public function publishHall(Request $request, int $id): JsonResponse
+    {
+        $hall = Hall::findOrFail($id);
+        $cms  = $request->validate(['cms' => 'required|array'])['cms'];
+
+        // 1. Сохраняем CMS в БД
+        $hall->update(['cms' => $cms]);
+
+        // 2. Синхронизируем pricing_rules из cms.pricing.hourly (первые 2 строки — training)
+        $hourly = $cms['pricing']['hourly'] ?? [];
+        foreach ($hourly as $row) {
+            if (empty($row['engine'])) continue; // только строки с engine:true
+            PricingRule::updateOrCreate(
+                ['hall_id' => $hall->id, 'day_type' => $row['day_type']],
+                ['price_per_hour' => (int) $row['price'], 'description' => $row['desc'] ?? null, 'is_active' => true, 'min_hours' => 1]
+            );
+        }
+
+        // 3. Генерируем cms_data.js
+        $rules = PricingRule::where('hall_id', $hall->id)->where('is_active', true)->get()
+            ->map(fn($r) => ['day_type' => $r->day_type, 'description' => $r->description, 'price' => $r->price_per_hour]);
+
+        $payload = array_merge($cms, ['pricing_rules' => $rules]);
+        $js = 'window.HALL_CMS=' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
+        file_put_contents(public_path('cms_data.js'), $js);
+
+        return response()->json(['ok' => true]);
+    }
+
+    // ── File upload ───────────────────────────────────────────────────────
+
+    public function upload(Request $request): JsonResponse
+    {
+        $type    = $request->input('type', 'carousel'); // 'hero' | 'carousel'
+        $maxKb   = $type === 'hero' ? 1536 : 1024;      // 1.5 MB / 1 MB
+        $request->validate(['file' => "required|file|image|max:{$maxKb}"]);
+
+        $file = $request->file('file');
+        $dir  = public_path('uploads/halls');
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+        $name = uniqid($type.'_', true) . '.' . $file->getClientOriginalExtension();
+        $file->move($dir, $name);
+
+        return response()->json(['ok' => true, 'url' => '/uploads/halls/' . $name]);
+    }
+
     // ── Pricing ───────────────────────────────────────────────────────────
 
     public function pricing(): JsonResponse

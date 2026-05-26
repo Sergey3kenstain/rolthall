@@ -10,12 +10,13 @@ class Hall extends Model
     protected $fillable = [
         'name', 'description', 'area_m2', 'capacity',
         'equipment', 'photos', 'buffer_minutes', 'is_active', 'sort_order',
-        'rules', 'contact_phone',
+        'rules', 'contact_phone', 'cms',
     ];
 
     protected $casts = [
         'equipment'      => 'array',
         'photos'         => 'array',
+        'cms'            => 'array',
         'is_active'      => 'boolean',
         'buffer_minutes' => 'integer',
         'area_m2'        => 'integer',

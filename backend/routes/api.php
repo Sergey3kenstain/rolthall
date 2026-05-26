@@ -27,6 +27,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/halls/{id}',               [AdminController::class, 'halls']);
     Route::put('/halls/{id}',               [AdminController::class, 'updateHall']);
     Route::delete('/halls/{id}',            [AdminController::class, 'deleteHall']);
+    Route::post('/halls/{id}/publish',      [AdminController::class, 'publishHall']);
+    Route::post('/upload',                  [AdminController::class, 'upload']);
     Route::get('/pricing',                  [AdminController::class, 'pricing']);
     Route::put('/pricing',                  [AdminController::class, 'updatePricing']);
     Route::get('/bookings',                 [AdminController::class, 'bookings']);
