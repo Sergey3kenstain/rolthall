@@ -998,11 +998,12 @@ function applyCms() {
   if (C.contacts) {
     const c=C.contacts;
     const clk=(id,href,text)=>{ const el=document.getElementById(id); if(!el) return; if(href){el.href=href; el.style.display=''; const sp=el.querySelector('.contact-link-text'); if(sp) sp.textContent=text||'';} };
+    const urlUser=(url,prefix='')=>{ try{ return prefix+new URL(url).pathname.replace(/\//g,''); }catch(e){ return url; } };
     if(c.address){ const el=document.querySelector('.contact-address'); if(el) el.innerHTML=c.address.replace(/,\s*/g,',<br>'); }
     if(c.phone)    clk('cl-phone','tel:'+c.phone.replace(/\D/g,''), c.phone);
-    if(c.telegram) clk('cl-tg', c.telegram, 'Telegram');
-    if(c.whatsapp) clk('cl-wa', c.whatsapp, 'WhatsApp');
-    if(c.instagram)clk('cl-ig', c.instagram, 'Instagram');
+    if(c.telegram) clk('cl-tg', c.telegram, urlUser(c.telegram,'@'));
+    if(c.whatsapp) clk('cl-wa', c.whatsapp, c.phone||urlUser(c.whatsapp));
+    if(c.instagram)clk('cl-ig', c.instagram, urlUser(c.instagram));
     if(c.map_src) { const iframe=document.querySelector('.map-wrap iframe'); if(iframe) iframe.src=c.map_src; }
     if(c.map_link){ const a=document.querySelector('.map-col > a'); if(a) a.href=c.map_link; }
     if(c.hours_wd||c.hours_we){
