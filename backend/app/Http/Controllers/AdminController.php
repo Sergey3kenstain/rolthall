@@ -122,24 +122,31 @@ class AdminController extends Controller
 
     public function telegramSettings(): JsonResponse
     {
-        $file = storage_path('app/telegram_settings.json');
+        $file  = storage_path('app/telegram_settings.json');
         $saved = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
         return response()->json([
             'ok'        => true,
             'token'     => $saved['token']     ?? config('services.telegram.bot_token'),
             'chat_id'   => $saved['chat_id']   ?? config('services.telegram.admin_chat_id'),
             'thread_id' => $saved['thread_id'] ?? config('services.telegram.admin_thread_id'),
+            'templates' => $saved['templates'] ?? null,
         ]);
     }
 
     public function saveTelegramSettings(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'token'     => 'required|string',
-            'chat_id'   => 'required|string',
-            'thread_id' => 'nullable|string',
-        ]);
-        file_put_contents(storage_path('app/telegram_settings.json'), json_encode($data));
+        $file    = storage_path('app/telegram_settings.json');
+        $existing = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+
+        $rules = [];
+        if ($request->has('token'))     $rules['token']     = 'required|string';
+        if ($request->has('chat_id'))   $rules['chat_id']   = 'required|string';
+        if ($request->has('thread_id')) $rules['thread_id'] = 'nullable|string';
+        if ($request->has('templates')) $rules['templates']  = 'nullable|array';
+
+        $data   = $request->validate($rules);
+        $merged = array_merge($existing, $data);
+        file_put_contents($file, json_encode($merged, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         return response()->json(['ok' => true]);
     }
 

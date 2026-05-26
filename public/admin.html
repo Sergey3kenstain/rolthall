@@ -431,6 +431,14 @@ select.inp option{background:var(--bg-card);}
 
 /* ── NOTIFICATIONS ── */
 .notif-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+.tpl-row{border-bottom:1px solid var(--border);}
+.tpl-row:last-child{border-bottom:none;}
+.tpl-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;gap:8px;}
+.tpl-head:hover{background:rgba(255,255,255,.03);}
+.tpl-body{padding:4px 16px 14px;}
+.tpl-chevron{transition:transform .2s;flex-shrink:0;opacity:.5;}
+.tpl-chevron.open{transform:rotate(180deg);}
+.tpl-vars{font-size:.6rem;color:var(--text-d);margin-top:6px;line-height:1.8;font-family:monospace;}
 .qa-label{font-size:.8rem;font-weight:600;}
 .qa-sub{font-size:.65rem;color:var(--text-m);margin-top:2px;}
 .toggle-sw{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0;}
@@ -970,6 +978,67 @@ select.inp option{background:var(--bg-card);}
         <button class="btn btn-w btn-md btn-full" onclick="saveTelegram()">Сохранить</button>
       </div>
     </div>
+
+    <div style="font-size:.78rem;font-weight:700;margin:28px 0 12px;">Шаблоны уведомлений</div>
+    <div style="font-size:.68rem;color:var(--text-d);margin-bottom:14px;line-height:1.7;">Текст сообщений в Telegram. Используйте переменные в фигурных скобках — они подставляются автоматически.</div>
+    <div class="card" style="overflow:hidden;max-width:540px;">
+      <!-- new_booking -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Новая бронь</div><div class="qa-sub">→ в чат администраторов</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="tpl-new_booking" rows="6" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">Переменные: {name} {phone} {date} {time} {hours} {hall} {amount}</div>
+        </div>
+      </div>
+      <!-- booking_confirmed -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Бронь подтверждена</div><div class="qa-sub">→ клиенту</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="tpl-booking_confirmed" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">Переменные: {name} {date} {time} {hall}</div>
+        </div>
+      </div>
+      <!-- booking_cancelled -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Отмена брони</div><div class="qa-sub">→ клиенту</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="tpl-booking_cancelled" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">Переменные: {name} {date} {time} {hall}</div>
+        </div>
+      </div>
+      <!-- payment_received -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Оплата получена</div><div class="qa-sub">→ в чат админов + клиенту</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="tpl-payment_received" rows="6" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">Переменные: {name} {date} {time} {hall} {amount}</div>
+        </div>
+      </div>
+      <!-- reminder_3h -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Напоминание за 3 ч</div><div class="qa-sub">→ клиенту перед началом</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="tpl-reminder_3h" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">Переменные: {name} {date} {time} {hall}</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveTplTemplates()">Сохранить шаблоны</button>
   </div>
 
   <!-- УВЕДОМЛЕНИЯ -->
@@ -2507,12 +2576,33 @@ async function handleAvatarUpload(input) {
 }
 
 /* ══ TELEGRAM TAB ══ */
+const TPL_DEFAULTS = {
+  new_booking:       '🔔 Новая бронь\n\nКлиент: {name}\nТелефон: {phone}\nДата: {date}\nВремя: {time} ({hours} ч)\nЗал: {hall}\nСумма: {amount} ₽',
+  booking_confirmed: '✅ Ваша бронь подтверждена!\n\nДата: {date}\nВремя: {time}\nЗал: {hall}\n\nДо встречи!',
+  booking_cancelled: '❌ Бронь отменена\n\nДата: {date}\nВремя: {time}\nЗал: {hall}',
+  payment_received:  '💳 Оплата получена — {amount} ₽\n\nКлиент: {name}\nДата: {date}\nВремя: {time}\nЗал: {hall}',
+  reminder_3h:       '⏰ Напоминание\n\nЧерез 3 часа начинается ваша аренда\n{date} в {time}\nЗал: {hall}',
+};
+
+function toggleTpl(head) {
+  const body = head.nextElementSibling;
+  const chevron = head.querySelector('.tpl-chevron');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chevron.classList.toggle('open', !isOpen);
+}
+
 async function loadTelegramTab() {
   const data = await api('/admin/telegram/settings');
   if (!data) return;
-  document.getElementById('tg-token').value  = data.token   || '';
-  document.getElementById('tg-chat').value   = data.chat_id || '';
+  document.getElementById('tg-token').value  = data.token     || '';
+  document.getElementById('tg-chat').value   = data.chat_id   || '';
   document.getElementById('tg-thread').value = data.thread_id || '';
+  const tpls = data.templates || {};
+  Object.keys(TPL_DEFAULTS).forEach(k => {
+    const el = document.getElementById('tpl-' + k);
+    if (el) el.value = tpls[k] ?? TPL_DEFAULTS[k];
+  });
 }
 
 async function saveTelegram() {
@@ -2522,7 +2612,17 @@ async function saveTelegram() {
     thread_id: document.getElementById('tg-thread').value.trim(),
   };
   const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify(payload)});
-  if (res?.ok) { const b=document.querySelector('#tab-telegram .btn-w'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000); }
+  if (res?.ok) { const b=document.querySelector('#tab-telegram .card .btn-w'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000); }
+}
+
+async function saveTplTemplates() {
+  const templates = {};
+  Object.keys(TPL_DEFAULTS).forEach(k => {
+    const el = document.getElementById('tpl-' + k);
+    if (el) templates[k] = el.value;
+  });
+  const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify({templates})});
+  if (res?.ok) { const b=document.querySelector('#tab-telegram .btn-w[onclick*="saveTplTemplates"]'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить шаблоны',2000); }
 }
 
 /* ══ NOTIFICATIONS TAB ══ */
