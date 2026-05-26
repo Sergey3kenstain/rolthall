@@ -326,6 +326,7 @@ select.inp option{background:var(--bg-card);}
 .btn{font-family:var(--font);font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;}
 .btn-md{font-size:.72rem;padding:10px 18px;border-radius:var(--r);}
 .btn-sm{font-size:.66rem;padding:6px 13px;border-radius:var(--r);}
+.modal-body .btn-sm{width:100%;font-size:.72rem;padding:10px 18px;border-radius:var(--r);}
 .btn-w{background:var(--white);color:var(--bg);} .btn-w:hover{opacity:.88;}
 .btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);}
 .btn-ghost:hover{background:rgba(255,255,255,.09);}
@@ -1145,7 +1146,7 @@ select.inp option{background:var(--bg-card);}
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
         <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:10px;">Клиент</div>
         <div style="display:flex;gap:5vw;align-items:center;">
-          <div id="bm-av" class="av" style="width:120px;height:120px;min-width:120px;font-size:.85rem;background:var(--accent-dim);flex-shrink:0;">
+          <div id="bm-av" class="av" style="width:120px;height:120px;min-width:120px;margin-left:9%;font-size:.85rem;background:var(--accent-dim);flex-shrink:0;">
             <span id="bm-av-ini">??</span>
             <img id="bm-av-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;">
           </div>
@@ -1158,7 +1159,7 @@ select.inp option{background:var(--bg-card);}
             </div>
           </div>
         </div>
-        <button class="btn btn-ghost btn-sm" id="bm-open-client" style="margin-top:16px;" onclick="openClientFromBooking()">Карточка клиента →</button>
+        <button class="btn btn-ghost btn-sm" id="bm-open-client" style="margin-top:24px;" onclick="openClientFromBooking()">Карточка клиента</button>
       </div>
       <!-- Заметки -->
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
