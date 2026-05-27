@@ -734,7 +734,6 @@ function _initTg() {
     <!-- SIDE PANEL (desktop only) -->
     <div class="cal-side">
 
-      <!-- Format selector -->
       <div class="side-section">
         <div class="side-section-label">Формат аренды</div>
         <div class="format-tabs" style="grid-template-columns:1fr 1fr 1fr;">
@@ -742,19 +741,6 @@ function _initTg() {
           <button class="format-tab" data-fmt="event" onclick="setFormat('event',this)">Событие</button>
           <button class="format-tab" data-fmt="allday" onclick="setFormat('allday',this)">Весь день</button>
         </div>
-      </div>
-
-      <!-- Guest slider (desktop) -->
-      <div class="guest-slider-wrap" id="guestSliderWrapDesktop">
-        <div class="guest-slider-header">
-          <span class="guest-slider-label">Количество человек</span>
-          <div class="guest-count-display">
-            <span class="guest-count-display-val" style="font-size:20px;font-weight:900;color:var(--accent);letter-spacing:-.02em;line-height:1;">1</span>
-            <span class="guest-tier-badge guest-tier-badge-el below">до 30</span>
-          </div>
-        </div>
-        <input type="range" class="guest-slider" id="guestSliderDesktop" min="1" max="150" value="1" oninput="onGuestSlider(this)">
-        <div class="guest-slider-bounds"><span>1</span><span class="guest-slider-max">150</span></div>
       </div>
 
       <!-- Date picker (hidden on desktop, replaced by week nav bar) -->
@@ -947,6 +933,7 @@ let currentFormat   = 'hourly'; // 'hourly' | 'event' | 'allday'
 let guestCount      = 1;
 let hallCapacity    = 150;
 let apiPricing      = { weekday: 0, weekend: 0, wdDay: 0, weDay: 0, prepayPct: 100 };
+let selectedPkg     = null;    // allday: null | число (цена пакета)
 
 const eventDays  = new Set(); // allday: набор dateKey выбранных дат
 const selections = {}; // hourly/event: { 'YYYY-MM-DD': { start: H, end: H } }
@@ -993,15 +980,20 @@ function getNearestWeekend() {
 async function fetchAndUpdatePricing() {
   const fmt = currentFormat;
   try {
-    const [wdRes, weRes] = await Promise.all([
-      fetch(`/api/halls/1/pricing?format=${fmt}&date=${getNearestWeekday()}&guest_count=${guestCount}`).then(r=>r.json()).catch(()=>null),
-      fetch(`/api/halls/1/pricing?format=${fmt}&date=${getNearestWeekend()}&guest_count=${guestCount}`).then(r=>r.json()).catch(()=>null),
-    ]);
     if (fmt === 'allday') {
-      apiPricing.wdDay     = wdRes?.rules?.[0]?.price_per_day       ?? 100000;
-      apiPricing.weDay     = weRes?.rules?.[0]?.price_per_day       ?? 150000;
-      apiPricing.prepayPct = wdRes?.rules?.[0]?.prepayment_percent  ?? 50;
+      // allday_options содержит оба правила (weekday + weekend) — используем как 2 пакета
+      const res = await fetch(`/api/halls/1/pricing?format=allday&date=${getNearestWeekday()}&guest_count=1`).then(r=>r.json()).catch(()=>null);
+      const opts = res?.allday_options ?? [];
+      const wdOpt = opts.find(o => o.day_type === 'weekday');
+      const weOpt = opts.find(o => o.day_type === 'weekend');
+      apiPricing.wdDay     = wdOpt?.price_per_day      ?? 100000;
+      apiPricing.weDay     = weOpt?.price_per_day      ?? 150000;
+      apiPricing.prepayPct = wdOpt?.prepayment_percent ?? 50;
     } else {
+      const [wdRes, weRes] = await Promise.all([
+        fetch(`/api/halls/1/pricing?format=${fmt}&date=${getNearestWeekday()}&guest_count=${guestCount}`).then(r=>r.json()).catch(()=>null),
+        fetch(`/api/halls/1/pricing?format=${fmt}&date=${getNearestWeekend()}&guest_count=${guestCount}`).then(r=>r.json()).catch(()=>null),
+      ]);
       apiPricing.weekday   = wdRes?.rules?.[0]?.price_per_hour      ?? 0;
       apiPricing.weekend   = weRes?.rules?.[0]?.price_per_hour      ?? 0;
       apiPricing.prepayPct = wdRes?.rules?.[0]?.prepayment_percent  ?? 100;
@@ -1020,18 +1012,19 @@ function isBookedOn(dateKey, h)     { return bookedByDate[dateKey]?.has(h) ?? fa
 function hasBookings(dateKey)       { return (bookedByDate[dateKey]?.size ?? 0) > 0; }
 
 async function loadWeekAvailability() {
-  const days = getStripDates();
-  const keys = days.map((_, i) => dateKeyFor(days, i));
-  const hallId = 1; // TODO: map currentHall key to hall id
+  const days   = getStripDates();
+  const today  = new Date(); today.setHours(0,0,0,0);
+  const hallId = 1;
   try {
-    const results = await Promise.all(
-      keys.map(k => fetch(`/api/halls/${hallId}/availability?date=${k}`, { headers: { Accept: 'application/json' } })
-        .then(r => r.json()).catch(() => null))
-    );
-    results.forEach((res, i) => {
-      if (!res?.slots) return;
-      bookedByDate[keys[i]] = new Set(res.slots.filter(s => s.booked).map(s => s.hour));
-    });
+    await Promise.all(days.map(async (d, i) => {
+      if (d < today) return; // прошедшие даты — API вернёт 422
+      const key = dateKeyFor(days, i);
+      const res = await fetch(`/api/halls/${hallId}/availability?date=${key}`, { headers: { Accept: 'application/json' } })
+        .then(r => r.json()).catch(() => null);
+      if (res?.slots) {
+        bookedByDate[key] = new Set(res.slots.filter(s => s.booked).map(s => s.hour));
+      }
+    }));
   } catch (e) { console.error('availability load error', e); }
 }
 function isSelected(h) {
@@ -1131,11 +1124,10 @@ function renderMobDates() {
 
 /* ===== RENDER SLOTS ===== */
 function renderSlots() {
-  if (currentFormat === 'allday') return;
   const days = getStripDates();
   if (window.innerWidth >= 1024) {
-    renderWeekGrid(days);
-  } else {
+    renderWeekGrid(days); // для allday рендерит только заголовки, слоты очищает
+  } else if (currentFormat !== 'allday') {
     renderDaySlots(days[selectedDateIdx]);
   }
 }
@@ -1353,25 +1345,33 @@ function renderPricing() {
 function renderAlldayInfo() {
   const el = document.getElementById('eventPackages');
   if (!el) return;
-  const wdDay     = apiPricing.wdDay || 100000;
-  const weDay     = apiPricing.weDay || 150000;
+  const pkg1      = apiPricing.wdDay || 100000;
+  const pkg2      = apiPricing.weDay || 150000;
   const prepayPct = apiPricing.prepayPct ?? 50;
+  const s1 = selectedPkg === pkg1;
+  const s2 = selectedPkg === pkg2;
   el.innerHTML = `
-<div class="event-pkg" style="cursor:default;">
-  <div class="pkg-tag">Будни · Пн–Пт</div>
-  <div class="pkg-price">${wdDay.toLocaleString('ru')}<span style="font-size:.5em;font-weight:300;margin:0 0.5em;vertical-align:super;">₽</span></div>
-  <div class="pkg-name">Весь день</div>
-  <div class="pkg-desc">Аренда зала с 09:00 до 22:00. Предоплата ${prepayPct}% при бронировании.</div>
-  <div class="pkg-prepay">Предоплата: ${Math.round(wdDay * prepayPct / 100).toLocaleString('ru')} ₽</div>
+<div class="event-pkg ${s1 ? 'selected' : ''}" onclick="selectPkg(this, ${pkg1})">
+  <div class="pkg-tag">Весь день — базовый</div>
+  <div class="pkg-price">${pkg1.toLocaleString('ru')}<span style="font-size:.5em;font-weight:300;margin:1em 0.5em;vertical-align:super;">₽</span></div>
+  <div class="pkg-name">День мероприятия</div>
+  <div class="pkg-desc">Аренда зала на весь день с 09:00 до 22:00. Предоплата ${prepayPct}% при бронировании.</div>
+  <div class="pkg-prepay">Предоплата: ${Math.round(pkg1 * prepayPct / 100).toLocaleString('ru')} ₽</div>
 </div>
-<div class="event-pkg" style="cursor:default;">
-  <div class="pkg-tag">Выходные · Сб–Вс</div>
-  <div class="pkg-price">${weDay.toLocaleString('ru')}<span style="font-size:.5em;font-weight:300;margin:0 0.5em;vertical-align:super;">₽</span></div>
-  <div class="pkg-name">Весь день</div>
-  <div class="pkg-desc">Аренда зала с 09:00 до 22:00. Предоплата ${prepayPct}% при бронировании.</div>
-  <div class="pkg-prepay">Предоплата: ${Math.round(weDay * prepayPct / 100).toLocaleString('ru')} ₽</div>
+<div class="event-pkg ${s2 ? 'selected' : ''}" onclick="selectPkg(this, ${pkg2})">
+  <div class="pkg-tag">Весь день — полный</div>
+  <div class="pkg-price">${pkg2.toLocaleString('ru')}<span style="font-size:.5em;font-weight:300;margin:1em 0.5em;vertical-align:super;">₽</span></div>
+  <div class="pkg-name">День со светом и звуком</div>
+  <div class="pkg-desc">Профессиональный свет, звуковое оборудование, поддержка на весь день. Предоплата ${prepayPct}%.</div>
+  <div class="pkg-prepay">Предоплата: ${Math.round(pkg2 * prepayPct / 100).toLocaleString('ru')} ₽</div>
 </div>
-<div style="padding:0 20px 16px;font-size:9px;color:rgba(217,217,217,.35);letter-spacing:.08em;text-transform:uppercase;">Выберите даты на календаре</div>`;
+<div style="padding:0 20px 16px;font-size:9px;color:rgba(217,217,217,.35);letter-spacing:.08em;text-transform:uppercase;">Выберите пакет, затем отметьте даты</div>`;
+}
+
+function selectPkg(el, price) {
+  selectedPkg = price;
+  renderAlldayInfo(); // перерисовываем с новым selected
+  updateSheet();
 }
 
 /* ===== RENDER INFO BAR ===== */
@@ -1411,33 +1411,32 @@ function updateAlldaySheet(emptyId, selId, listId, totalId, prepayId) {
   const full  = document.getElementById(selId);
   if (!empty || !full) return;
 
-  if (eventDays.size === 0) {
+  if (!selectedPkg || eventDays.size === 0) {
     empty.style.display = 'block'; full.style.display = 'none'; return;
   }
 
-  let totalAmt = 0;
+  const pkgName   = selectedPkg === (apiPricing.wdDay || 100000) ? 'Базовый' : 'Со светом и звуком';
+  const totalAmt  = selectedPkg * eventDays.size;
+  const prepay    = Math.round(totalAmt * (apiPricing.prepayPct ?? 50) / 100);
+
   empty.style.display = 'none';
   full.style.display  = 'block';
 
   const sortedDays = [...eventDays].sort();
   const listEl = document.getElementById(listId);
   if (listEl) listEl.innerHTML = sortedDays.map(key => {
-    const d         = new Date(key + 'T00:00:00');
-    const dayPrice  = getCurrentDayPrice(d);
-    totalAmt       += dayPrice;
-    const label     = `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`;
-    const typeLabel = isWeekend(d) ? 'Выходной · весь день' : 'Будний день · весь день';
+    const d     = new Date(key + 'T00:00:00');
+    const label = `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`;
     return `<div class="sel-day-item">
   <div style="flex:1;">
     <div class="sel-day-label">${label}</div>
-    <div class="sel-day-time">${typeLabel}</div>
+    <div class="sel-day-time">${pkgName} · весь день</div>
   </div>
-  <div class="sel-day-price">${dayPrice.toLocaleString('ru')} ₽</div>
+  <div class="sel-day-price">${selectedPkg.toLocaleString('ru')} ₽</div>
   <button class="sel-day-remove" onclick="removeEventDay('${key}')">✕</button>
 </div>`;
   }).join('');
 
-  const prepay = Math.round(totalAmt * (apiPricing.prepayPct ?? 50) / 100);
   const tEl = document.getElementById(totalId);
   const pEl = document.getElementById(prepayId);
   if (tEl) tEl.textContent = `${totalAmt.toLocaleString('ru')} ₽`;
@@ -1530,21 +1529,20 @@ function setFormat(format, btn) {
 
   const slotsScroll = document.querySelector('.slots-scroll');
   const alldayPkgs  = document.getElementById('eventPackages');
-  const guestWrapM  = document.getElementById('guestSliderWrap');
-  const guestWrapD  = document.getElementById('guestSliderWrapDesktop');
+  const guestWrap   = document.getElementById('guestSliderWrap');
+
+  selectedPkg = null;
 
   if (format === 'allday') {
     if (slotsScroll) slotsScroll.style.display = 'none';
     if (alldayPkgs)  alldayPkgs.classList.add('show');
-    if (guestWrapM)  guestWrapM.style.display = 'none';
-    if (guestWrapD)  guestWrapD.style.display = 'none';
+    if (guestWrap)   guestWrap.style.display = 'none';
     Object.keys(selections).forEach(k => delete selections[k]);
     renderAlldayInfo();
   } else {
     if (slotsScroll) slotsScroll.style.display = '';
     if (alldayPkgs)  alldayPkgs.classList.remove('show');
-    if (guestWrapM)  guestWrapM.style.display = '';
-    if (guestWrapD)  guestWrapD.style.display = '';
+    if (guestWrap)   guestWrap.style.display = '';
     eventDays.clear();
   }
 
@@ -1669,6 +1667,7 @@ function selectDate(idx) {
 }
 
 function shiftWeek(dir) {
+  if (dir < 0 && weekOffset <= 0) return; // не уходим в прошлое
   weekOffset += dir;
   selectedDateIdx = dir > 0 ? 0 : 6;
   reloadAndRedraw();
@@ -1682,12 +1681,12 @@ function goToBooking() {
 
   if (currentFormat === 'allday') {
     const sortedDays = [...eventDays].sort();
-    if (!sortedDays.length) return;
-    let grandTotal = 0;
-    sortedDays.forEach(key => { grandTotal += getCurrentDayPrice(new Date(key + 'T00:00:00')); });
-    p.set('format', 'allday');
-    p.set('dates',  sortedDays.join(','));
-    p.set('total',  grandTotal);
+    if (!selectedPkg || !sortedDays.length) return;
+    const grandTotal = selectedPkg * sortedDays.length;
+    p.set('format',    'allday');
+    p.set('dates',     sortedDays.join(','));
+    p.set('pkg_price', selectedPkg);
+    p.set('total',     grandTotal);
     p.set('prepay', Math.round(grandTotal * (apiPricing.prepayPct ?? 50) / 100));
 
   } else {
