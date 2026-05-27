@@ -142,7 +142,7 @@ class NotificationService
                 'protect_content' => true,
                 'reply_markup'    => json_encode([
                     'inline_keyboard' => [[
-                        ['text' => '🚪 Войти в личный кабинет', 'url' => "https://t.me/{$botUsername}?start=lk"],
+                        ['text' => '🚪 Войти в личный кабинет', 'web_app' => ['url' => 'https://hall.roltworld.com/profile']],
                     ]],
                 ]),
             ]);
