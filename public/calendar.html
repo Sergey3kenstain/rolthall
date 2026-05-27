@@ -589,7 +589,7 @@ nav.d-nav {
   }
   .bs-totals-row .hold-banner {
     flex-direction: row; justify-content: flex-start; align-items: center;
-    margin-bottom: 0; max-width: 170px; min-width: 0;
+    margin-bottom: 0; max-width: 166px; min-width: 0;
   }
 
   /* sel-days-list — убираем margin, border, background на мобильном */
@@ -652,7 +652,7 @@ input[type=range].guest-slider::-moz-range-thumb {
   font-size: 8px; color: rgba(217,217,217,.22); font-weight: 500; letter-spacing: .05em;
 }
 @media (min-width: 1024px) {
-  .guest-slider-wrap { display: none; }
+  .guest-slider-wrap { padding: 16px 24px 18px; }
 }
 </style>
 <script>
@@ -1720,8 +1720,27 @@ function goToBooking() {
   window.location.href = '/booking?' + p.toString();
 }
 
+/* ===== DATE STRIP SWIPE ===== */
+function initDateStripSwipe() {
+  const strip = document.querySelector('.mob-date-strip');
+  if (!strip) return;
+  let startX = 0, startY = 0;
+  strip.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  strip.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      shiftWeek(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+}
+
 /* ===== INIT ===== */
 initWgClickHandler();
+initDateStripSwipe();
 
 (async () => {
   try {
