@@ -1191,7 +1191,7 @@ select.inp option{background:var(--bg-card);}
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
       <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);">Server Log (laravel.log)</div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" onclick="loadDebugTab()">Обновить</button>
+        <button class="btn btn-ghost btn-sm" onclick="refreshDebugSection('server')">Обновить</button>
         <button class="btn btn-ghost btn-sm" onclick="downloadDebugSection('server')">Скачать</button>
         <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="clearDebugSection('server')">Очистить</button>
       </div>
@@ -1201,7 +1201,7 @@ select.inp option{background:var(--bg-card);}
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
       <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);">Frontend Log</div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" onclick="loadDebugTab()">Обновить</button>
+        <button class="btn btn-ghost btn-sm" onclick="refreshDebugSection('frontend')">Обновить</button>
         <button class="btn btn-ghost btn-sm" onclick="downloadDebugSection('frontend')">Скачать</button>
         <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="clearDebugSection('frontend')">Очистить</button>
       </div>
@@ -2993,28 +2993,20 @@ function saveNotifications() {
 let _debugRaw = { server: [], frontend: [] };
 
 async function loadDebugTab() {
-  document.getElementById('dbg-server-log').textContent   = 'Загрузка…';
-  document.getElementById('dbg-frontend-log').textContent = 'Загрузка…';
+  await refreshDebugSection('server');
+  await refreshDebugSection('frontend');
+}
+
+async function refreshDebugSection(type) {
+  const elId = type === 'server' ? 'dbg-server-log' : 'dbg-frontend-log';
+  const el   = document.getElementById(elId);
+  el.textContent = 'Загрузка…';
 
   const data = await api('/admin/debug/log').catch(() => null);
-  if (!data?.ok) {
-    document.getElementById('dbg-server-log').textContent = 'Ошибка загрузки';
-    return;
-  }
+  if (!data?.ok) { el.textContent = 'Ошибка загрузки'; return; }
 
-  _debugRaw = data;
-
-  // Server log
-  const sLines = data.server || [];
-  document.getElementById('dbg-server-log').textContent = sLines.length
-    ? sLines.join('\n')
-    : '(пусто)';
-
-  // Frontend log
-  const fLines = data.frontend || [];
-  document.getElementById('dbg-frontend-log').textContent = fLines.length
-    ? fLines.join('\n')
-    : '(пусто)';
+  _debugRaw[type] = (type === 'server' ? data.server : data.frontend) || [];
+  el.textContent  = _debugRaw[type].length ? _debugRaw[type].join('\n') : '(пусто)';
 }
 
 async function clearDebugSection(type) {

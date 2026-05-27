@@ -382,6 +382,7 @@ async function showBookingsView(name, token) {
     const res  = await fetch(`/api/profile/bookings?token=${encodeURIComponent(token)}`, {
       headers: { Accept: 'application/json' },
     });
+    if (res.status >= 500) { el.innerHTML = '<div class="loading">Ошибка сервера. Попробуйте позже.</div>'; return; }
     const data = await res.json();
     if (!data.ok) { doLogout(); return; }
 
@@ -408,7 +409,7 @@ async function showBookingsView(name, token) {
 
     renderBookings(data.bookings);
   } catch(e) {
-    el.innerHTML = '<div class="loading">Ошибка загрузки</div>';
+    doLogout();
   }
 }
 

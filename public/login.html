@@ -141,6 +141,9 @@ async function doLogin() {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ phone, email, _hp: document.getElementById('hp-website')?.value || '' }),
     });
+
+    if (res.status === 429) { showErr('Слишком много попыток. Подождите минуту и попробуйте снова.'); return; }
+
     const data = await res.json();
 
     if (!data.ok) { showErr(data.error || 'Пользователь не найден'); return; }
