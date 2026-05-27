@@ -104,11 +104,12 @@ class PaymentController extends Controller
                 $clientChatId = $booking->client->user->telegram_chat_id ?? null;
                 if ($clientChatId) {
                     $this->notify->notifyClientConfirmed($clientChatId, [
-                        'hall_name'  => $booking->hall->name,
-                        'date'       => $booking->getDateFormatted(),
-                        'time_start' => substr($booking->time_start, 0, 5),
-                        'time_end'   => substr($booking->time_end, 0, 5),
-                        'prepayment' => $booking->prepayment_amount,
+                        'hall_name'   => $booking->hall->name,
+                        'date'        => $booking->getDateFormatted(),
+                        'time_start'  => substr($booking->time_start, 0, 5),
+                        'time_end'    => substr($booking->time_end, 0, 5),
+                        'prepayment'  => $booking->prepayment_amount,
+                        'guest_count' => $booking->guest_count,
                     ]);
                 }
             } else {

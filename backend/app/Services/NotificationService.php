@@ -50,10 +50,15 @@ class NotificationService
      */
     public function notifyClientConfirmed(int|string $chatId, array $data): void
     {
+        $guestsLine = !empty($data['guest_count']) && $data['guest_count'] > 0
+            ? "👥 <b>Гостей:</b> {$data['guest_count']} чел.\n"
+            : '';
+
         $text = "✅ <b>Бронь подтверждена!</b>\n\n"
             . "🏛 <b>Зал:</b> {$data['hall_name']}\n"
             . "📅 <b>Дата:</b> {$data['date']}\n"
             . "🕐 <b>Время:</b> {$data['time_start']}–{$data['time_end']}\n"
+            . $guestsLine
             . "💰 <b>Предоплата:</b> {$data['prepayment']} ₽\n\n"
             . "Ждём вас! По вопросам — свяжитесь с нами.";
 

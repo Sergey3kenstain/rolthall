@@ -1245,7 +1245,8 @@ select.inp option{background:var(--bg-card);}
           <div><div class="qa-sub">Дата</div><div class="qa-label" id="bm-date">—</div></div>
           <div><div class="qa-sub">Время</div><div class="qa-label" id="bm-time">—</div></div>
           <div><div class="qa-sub">Длительность</div><div class="qa-label" id="bm-dur">—</div></div>
-          <div><div class="qa-sub">Транзакция</div><div class="qa-label" id="bm-txn" style="font-size:.65rem;word-break:break-all;">—</div></div>
+          <div><div class="qa-sub">Гостей</div><div class="qa-label" id="bm-guests">—</div></div>
+          <div style="grid-column:1/-1;"><div class="qa-sub">Транзакция</div><div class="qa-label" id="bm-txn" style="font-size:.65rem;word-break:break-all;">—</div></div>
         </div>
       </div>
       <!-- Клиент -->
@@ -1855,7 +1856,7 @@ async function openBookingModal(id) {
   _openBookingId = id;
   document.getElementById('booking-modal').classList.add('open');
   // reset
-  ['bm-hall','bm-format','bm-date','bm-time','bm-dur','bm-txn','bm-cname','bm-cphone','bm-cemail','bm-ctg','bm-notes'].forEach(k=>{
+  ['bm-hall','bm-format','bm-date','bm-time','bm-dur','bm-guests','bm-txn','bm-cname','bm-cphone','bm-cemail','bm-ctg','bm-notes'].forEach(k=>{
     const el=document.getElementById(k); if(el) el.textContent='…';
   });
   document.getElementById('bm-admin-notes').value='';
@@ -1888,6 +1889,7 @@ async function openBookingModal(id) {
   document.getElementById('bm-date').textContent    = fmtDisplayDate(b.date);
   document.getElementById('bm-time').textContent    = (b.time_start||'—') + '–' + (b.time_end||'—');
   document.getElementById('bm-dur').textContent     = b.duration_hours ? b.duration_hours + ' ч' : '—';
+  document.getElementById('bm-guests').textContent  = b.guest_count > 0 ? b.guest_count + ' чел.' : '—';
   document.getElementById('bm-txn').textContent     = b.transaction_id || '—';
   document.getElementById('bm-cname').textContent   = b.client_name || '—';
   document.getElementById('bm-cphone').textContent  = b.client_phone || '—';
