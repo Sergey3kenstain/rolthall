@@ -72,9 +72,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 48px;d
         <label class="form-label">Email</label>
         <input type="email" class="form-input" id="lEmail" placeholder="your@email.com" autocomplete="email">
       </div>
-      <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
-        <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
-      </div>
       <div id="loginError" class="login-error"></div>
       <button class="btn-primary" id="loginBtn" onclick="doLogin()">Войти</button>
     </div>
@@ -122,6 +119,8 @@ function showErr(msg) {
   e.textContent = msg; e.style.display = 'block';
 }
 
+let _hp = '';
+
 async function doLogin() {
   const rawPhone = document.getElementById('lPhone').value.trim();
   const digits   = rawPhone.replace(/\D/g, '');
@@ -129,19 +128,13 @@ async function doLogin() {
   const email    = document.getElementById('lEmail').value.trim();
   const btn      = document.getElementById('loginBtn');
   const errEl    = document.getElementById('loginError');
-  const hp       = document.getElementById('hp-website')?.value ?? '';
-
-  console.log('[login] phone raw:', rawPhone, '→ digits:', digits, '→ sent:', phone);
-  console.log('[login] email:', email);
-  console.log('[login] honeypot:', JSON.stringify(hp));
 
   errEl.style.display = 'none';
-  if (!rawPhone || !email) { showErr('Заполните оба поля'); console.log('[login] STOP: empty fields'); return; }
-  if (digits.length < 10)  { showErr('Введите корректный номер телефона'); console.log('[login] STOP: phone too short', digits.length); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); console.log('[login] STOP: email invalid'); return; }
-  if (hp.trim()) { showErr('Пожалуйста, обновите страницу и попробуйте снова.'); console.log('[login] STOP: honeypot filled:', JSON.stringify(hp)); return; }
+  if (!rawPhone || !email) { showErr('Заполните оба поля'); return; }
+  if (digits.length < 10)  { showErr('Введите корректный номер телефона'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); return; }
+  if (_hp) { showErr('Пожалуйста, обновите страницу и попробуйте снова.'); return; }
 
-  console.log('[login] sending request...');
   btn.disabled = true; btn.textContent = 'Проверяем…';
 
   try {
@@ -151,11 +144,9 @@ async function doLogin() {
       body: JSON.stringify({ phone, email }),
     });
 
-    console.log('[login] response status:', res.status);
     if (res.status === 429) { showErr('Слишком много попыток. Подождите минуту и попробуйте снова.'); return; }
 
     const data = await res.json();
-    console.log('[login] response data:', data);
 
     if (!data.ok) { showErr(data.error || 'Пользователь не найден'); return; }
 
@@ -168,7 +159,6 @@ async function doLogin() {
       window.location.href = '/profile';
     }
   } catch(e) {
-    console.log('[login] fetch error:', e.message);
     showErr('Ошибка соединения. Попробуйте ещё раз.');
   } finally {
     btn.disabled = false; btn.textContent = 'Войти';
@@ -183,6 +173,16 @@ function initEmailMask(el) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Honeypot: создаём через JS — браузер не автозаполняет динамически созданные поля
+  const hpWrap = document.createElement('div');
+  hpWrap.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+  hpWrap.setAttribute('aria-hidden', 'true');
+  const hpEl = document.createElement('input');
+  hpEl.type = 'text'; hpEl.tabIndex = -1; hpEl.autocomplete = 'off';
+  hpEl.addEventListener('input', () => { _hp = hpEl.value; });
+  hpWrap.appendChild(hpEl);
+  document.querySelector('.login-card').appendChild(hpWrap);
+
   const phoneEl = document.getElementById('lPhone');
   const emailEl = document.getElementById('lEmail');
   initPhoneMask(phoneEl);
