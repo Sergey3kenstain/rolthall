@@ -214,6 +214,9 @@ nav.d-nav {
   .wgd-head.event-sel { background: var(--accent) !important; }
   .wgd-head.event-sel .wgd-day { color: rgba(30,28,36,.6); }
   .wgd-head.event-sel .wgd-num { color: var(--charcoal); }
+  .wgd-head.allday-blocked { background: var(--danger-bg) !important; cursor: not-allowed; pointer-events: none; }
+  .wgd-head.allday-blocked .wgd-day,
+  .wgd-head.allday-blocked .wgd-num { color: var(--danger); }
 
   .wg-time {
     padding: 0 10px; min-height: 52px;
@@ -573,6 +576,10 @@ nav.d-nav {
   .mob-date-day { font-size: 6.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(217,217,217,.3); }
   .mob-date-num { font-size: 16px; font-weight: 800; color: rgba(217,217,217,.6); margin-top: 1px; }
   .mob-date-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--warning); margin-top: 3px; }
+  .mob-date-dot.danger { background: var(--danger); }
+  .mob-date-chip.allday-blocked { background: var(--danger-bg) !important; cursor: not-allowed; pointer-events: none; }
+  .mob-date-chip.allday-blocked .mob-date-day,
+  .mob-date-chip.allday-blocked .mob-date-num { color: var(--danger); }
 
   .info-bar { padding: 12px 16px; }
   .info-bar-title { font-size: 12px; }
@@ -1097,12 +1104,15 @@ function renderMobDates() {
     const isAlldayBlocked = currentFormat === 'allday' && hasBusy && !isAlldaySel;
     const hasMySel        = currentFormat !== 'allday' && selections[key]?.end != null;
     let cls = 'mob-date-chip';
-    if (isToday)                   cls += ' today';
-    if (isPast || isAlldayBlocked) cls += ' past';
-    if (isSel)                     cls += ' selected';
-    if (hasMySel)                  cls += ' has-sel';
-    if (isAlldaySel)               cls += ' event-sel';
-    const dot = hasBusy && !isSel && !isAlldaySel && !isAlldayBlocked ? `<div class="mob-date-dot"></div>` : '';
+    if (isToday)         cls += ' today';
+    if (isPast)          cls += ' past';
+    if (isAlldayBlocked) cls += ' allday-blocked';
+    if (isSel)           cls += ' selected';
+    if (hasMySel)        cls += ' has-sel';
+    if (isAlldaySel)     cls += ' event-sel';
+    const dot = isAlldayBlocked
+      ? `<div class="mob-date-dot danger"></div>`
+      : (hasBusy && !isSel && !isAlldaySel ? `<div class="mob-date-dot"></div>` : '');
     const click = (isPast || isAlldayBlocked) ? '' : (currentFormat === 'allday' ? `toggleEventDay(${i})` : `selectDate(${i})`);
     return `<div class="${cls}" ${click ? `onclick="${click}"` : ''}>
       <div class="mob-date-day">${DAY_SHORT[d.getDay()]}</div>
@@ -1172,23 +1182,28 @@ function renderWeekGrid(days) {
     const today = new Date(); today.setHours(0,0,0,0);
     hdr.innerHTML = '<div class="wg-time-corner"></div>' +
       days.map((d, i) => {
-        const key         = dateKeyFor(days, i);
-        const isToday     = d.getTime() === today.getTime();
-        const isPast      = d.getTime() < today.getTime();
-        const isAlldaySel = currentFormat === 'allday' && eventDays.has(key);
-        const hasSel      = currentFormat !== 'allday' && selections[key]?.end != null;
+        const key             = dateKeyFor(days, i);
+        const isToday         = d.getTime() === today.getTime();
+        const isPast          = d.getTime() < today.getTime();
+        const isAlldaySel     = currentFormat === 'allday' && eventDays.has(key);
+        const hasBusy         = hasBookings(key);
+        const isAlldayBlocked = currentFormat === 'allday' && hasBusy && !isAlldaySel;
+        const hasSel          = currentFormat !== 'allday' && selections[key]?.end != null;
         let cls = 'wgd-head';
         if (currentFormat !== 'allday' && i === selectedDateIdx) cls += ' active';
-        if (hasSel)       cls += ' has-sel';
-        if (isAlldaySel)  cls += ' event-sel';
-        if (isToday)      cls += ' today';
-        if (isPast)       cls += ' past';
-        const click = isPast ? '' : (currentFormat === 'allday'
+        if (hasSel)           cls += ' has-sel';
+        if (isAlldaySel)      cls += ' event-sel';
+        if (isAlldayBlocked)  cls += ' allday-blocked';
+        if (isToday)          cls += ' today';
+        if (isPast)           cls += ' past';
+        const click = (isPast || isAlldayBlocked) ? '' : (currentFormat === 'allday'
           ? `toggleEventDay(${i})`
           : `selectDateWG(${i})`);
+        const dot = isAlldayBlocked ? `<div class="mob-date-dot danger" style="margin:3px auto 0;"></div>` : '';
         return `<div class="${cls}" ${click ? `onclick="${click}"` : ''}>
   <span class="wgd-day">${DAY_SHORT[d.getDay()]}</span>
   <span class="wgd-num">${d.getDate()}</span>
+  ${dot}
 </div>`;
       }).join('');
   }
