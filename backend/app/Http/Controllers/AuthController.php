@@ -237,6 +237,31 @@ class AuthController extends Controller
     }
 
     /**
+     * Смена пароля текущего staff-пользователя
+     * POST /api/auth/change-password
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'current_password'      => 'required|string',
+            'new_password'          => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($data['current_password'], $user->password)) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Текущий пароль неверен.',
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $user->update(['password' => Hash::make($data['new_password'])]);
+
+        return response()->json(['ok' => true], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * Получаем сохранённые данные пользователя по Telegram chat_id
      * GET /api/auth/tg-profile?tg_id=123456789
      *
