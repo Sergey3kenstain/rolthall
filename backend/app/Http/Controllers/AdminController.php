@@ -273,6 +273,7 @@ class AdminController extends Controller
             'rules.*.prepayment_percent'     => 'nullable|integer|min:0|max:100',
             'rules.*.is_active'              => 'required|boolean',
         ]);
+
         foreach ($validated['rules'] as $r) {
             PricingRule::where('id', $r['id'])->update(array_filter([
                 'price_per_hour'     => $r['price_per_hour']     ?? null,
@@ -281,6 +282,24 @@ class AdminController extends Controller
                 'is_active'          => $r['is_active'],
             ], fn($v) => $v !== null));
         }
+
+        // Регенерируем cms_data.js для затронутых залов
+        $hallIds = PricingRule::whereIn('id', array_column($validated['rules'], 'id'))
+            ->pluck('hall_id')->unique();
+
+        $dir = rtrim(config('cms.public_dir', public_path()), '/');
+        foreach ($hallIds as $hallId) {
+            $hall = Hall::find($hallId);
+            if (!$hall || !$hall->cms) continue;
+
+            $rules = PricingRule::where('hall_id', $hallId)->where('is_active', true)->get()
+                ->map(fn($r) => ['day_type' => $r->day_type, 'description' => $r->description, 'price' => $r->price_per_hour]);
+
+            $payload = array_merge($hall->cms, ['pricing_rules' => $rules->toArray()]);
+            $js = 'window.HALL_CMS=' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
+            file_put_contents($dir . '/cms_data.js', $js);
+        }
+
         return response()->json(['ok' => true]);
     }
 
