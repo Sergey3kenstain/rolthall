@@ -107,14 +107,24 @@ class ProfileController extends Controller
             return response()->json(['ok' => false, 'error' => 'Доступ ограничен.'], 403);
         }
 
-        $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
+        $isStaff = $user->hasAnyRole(['owner', 'admin', 'manager', 'developer']);
+
+        if ($isStaff) {
+            $user->tokens()->where('name', 'staff')->delete();
+            $token = $user->createToken('staff')->plainTextToken;
+        } else {
+            $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
+        }
 
         (new NotificationService())->refreshAvatar($user);
 
         return response()->json([
-            'ok'    => true,
-            'token' => $token,
-            'name'  => $user->name,
+            'ok'         => true,
+            'token'      => $token,
+            'token_type' => $isStaff ? 'sanctum' : 'profile',
+            'redirect_to' => $isStaff ? '/admin' : '/profile',
+            'name'       => $user->name,
+            'role'       => $user->getRoleNames()->first(),
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 

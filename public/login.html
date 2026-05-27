@@ -168,13 +168,8 @@ async function doLogin() {
 
 function initEmailMask(el) {
   el.addEventListener('input', function() {
-    const pos   = this.selectionStart;
     const clean = this.value.replace(/[^\x20-\x7E]/g, '');
-    if (clean !== this.value) {
-      const diff = clean.length - this.value.length;
-      this.value = clean;
-      this.setSelectionRange(pos + diff, pos + diff);
-    }
+    if (clean !== this.value) this.value = clean;
   });
 }
 
@@ -207,8 +202,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       const data = await res.json();
       if (data.ok) {
-        sessionStorage.setItem(TOKEN_KEY, data.token);
-        window.location.href = '/profile';
+        if (data.redirect_to === '/admin') {
+          localStorage.setItem('rh_token', data.token);
+          window.location.href = '/admin';
+        } else {
+          sessionStorage.setItem(TOKEN_KEY, data.token);
+          window.location.href = '/profile';
+        }
       }
     } catch(_) {}
   }

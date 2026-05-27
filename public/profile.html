@@ -534,6 +534,11 @@ document.addEventListener('DOMContentLoaded', async function() {
       });
       const data = await res.json();
       if (data.ok) {
+        if (data.redirect_to === '/admin') {
+          localStorage.setItem('rh_token', data.token);
+          window.location.href = '/admin';
+          return;
+        }
         sessionStorage.setItem(TOKEN_KEY, data.token);
         showBookingsView(data.name || '', data.token);
         return;
