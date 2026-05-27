@@ -1967,7 +1967,12 @@ async function openBookingModal(id) {
   const ini = (b.client_name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('bm-av-ini').textContent = ini;
   const avImg = document.getElementById('bm-av-img');
-  avImg.style.display = 'none'; avImg.src = '';
+  if (b.client_avatar_url) {
+    avImg.src = b.client_avatar_url;
+    avImg.style.display = 'block';
+  } else {
+    avImg.style.display = 'none'; avImg.src = '';
+  }
   document.getElementById('bm-notes').textContent   = b.notes || '—';
   document.getElementById('bm-admin-notes').value   = b.admin_notes || '';
 

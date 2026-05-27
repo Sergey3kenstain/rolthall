@@ -337,7 +337,9 @@ class AdminController extends Controller
 
     public function bookingDetail(int $id): JsonResponse
     {
-        $b = Booking::with(['hall', 'client'])->findOrFail($id);
+        $b = Booking::with(['hall', 'client.user'])->findOrFail($id);
+        $avatarUrl = $b->client?->avatar_url
+            ?? $b->client?->user?->telegram_avatar_url;
         return response()->json(['ok' => true, 'booking' => [
             'id'                => $b->id,
             'hall'              => $b->hall?->name,
@@ -346,6 +348,7 @@ class AdminController extends Controller
             'time_start'        => substr($b->time_start, 0, 5),
             'time_end'          => substr($b->time_end,   0, 5),
             'duration_hours'    => $b->duration_hours,
+            'guest_count'       => $b->guest_count,
             'format'            => $b->format,
             'status'            => $b->status,
             'total_amount'      => $b->total_amount,
@@ -359,6 +362,7 @@ class AdminController extends Controller
             'client_phone'      => $b->client?->phone,
             'client_email'      => $b->client?->email,
             'client_telegram'   => $b->client?->telegram_username,
+            'client_avatar_url' => $avatarUrl,
         ]], 200, [], JSON_UNESCAPED_UNICODE);
     }
 

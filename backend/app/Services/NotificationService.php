@@ -31,7 +31,7 @@ class NotificationService
 
         $text = "🏠 <b>Новая бронь — RoltHall</b>\n\n"
             . "👤 <b>Клиент:</b> {$data['client_name']}\n"
-            . "📞 <b>Телефон:</b> {$data['phone']}\n"
+            . "📞 <b>Телефон:</b> <a href=\"tel:{$data['phone']}\">{$data['phone']}</a>\n"
             . "✉️ <b>Email:</b> {$data['email']}\n"
             . "💬 <b>Телеграм:</b> @{$data['telegram']}\n\n"
             . "📋 <b>Формат:</b> {$formatLabel}\n"
