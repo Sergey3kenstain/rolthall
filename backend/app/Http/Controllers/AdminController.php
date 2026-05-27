@@ -310,9 +310,11 @@ class AdminController extends Controller
 
                 $cms['pricing']['hourly'] = array_map(function ($row) use ($below30) {
                     if (empty($row['engine'])) return $row;
-                    $dt = $row['day_type'] ?? null;
-                    if ($dt && isset($below30[$dt])) {
-                        $row['price'] = $below30[$dt]->price_per_hour;
+                    $dt   = $row['day_type'] ?? null;
+                    $rule = $dt ? ($below30[$dt] ?? null) : null;
+                    // Обновляем только строку с совпадающим description (не трогаем "Тренировки" и т.п.)
+                    if ($rule && ($row['desc'] ?? '') === ($rule->description ?? '')) {
+                        $row['price'] = $rule->price_per_hour;
                     }
                     return $row;
                 }, $cms['pricing']['hourly']);
