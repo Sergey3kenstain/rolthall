@@ -391,6 +391,14 @@ select.inp option{background:var(--bg-card);}
 .role-card-email{font-size:.65rem;color:var(--text-m);margin-top:2px;}
 .role-select{font-family:var(--font);font-size:.68rem;background:rgba(55,111,255,.1);color:#7ea8ff;border:1px solid rgba(55,111,255,.3);border-radius:var(--r);padding:4px 8px;cursor:pointer;outline:none;}
 .role-select option{background:var(--bg-card);color:var(--text);}
+.role-popup-wrap{position:relative;display:inline-block;}
+.role-popup-btn{font-family:var(--font);font-size:.68rem;background:rgba(55,111,255,.1);color:#7ea8ff;border:1px solid rgba(55,111,255,.3);border-radius:var(--r);padding:4px 24px 4px 8px;cursor:pointer;outline:none;position:relative;white-space:nowrap;}
+.role-popup-btn::after{content:'▾';position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:.6rem;opacity:.7;}
+.role-popup{position:absolute;top:calc(100% + 4px);left:0;z-index:9999;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);min-width:150px;display:none;flex-direction:column;padding:4px 0;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.role-popup.open{display:flex;}
+.role-popup-item{padding:7px 12px;font-size:.68rem;font-family:var(--font);cursor:pointer;color:var(--text-m);transition:background .12s,color .12s;white-space:nowrap;}
+.role-popup-item:hover{background:var(--bg-hover);color:var(--white);}
+.role-popup-item.active{color:#7ea8ff;}
 
 /* ── CLIENT ROW (list) ── */
 .cl-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .13s;}
@@ -1129,7 +1137,10 @@ select.inp option{background:var(--bg-card);}
       <!-- Роль + статус (dev only) -->
       <div id="cd-dev-row" style="display:none;padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <label style="font-size:.65rem;color:var(--text-m);">Роль:</label>
-        <select class="role-select" id="cd-role-sel" onchange="setClientRole(this.value)"></select>
+        <div class="role-popup-wrap">
+          <button class="role-popup-btn" id="cd-role-sel" onclick="toggleRolePopup(event)">Клиент</button>
+          <div class="role-popup" id="cd-role-popup"></div>
+        </div>
         <label style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:var(--text-m);cursor:pointer;margin-left:auto;">
           <input type="checkbox" id="cd-ban-cb" onchange="toggleClientBan(this.checked)"> Заблокирован
         </label>
@@ -2520,8 +2531,12 @@ async function openClientModal(id) {
   if (_me?.role==='developer'||_me?.role==='owner') {
     devRow.style.display='flex';
     document.getElementById('cd-ban-cb').checked = !!c.is_blacklisted;
-    const roleSel = document.getElementById('cd-role-sel');
-    roleSel.innerHTML = ['client','manager','admin','owner','developer'].map(r=>`<option value="${r}"${c.role===r?' selected':''}>${ROLE_LABELS[r]}</option>`).join('');
+    const roleBtn  = document.getElementById('cd-role-sel');
+    const rolePopup = document.getElementById('cd-role-popup');
+    if (roleBtn)  roleBtn.textContent = ROLE_LABELS[c.role] || c.role || 'Клиент';
+    if (rolePopup) rolePopup.innerHTML = ['client','manager','admin','owner','developer'].map(r=>
+      `<div class="role-popup-item${c.role===r?' active':''}" onclick="setClientRole('${r}')">${ROLE_LABELS[r]}</div>`
+    ).join('');
   } else { devRow.style.display='none'; }
   // Note
   document.getElementById('cd-note').value = c.admin_note||'';
@@ -2544,8 +2559,20 @@ async function openClientModal(id) {
 
 function closeClientModal() { document.getElementById('client-modal').classList.remove('open'); }
 
+function toggleRolePopup(e) {
+  e.stopPropagation();
+  document.getElementById('cd-role-popup').classList.toggle('open');
+}
+document.addEventListener('click', () => document.getElementById('cd-role-popup')?.classList.remove('open'));
+
 async function setClientRole(role) {
   if (!_openClientId) return;
+  const ROLE_LABELS = {owner:'Владелец',admin:'Администратор',manager:'Менеджер',developer:'Разработчик',client:'Клиент'};
+  document.getElementById('cd-role-sel').textContent = ROLE_LABELS[role] || role;
+  document.getElementById('cd-role-popup').classList.remove('open');
+  document.querySelectorAll('#cd-role-popup .role-popup-item').forEach(el =>
+    el.classList.toggle('active', el.textContent === (ROLE_LABELS[role]||role))
+  );
   await api(`/admin/clients/${_openClientId}`,{method:'PUT',body:JSON.stringify({role})});
 }
 async function toggleClientBan(val) {
@@ -2618,17 +2645,21 @@ function renderBlacklistTab(items) {
   const empty = document.getElementById('bl-tab-empty');
   if (!items.length) { list.innerHTML=''; empty.style.display=''; return; }
   empty.style.display='none';
-  list.innerHTML = items.map(c => {
-    const ini = (c.name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  list.innerHTML = items.map((c,i) => {
+    const ini   = (c.name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const since = (c.blacklisted_at||'').slice(0,10);
+    const phone = c.phone   ? `<a class="cl-link" href="tel:${c.phone}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.75a19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 6.18 2 2 0 014.11 4h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6z"/></svg>${c.phone}</a>` : '';
+    const tg    = c.telegram ? `<a class="cl-link" href="https://t.me/${c.telegram.replace('@','')}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>${c.telegram}</a>` : '';
+    const email = c.email   ? `<a class="cl-link" href="mailto:${c.email}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>${c.email}</a>` : '';
+    const reason = (c.blacklist_reason||'—') + (since ? ' · ' + since : '');
     return `<div class="cl-row" onclick="openClientModal(${c.id})">
-      <div class="av" style="width:34px;height:34px;min-width:34px;font-size:.72rem;background:#C0392B;">${ini}</div>
-      <div style="flex:1;min-width:0;">
+      <div class="cl-av" style="background:#C0392B;">${ini}</div>
+      <div class="cl-main">
         <div class="cl-row-name">${c.name||'—'} <span class="cl-ban">БАН</span></div>
-        <div class="cl-row-sub">${c.phone||''} ${c.email||''}</div>
-        <div class="cl-row-sub" style="color:#E74C3C;margin-top:1px;">${c.blacklist_reason||'—'}${since?' · '+since:''}</div>
+        <div class="cl-contacts">${phone}${tg}${email}</div>
+        <div style="font-size:11px;color:var(--red);margin-top:4px;">${reason}</div>
       </div>
-      <div class="cl-arrow">›</div>
+      <div class="cl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></div>
     </div>`;
   }).join('');
 }

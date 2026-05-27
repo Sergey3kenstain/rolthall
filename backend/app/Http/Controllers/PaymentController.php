@@ -97,6 +97,7 @@ class PaymentController extends Controller
                     'telegram'       => $booking->client->telegram_username ?? '—',
                     'prepayment'     => $booking->prepayment_amount,
                     'transaction_id' => $paymentId,
+                    'guest_count'    => $booking->guest_count,
                 ]);
 
                 // Уведомление клиенту в личку (если он написал боту /start)

@@ -678,6 +678,10 @@ function _initTg() {
           <span class="summary-row-label">Время</span>
           <span class="summary-row-val" id="sumTime">—</span>
         </div>
+        <div class="summary-row" id="sumGuestRow" style="display:none;">
+          <span class="summary-row-label">Гостей</span>
+          <span class="summary-row-val" id="sumGuests">—</span>
+        </div>
         <div class="summary-row">
           <span class="summary-row-label">Тариф</span>
           <span class="summary-row-val green" id="sumTariff">—</span>
@@ -777,6 +781,8 @@ function initBookingPage() {
   // Обновляем мобильный summary bar
   const msbDate = document.querySelector('.msb-date');
 
+  const guestCount = parseInt(p.get('guest_count') || '0');
+
   if (format === 'hourly') {
     const date      = p.get('date');
     const timeStart = p.get('time_start');
@@ -790,6 +796,10 @@ function initBookingPage() {
     setEl('sumDate',    dateLabel);
     setEl('sumTime',    timeLabel);
     setEl('sumTariff',  `${fmtMoney(rph)}/ч × ${hours} ч`);
+    if (guestCount > 0) {
+      const gRow = document.getElementById('sumGuestRow');
+      if (gRow) { gRow.style.display = ''; setEl('sumGuests', `${guestCount} чел.`); }
+    }
     setEl('sumPrepay',  fmtMoney(prepay));
     setEl('sumTotal',   '100% оплата при бронировании');
     setEl('sumPayLabel','К оплате');
@@ -831,6 +841,28 @@ function initBookingPage() {
     });
 
     BOOKING_DATA = { format: 'event', hallId, dates, pkg, total, prepay };
+
+  } else if (format === 'allday') {
+    const dates   = (p.get('dates') || '').split(',').filter(Boolean);
+    const pkg     = parseInt(p.get('pkg_price') || '100000');
+    const pkgName = pkg === 100000 ? 'Базовый день' : 'Со светом и звуком';
+
+    setEl('sumDate',    dates.map(fmtDate).join(', '));
+    setEl('sumTariff',  `${pkgName} · ${dates.length} ${dates.length===1?'день':dates.length<5?'дня':'дней'}`);
+    setEl('sumPrepay',  fmtMoney(prepay));
+    setEl('sumTotal',   `Полная стоимость: ${fmtMoney(total)}`);
+    setEl('sumPayLabel','Предоплата 50%');
+    setEl('mobPrepay',  fmtMoney(prepay));
+    setEl('mobTotal',   `Полная стоимость: ${fmtMoney(total)}`);
+
+    const timeRow = document.getElementById('sumTimeRow');
+    if (timeRow) timeRow.style.display = 'none';
+
+    document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
+      b.textContent = `Оплатить ${fmtMoney(prepay)}`;
+    });
+
+    BOOKING_DATA = { format: 'allday', hallId, dates, pkg_price: pkg, total, prepay };
   }
 }
 

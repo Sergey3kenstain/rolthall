@@ -25,6 +25,10 @@ class NotificationService
     {
         $formatLabel = ($data['format'] ?? 'hourly') === 'event' ? 'Мероприятие' : 'Почасовая оплата';
 
+        $guestLine = !empty($data['guest_count']) && $data['guest_count'] > 0
+            ? "👥 <b>Гостей:</b> {$data['guest_count']} чел.\n"
+            : '';
+
         $text = "🏠 <b>Новая бронь — RoltHall</b>\n\n"
             . "👤 <b>Клиент:</b> {$data['client_name']}\n"
             . "📞 <b>Телефон:</b> {$data['phone']}\n"
@@ -33,7 +37,8 @@ class NotificationService
             . "📋 <b>Формат:</b> {$formatLabel}\n"
             . "📅 <b>Дата:</b> {$data['date']}\n"
             . "🕐 <b>Время:</b> {$data['time_start']}–{$data['time_end']}\n"
-            . "🏛 <b>Зал:</b> {$data['hall_name']}\n\n"
+            . "🏛 <b>Зал:</b> {$data['hall_name']}\n"
+            . $guestLine . "\n"
             . "💰 <b>Предоплата:</b> {$data['prepayment']} ₽\n"
             . "🔑 <b>Транзакция:</b> <code>{$data['transaction_id']}</code>";
 
