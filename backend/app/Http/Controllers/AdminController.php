@@ -136,6 +136,7 @@ class AdminController extends Controller
             'thread_id'         => $saved['thread_id']         ?? config('services.telegram.admin_thread_id'),
             'test_client_tg_id' => $saved['test_client_tg_id'] ?? null,
             'templates'         => $saved['templates']         ?? null,
+            'cmd_templates'     => $saved['cmd_templates']     ?? null,
         ]);
     }
 
@@ -150,6 +151,7 @@ class AdminController extends Controller
         if ($request->has('thread_id'))         $rules['thread_id']         = 'nullable|string';
         if ($request->has('test_client_tg_id')) $rules['test_client_tg_id'] = 'nullable|string';
         if ($request->has('templates'))         $rules['templates']         = 'nullable|array';
+        if ($request->has('cmd_templates'))    $rules['cmd_templates']    = 'nullable|array';
 
         $data   = $request->validate($rules);
         $merged = array_merge($existing, $data);

@@ -67,19 +67,9 @@ class TelegramController extends Controller
 
         match (true) {
             str_starts_with($text, '/start')   => $this->sendStart($chatId, $firstName, $user),
-            str_starts_with($text, '/booking') => $this->sendWebAppButton(
-                $chatId,
-                "📅 Забронировать зал\n\nВыберите удобный день и время, оплатите онлайн — бронь подтвердится автоматически.",
-                '📅 Открыть расписание',
-                config('app.url') . '/calendar',
-            ),
-            str_starts_with($text, '/lk') => $this->sendWebAppButton(
-                $chatId,
-                "👤 Личный кабинет\n\nПосмотрите ваши брони, статус оплаты и историю посещений.",
-                '👤 Открыть личный кабинет',
-                config('app.url') . '/profile',
-            ),
-            str_starts_with($text, '/mychat') => $this->sendMessage(
+            str_starts_with($text, '/booking') => $this->sendBooking($chatId),
+            str_starts_with($text, '/lk')      => $this->sendLk($chatId),
+            str_starts_with($text, '/mychat')  => $this->sendMessage(
                 $chatId,
                 "Chat ID: <code>{$chatId}</code>\n" .
                 "Thread ID: <code>" . ($message['message_thread_id'] ?? 'нет (личный чат)') . "</code>",
@@ -123,18 +113,22 @@ class TelegramController extends Controller
      */
     private function sendStart(int|string $chatId, ?string $firstName, ?User $user): void
     {
-        $name = $firstName ? ", {$firstName}" : '';
+        $cmds      = $this->cmdSettings();
+        $namePart  = $firstName ? ", {$firstName}" : '';
+        $rawText   = $cmds['start_text'] ?? "👋 Привет{name}! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\nНажми кнопку ниже чтобы выбрать время и забронировать зал. После оплаты уведомление придёт сюда.";
+        $startText = str_replace('{name}', $namePart, $rawText);
+        $startBtn  = $cmds['start_btn'] ?? '📅 Забронировать зал';
 
         try {
             // Сообщение 1: приветствие + кнопка открыть Mini App
             $this->telegram->sendMessage([
                 'chat_id'      => $chatId,
-                'text'         => "👋 Привет{$name}! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\nНажми кнопку ниже чтобы выбрать время и забронировать зал. После оплаты уведомление придёт сюда.",
+                'text'         => $startText,
                 'parse_mode'   => 'HTML',
                 'reply_markup' => json_encode([
                     'inline_keyboard' => [[
                         [
-                            'text'    => '📅 Забронировать зал',
+                            'text'    => $startBtn,
                             'web_app' => ['url' => config('app.url') . '/calendar'],
                         ],
                     ]],
@@ -160,6 +154,35 @@ class TelegramController extends Controller
         } catch (\Throwable $e) {
             Log::error('Telegram sendStart error', ['error' => $e->getMessage()]);
         }
+    }
+
+    private function sendBooking(int|string $chatId): void
+    {
+        $cmds = $this->cmdSettings();
+        $this->sendWebAppButton(
+            $chatId,
+            $cmds['booking_text'] ?? "📅 Забронировать зал\n\nВыберите удобный день и время, оплатите онлайн — бронь подтвердится автоматически.",
+            $cmds['booking_btn']  ?? '📅 Открыть расписание',
+            config('app.url') . '/calendar',
+        );
+    }
+
+    private function sendLk(int|string $chatId): void
+    {
+        $cmds = $this->cmdSettings();
+        $this->sendWebAppButton(
+            $chatId,
+            $cmds['lk_text'] ?? "👤 Личный кабинет\n\nПосмотрите ваши брони, статус оплаты и историю посещений.",
+            $cmds['lk_btn']  ?? '👤 Открыть личный кабинет',
+            config('app.url') . '/profile',
+        );
+    }
+
+    private function cmdSettings(): array
+    {
+        $file = storage_path('app/telegram_settings.json');
+        $s    = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+        return $s['cmd_templates'] ?? [];
     }
 
     /**

@@ -1106,6 +1106,48 @@ select.inp option{background:var(--bg-card);}
       </div>
     </div>
     <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveTplTemplates()">Сохранить шаблоны</button>
+
+    <div style="font-size:.78rem;font-weight:700;margin:28px 0 12px;">Команды бота</div>
+    <div style="font-size:.68rem;color:var(--text-d);margin-bottom:14px;line-height:1.7;">Сообщения и кнопки, которые бот отправляет при командах /start, /lk, /booking.</div>
+    <div class="card" style="overflow:hidden;max-width:540px;">
+      <!-- /start -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">/start</div><div class="qa-sub">Приветствие при первом запуске</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="cmd-start_text" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{name} — будет заменено на «, Имя» или пусто</div>
+          <div class="form-group" style="margin-top:10px;"><label class="form-lbl">Текст кнопки</label><input type="text" class="inp" id="cmd-start_btn"></div>
+        </div>
+      </div>
+      <!-- /lk -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">/lk</div><div class="qa-sub">Личный кабинет</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="cmd-lk_text" rows="4" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">Переменных нет</div>
+          <div class="form-group" style="margin-top:10px;"><label class="form-lbl">Текст кнопки</label><input type="text" class="inp" id="cmd-lk_btn"></div>
+        </div>
+      </div>
+      <!-- /booking -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">/booking</div><div class="qa-sub">Бронирование зала</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="cmd-booking_text" rows="4" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">Переменных нет</div>
+          <div class="form-group" style="margin-top:10px;"><label class="form-lbl">Текст кнопки</label><input type="text" class="inp" id="cmd-booking_btn"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveCmdTemplates()">Сохранить команды</button>
   </div>
 
   <!-- УВЕДОМЛЕНИЯ -->
@@ -2841,6 +2883,15 @@ async function handleAvatarUpload(input) {
 }
 
 /* ══ TELEGRAM TAB ══ */
+const CMD_DEFAULTS = {
+  start_text:   '👋 Привет{name}! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\nНажми кнопку ниже чтобы выбрать время и забронировать зал. После оплаты уведомление придёт сюда.',
+  start_btn:    '📅 Забронировать зал',
+  lk_text:      '👤 Личный кабинет\n\nПосмотрите ваши брони, статус оплаты и историю посещений.',
+  lk_btn:       '👤 Открыть личный кабинет',
+  booking_text: '📅 Забронировать зал\n\nВыберите удобный день и время, оплатите онлайн — бронь подтвердится автоматически.',
+  booking_btn:  '📅 Открыть расписание',
+};
+
 const TPL_DEFAULTS = {
   new_booking:         '🏠 Новая бронь — RoltHall\n\n👤 Клиент: {name}\n📞 Телефон: {phone}\n✉️ Email: {email}\n💬 Телеграм: {telegram}\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n👥 Гостей: {guests}\n\n💰 Сумма: {amount} ₽\n🔑 Транзакция: {txn_id}',
   booking_confirmed:   '✅ Ваша бронь подтверждена!\n\n📅 Дата: {date}\n🕐 Время: {time}\n⏱ Длительность: {hours} ч\n📋 Формат: {format}\n🏠 Зал: {hall}\n\nДо встречи!',
@@ -2870,6 +2921,11 @@ async function loadTelegramTab() {
     const el = document.getElementById('tpl-' + k);
     if (el) el.value = tpls[k] ?? TPL_DEFAULTS[k];
   });
+  const cmds = data.cmd_templates || {};
+  Object.keys(CMD_DEFAULTS).forEach(k => {
+    const el = document.getElementById('cmd-' + k);
+    if (el) el.value = cmds[k] ?? CMD_DEFAULTS[k];
+  });
 }
 
 async function saveTelegram() {
@@ -2891,6 +2947,16 @@ async function saveTplTemplates() {
   });
   const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify({templates})});
   if (res?.ok) { const b=document.querySelector('#tab-telegram .btn-w[onclick*="saveTplTemplates"]'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить шаблоны',2000); }
+}
+
+async function saveCmdTemplates() {
+  const cmd_templates = {};
+  Object.keys(CMD_DEFAULTS).forEach(k => {
+    const el = document.getElementById('cmd-' + k);
+    if (el) cmd_templates[k] = el.value;
+  });
+  const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify({cmd_templates})});
+  if (res?.ok) { const b=document.querySelector('#tab-telegram .btn-w[onclick*="saveCmdTemplates"]'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить команды',2000); }
 }
 
 async function testTpl(key) {
