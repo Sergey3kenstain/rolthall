@@ -89,17 +89,12 @@ class AuthController extends Controller
             'email' => 'required|email|max:191',
         ]);
 
-        // Нормализуем телефон — убираем всё кроме цифр и ведущего +
-        $phone = preg_replace('/[^\d+]/', '', $data['phone']);
-        if (strlen($phone) === 11 && $phone[0] === '8') {
-            $phone = '+7' . substr($phone, 1);
-        } elseif (strlen($phone) === 10) {
-            $phone = '+7' . $phone;
-        }
+        // Нормализуем телефон — последние 10 цифр (формат в БД может отличаться)
+        $last10 = substr(preg_replace('/[^\d]/', '', $data['phone']), -10);
 
         $user = User::where('email', $data['email'])
-            ->where('phone', $phone)
-            ->first();
+            ->get()
+            ->first(fn($u) => str_ends_with(preg_replace('/[^\d]/', '', $u->phone ?? ''), $last10));
 
         if (!$user) {
             ActionLog::write('auth.login_failed', null, null, null, null,
