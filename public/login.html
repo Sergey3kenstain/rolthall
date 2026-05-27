@@ -159,10 +159,23 @@ async function doLogin() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initEmailMask(el) {
+  el.addEventListener('input', function() {
+    const pos   = this.selectionStart;
+    const clean = this.value.replace(/[^\x20-\x7E]/g, '');
+    if (clean !== this.value) {
+      const diff = clean.length - this.value.length;
+      this.value = clean;
+      this.setSelectionRange(pos + diff, pos + diff);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   const phoneEl = document.getElementById('lPhone');
   const emailEl = document.getElementById('lEmail');
   initPhoneMask(phoneEl);
+  initEmailMask(emailEl);
   phoneEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
@@ -173,6 +186,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const d = JSON.parse(form);
       if (d.phone) phoneEl.value = d.phone;
       if (d.email) emailEl.value = d.email;
+    } catch(_) {}
+  }
+
+  // Автовход через Telegram WebApp
+  const initData = window.Telegram?.WebApp?.initData;
+  if (initData) {
+    try {
+      const res  = await fetch('/api/profile/tg-login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body:    JSON.stringify({ init_data: initData }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        sessionStorage.setItem(TOKEN_KEY, data.token);
+        window.location.href = '/profile';
+      }
     } catch(_) {}
   }
 });

@@ -1047,9 +1047,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Email validation on blur
+  // Email: маска (только ASCII) + валидация на blur
   const emailInput = document.getElementById('f-email');
   if (emailInput) {
+    emailInput.addEventListener('input', function() {
+      const pos   = this.selectionStart;
+      const clean = this.value.replace(/[^\x20-\x7E]/g, '');
+      if (clean !== this.value) { this.value = clean; this.setSelectionRange(pos - 1, pos - 1); }
+    });
     emailInput.addEventListener('blur', function() {
       const ok = !this.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value);
       this.style.borderColor = ok ? '' : 'rgba(255,100,100,.6)';
