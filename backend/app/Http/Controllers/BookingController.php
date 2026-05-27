@@ -182,4 +182,63 @@ class BookingController extends Controller
 
         return response()->json(['ok' => true, 'refund' => $refund]);
     }
+
+    /**
+     * Заявка «весь день» без оплаты — создаём черновые брони и уведомляем в TG
+     * POST /api/bookings/inquiry
+     */
+    public function inquiry(Request $request): JsonResponse
+    {
+        if ($request->input('_hp') !== null && $request->input('_hp') !== '') {
+            return response()->json(['ok' => false, 'error' => 'Bad request'], 422);
+        }
+
+        $data = $request->validate([
+            'hall_id' => 'required|integer|exists:halls,id',
+            'name'    => 'required|string|max:191',
+            'phone'   => 'required|string|max:30',
+            'email'   => 'nullable|email|max:191',
+            'dates'   => 'required|array|min:1',
+            'dates.*' => 'required|date|after_or_equal:today',
+            'notes'   => 'nullable|string|max:1000',
+        ]);
+
+        $client   = $this->bookings->resolveClient($data);
+        $bookings = [];
+
+        foreach ($data['dates'] as $date) {
+            $bookings[] = Booking::create([
+                'client_id'         => $client->id,
+                'hall_id'           => $data['hall_id'],
+                'date'              => $date,
+                'time_start'        => '09:00:00',
+                'time_end'          => '22:00:00',
+                'duration_hours'    => 13,
+                'format'            => 'allday',
+                'status'            => Booking::STATUS_DRAFT,
+                'total_amount'      => 0,
+                'prepayment_amount' => 0,
+                'notes'             => $data['notes'] ?? null,
+                'consent_offer'     => true,
+                'consent_policy'    => true,
+                'consent_refund'    => true,
+            ]);
+        }
+
+        $dateList = implode(', ', array_map(
+            fn($d) => date('d.m.Y', strtotime($d)),
+            $data['dates']
+        ));
+
+        $this->notify->sendRaw(
+            "📋 <b>Заявка «Весь день» — ROLTHALL</b>\n\n" .
+            "👤 <b>Имя:</b> {$data['name']}\n" .
+            "📞 <b>Телефон:</b> {$data['phone']}\n" .
+            "📅 <b>Даты:</b> {$dateList}\n" .
+            "🏷 <b>Статус:</b> Ожидает подтверждения\n" .
+            (count($bookings) === 1 ? "🔖 <b>Бронь #</b>{$bookings[0]->id}" : "🔖 <b>Брони #</b>" . implode(', #', array_column(array_map(fn($b) => ['id' => $b->id], $bookings), 'id')))
+        );
+
+        return response()->json(['ok' => true]);
+    }
 }

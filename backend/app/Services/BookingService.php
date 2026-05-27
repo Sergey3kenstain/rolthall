@@ -164,7 +164,7 @@ class BookingService
 
     // ── Private ──────────────────────────────────────────────────────────
 
-    private function resolveClient(array $data): Client
+    public function resolveClient(array $data): Client
     {
         $user = User::where('phone', $data['phone'])->first();
 

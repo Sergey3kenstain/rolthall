@@ -87,6 +87,7 @@ Route::post('/landing/booking', [LandingController::class, 'booking'])->middlewa
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/bookings/hold',       [BookingController::class, 'hold']);
     Route::post('/bookings/event-hold', [BookingController::class, 'eventHold']);
+    Route::post('/bookings/inquiry',    [BookingController::class, 'inquiry']);
 });
 Route::get('/bookings/{booking}/status',[BookingController::class, 'status']);
 Route::post('/bookings/{booking}/cancel',[BookingController::class, 'cancel']);

@@ -971,19 +971,18 @@ async function submitBooking() {
       window.location.href = data.payment_url;
 
     } else if (BOOKING_DATA.format === 'allday' && BOOKING_DATA.inquiryMode) {
-      // Inquiry: отправляем заявку в Telegram без оплаты
+      // Inquiry: создаём draft-брони и уведомляем в TG через /api/bookings/inquiry
       const dates = BOOKING_DATA.dates || [];
-      const res = await fetch('/api/landing/booking', {
+      const res = await fetch('/api/bookings/inquiry', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
+          hall_id: BOOKING_DATA.hallId,
           name,
           phone,
-          type:     'Весь день / По запросу',
-          date:     dates[0] || '',
-          time:     'Весь день',
-          duration: dates.length > 1 ? `${dates.length} дн.` : undefined,
-          comment:  dates.length > 1 ? 'Даты: ' + dates.map(d => { const x = new Date(d+'T00:00:00'); return `${x.getDate()}.${String(x.getMonth()+1).padStart(2,'0')}.${x.getFullYear()}`; }).join(', ') : undefined,
+          email:   document.getElementById('f-email')?.value.trim() || undefined,
+          dates,
+          _hp:     document.getElementById('hp-website')?.value || '',
         }),
       });
       const data = await res.json();
