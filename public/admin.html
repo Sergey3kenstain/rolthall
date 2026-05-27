@@ -35,7 +35,7 @@ button{font-family:var(--font);}
 .sidebar-logo{padding:20px 18px 14px;}
 .sidebar-logo svg{height:12px;width:auto;display:block;max-width:190px;}
 .sidebar-profile{padding:12px 14px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.s-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;}
+.s-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;position:relative;overflow:hidden;}
 .s-name{font-size:.76rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .s-role{font-size:.6rem;color:var(--text-d);margin-top:2px;}
 .sidebar-nav{padding:10px;flex:1;}
@@ -60,7 +60,7 @@ button{font-family:var(--font);}
 /* ── MOB HEADER ── */
 .mob-header{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:var(--mob-h);padding:0 18px;background:var(--bg);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;}
 .mob-header-logo{height:12px;width:auto;max-width:190px;display:block;}
-.mob-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;cursor:pointer;position:relative;}
+.mob-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;cursor:pointer;position:relative;overflow:hidden;}
 .mob-avatar-popup{position:absolute;top:calc(100% + 10px);right:0;background:var(--bg-card2);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:160px;box-shadow:0 16px 40px rgba(0,0,0,.55);display:none;z-index:300;}
 .mob-avatar-popup.open{display:block;}
 .mob-avatar-popup-name{font-size:.62rem;font-weight:600;color:var(--text-m);padding:6px 10px 8px;border-bottom:1px solid var(--border);}
@@ -1555,11 +1555,19 @@ async function initUser() {
   const name=data.name||'';
   const ini=name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'??';
   const roles={owner:'Владелец',admin:'Администратор',manager:'Менеджер',developer:'Разработчик'};
-  document.getElementById('s-avatar').textContent=ini;
+  const sAv = document.getElementById('s-avatar');
+  sAv.textContent = ini;
   document.getElementById('s-name').textContent=name;
   document.getElementById('s-role').textContent=roles[data.role]||data.role||'';
-  document.getElementById('mob-avatar').childNodes[0].textContent=ini;
+  const mobAv = document.getElementById('mob-avatar');
+  mobAv.childNodes[0].textContent=ini;
   document.getElementById('mob-avatar-popup-name').textContent=name||'—';
+  const avatarUrl = data.telegram_avatar_url || '';
+  if (avatarUrl) {
+    const imgStyle = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;z-index:1;';
+    sAv.insertAdjacentHTML('beforeend', `<img src="${avatarUrl}" alt="" style="${imgStyle}" onerror="this.remove()">`);
+    mobAv.insertAdjacentHTML('beforeend', `<img src="${avatarUrl}" alt="" style="${imgStyle}" onerror="this.remove()">`);
+  }
   if(data.role==='owner') { const b=document.getElementById('csv-btn'); if(b) b.style.display=''; }
   if(data.role==='developer') {
     const nd = document.getElementById('nav-debug');
