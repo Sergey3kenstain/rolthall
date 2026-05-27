@@ -313,6 +313,7 @@ class AdminController extends Controller
             'rules.*.price_per_hour'         => 'nullable|integer|min:0',
             'rules.*.price_per_day'          => 'nullable|integer|min:0',
             'rules.*.prepayment_percent'     => 'nullable|integer|min:0|max:100',
+            'rules.*.description'            => 'nullable|string|max:500',
             'rules.*.is_active'              => 'required|boolean',
         ]);
 
@@ -321,6 +322,7 @@ class AdminController extends Controller
                 'price_per_hour'     => $r['price_per_hour']     ?? null,
                 'price_per_day'      => $r['price_per_day']      ?? null,
                 'prepayment_percent' => $r['prepayment_percent']  ?? null,
+                'description'        => $r['description']         ?? null,
                 'is_active'          => $r['is_active'],
             ], fn($v) => $v !== null));
         }

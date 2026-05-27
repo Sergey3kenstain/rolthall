@@ -866,12 +866,13 @@ select.inp option{background:var(--bg-card);}
             <th style="padding:6px 8px;text-align:left;">Формат</th>
             <th style="padding:6px 8px;text-align:left;">День</th>
             <th style="padding:6px 8px;text-align:left;">Гости</th>
+            <th style="padding:6px 8px;text-align:left;min-width:180px;">Описание (лендинг)</th>
             <th style="padding:6px 8px;text-align:left;min-width:90px;">₽ / час</th>
             <th style="padding:6px 8px;text-align:left;min-width:100px;">₽ / день</th>
             <th style="padding:6px 8px;text-align:left;min-width:80px;">Предоплата %</th>
             <th style="padding:6px 8px;text-align:center;">Активен</th>
           </tr></thead>
-          <tbody id="engine-pricing-tbody"><tr><td colspan="7" style="padding:16px;text-align:center;color:var(--text-d);">Загрузка…</td></tr></tbody>
+          <tbody id="engine-pricing-tbody"><tr><td colspan="8" style="padding:16px;text-align:center;color:var(--text-d);">Загрузка…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2255,6 +2256,7 @@ function renderEnginePricing(rules) {
     <td style="padding:6px 8px;">${fmt[r.booking_format]||r.booking_format}</td>
     <td style="padding:6px 8px;">${day[r.day_type]||r.day_type}</td>
     <td style="padding:6px 8px;">${r.guest_tier||'—'}</td>
+    <td ${cell}><input class="inp ep-in" data-idx="${i}" data-f="description" value="${(r.description||'').replace(/"/g,'&quot;')}" placeholder="Описание для лендинга…" style="width:100%;min-width:160px;padding:4px 8px;font-size:.72rem;"></td>
     <td ${cell}>${r.price_per_hour!=null
       ? `<input class="inp ep-in" data-idx="${i}" data-f="price_per_hour" type="number" min="0" step="100" value="${r.price_per_hour}" style="width:82px;padding:4px 8px;font-size:.72rem;">`
       : '<span style="color:var(--text-d);">—</span>'}</td>
@@ -2284,7 +2286,7 @@ async function saveEnginePricing() {
     const idx = +el.dataset.idx;
     const f   = el.dataset.f;
     if (!patch[idx]) patch[idx] = { id: _engineRules[idx].id };
-    patch[idx][f] = el.type === 'checkbox' ? el.checked : (el.value !== '' ? +el.value : null);
+    patch[idx][f] = el.type === 'checkbox' ? el.checked : (f === 'description' ? (el.value || null) : (el.value !== '' ? +el.value : null));
   });
   _engineRules.forEach((r, i) => {
     if (patch[i] && patch[i].is_active === undefined) patch[i].is_active = !!r.is_active;

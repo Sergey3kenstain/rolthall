@@ -1010,7 +1010,8 @@ function applyCms() {
       if (wrap) {
         wrap.innerHTML = p.events.map((e, i) => {
           const btn = e.btn_text ? `<a class="event-card-btn" href="${e.btn_url||'#'}">${e.btn_text}</a>` : '';
-          return `<div class="event-card${e.featured?' featured':''} reveal${i?' reveal-delay-'+i:''}"><span class="event-card-label">${e.label||e.subtitle||''}</span><div class="event-card-price"><span class="event-card-currency">₽</span>${Number(e.price).toLocaleString('ru-RU')}</div><div class="event-card-title">${e.title||''}</div><div class="event-card-desc">${e.desc||e.description||''}</div>${btn}</div>`;
+          const priceBlock = e.price > 0 ? `<div class="event-card-price"><span class="event-card-currency">₽</span>${Number(e.price).toLocaleString('ru-RU')}</div>` : '';
+          return `<div class="event-card${e.featured?' featured':''} reveal${i?' reveal-delay-'+i:''}"><span class="event-card-label">${e.label||e.subtitle||''}</span>${priceBlock}<div class="event-card-title">${e.title||''}</div><div class="event-card-desc">${e.desc||e.description||''}</div>${btn}</div>`;
         }).join('');
       }
     }
