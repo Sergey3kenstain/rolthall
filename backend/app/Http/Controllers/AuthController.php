@@ -82,10 +82,6 @@ class AuthController extends Controller
      */
     public function unifiedLogin(Request $request): JsonResponse
     {
-        if ($request->input('_hp') !== null && $request->input('_hp') !== '') {
-            return response()->json(['ok' => false, 'error' => 'Bad request'], 422);
-        }
-
         $data = $request->validate([
             'phone' => 'required|string|max:30',
             'email' => 'required|email|max:191',

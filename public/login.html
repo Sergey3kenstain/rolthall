@@ -119,8 +119,6 @@ function showErr(msg) {
   e.textContent = msg; e.style.display = 'block';
 }
 
-let _hp = '';
-
 async function doLogin() {
   const rawPhone = document.getElementById('lPhone').value.trim();
   const digits   = rawPhone.replace(/\D/g, '');
@@ -133,7 +131,6 @@ async function doLogin() {
   if (!rawPhone || !email) { showErr('Заполните оба поля'); return; }
   if (digits.length < 10)  { showErr('Введите корректный номер телефона'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); return; }
-  if (_hp) { showErr('Пожалуйста, обновите страницу и попробуйте снова.'); return; }
 
   btn.disabled = true; btn.textContent = 'Проверяем…';
 
@@ -173,16 +170,6 @@ function initEmailMask(el) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Honeypot: создаём через JS — браузер не автозаполняет динамически созданные поля
-  const hpWrap = document.createElement('div');
-  hpWrap.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
-  hpWrap.setAttribute('aria-hidden', 'true');
-  const hpEl = document.createElement('input');
-  hpEl.type = 'text'; hpEl.tabIndex = -1; hpEl.autocomplete = 'off';
-  hpEl.addEventListener('input', () => { _hp = hpEl.value; });
-  hpWrap.appendChild(hpEl);
-  document.querySelector('.login-card').appendChild(hpWrap);
-
   const phoneEl = document.getElementById('lPhone');
   const emailEl = document.getElementById('lEmail');
   initPhoneMask(phoneEl);
