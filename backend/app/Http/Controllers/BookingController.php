@@ -200,6 +200,7 @@ class BookingController extends Controller
             'email'   => 'nullable|email|max:191',
             'dates'   => 'required|array|min:1',
             'dates.*' => 'required|date|after_or_equal:today',
+            'pkg_idx' => 'nullable|integer|in:0,1',
             'notes'   => 'nullable|string|max:1000',
         ]);
 
@@ -225,18 +226,20 @@ class BookingController extends Controller
             ]);
         }
 
-        $dateList = implode(', ', array_map(
-            fn($d) => date('d.m.Y', strtotime($d)),
-            $data['dates']
-        ));
+        $dateList   = implode(', ', array_map(fn($d) => date('d.m.Y', strtotime($d)), $data['dates']));
+        $pkgLabel   = ($data['pkg_idx'] ?? 0) === 1 ? 'Весь день + свет/звук' : 'Весь день';
+        $bookingIds = count($bookings) === 1
+            ? "🔖 <b>Бронь #</b>{$bookings[0]->id}"
+            : "🔖 <b>Брони #</b>" . implode(', #', array_column(array_map(fn($b) => ['id' => $b->id], $bookings), 'id'));
 
         $this->notify->sendRaw(
-            "📋 <b>Заявка «Весь день» — ROLTHALL</b>\n\n" .
+            "📋 <b>Заявка — ROLTHALL</b>\n\n" .
             "👤 <b>Имя:</b> {$data['name']}\n" .
             "📞 <b>Телефон:</b> {$data['phone']}\n" .
+            "📋 <b>Формат:</b> {$pkgLabel}\n" .
             "📅 <b>Даты:</b> {$dateList}\n" .
             "🏷 <b>Статус:</b> Ожидает подтверждения\n" .
-            (count($bookings) === 1 ? "🔖 <b>Бронь #</b>{$bookings[0]->id}" : "🔖 <b>Брони #</b>" . implode(', #', array_column(array_map(fn($b) => ['id' => $b->id], $bookings), 'id')))
+            $bookingIds
         );
 
         return response()->json(['ok' => true]);

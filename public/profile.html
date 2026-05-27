@@ -450,7 +450,7 @@ function renderBookings(list) {
 
 function bookingCard(b) {
   const s   = STATUS[b.status] || { label: b.status, card: 'st-pend' };
-  const fmt = b.format === 'event' ? 'Мероприятие' : 'Почасовая';
+  const fmt = b.format === 'event' ? 'Событие' : b.format === 'allday' ? 'Весь день' : 'Почасовая';
   const isFuture = new Date(b.date + 'T00:00:00') >= new Date(new Date().setHours(0,0,0,0));
   const canCancel = ['paid','confirmed','hold','pending_payment'].includes(b.status) && isFuture;
   const canReschedule = ['paid','confirmed'].includes(b.status) && isFuture;

@@ -1818,6 +1818,7 @@ function goToBooking() {
     p.set('format',    'allday');
     p.set('dates',     sortedDays.join(','));
     p.set('pkg_price', selectedPkg);
+    p.set('pkg_idx',   selectedPkgIdx ?? 0);
     p.set('total',     grandTotal);
     p.set('prepay', selectedPkg === 0 ? 0 : Math.round(grandTotal * (apiPricing.prepayPct ?? 50) / 100));
 

@@ -850,8 +850,11 @@ function initBookingPage() {
   } else if (format === 'allday') {
     const dates       = (p.get('dates') || '').split(',').filter(Boolean);
     const pkg         = parseInt(p.get('pkg_price') || '0');
+    const pkgIdx      = parseInt(p.get('pkg_idx') ?? '0');
     const inquiryMode = pkg === 0 && total === 0;
-    const pkgName     = inquiryMode ? 'Весь день — по запросу' : (pkg <= 100000 ? 'Базовый день' : 'Со светом и звуком');
+    const pkgName     = inquiryMode
+      ? (pkgIdx === 1 ? 'Весь день + свет/звук (по запросу)' : 'Весь день (по запросу)')
+      : (pkgIdx === 1 ? 'Весь день + свет/звук' : 'Весь день');
 
     setEl('sumDate',    dates.map(fmtDate).join(', '));
     setEl('sumTariff',  `${pkgName} · ${dates.length} ${dates.length===1?'день':dates.length<5?'дня':'дней'}`);
@@ -882,7 +885,7 @@ function initBookingPage() {
       });
     }
 
-    BOOKING_DATA = { format: 'allday', hallId, dates, pkg_price: pkg, total, prepay, inquiryMode };
+    BOOKING_DATA = { format: 'allday', hallId, dates, pkg_price: pkg, pkgIdx, total, prepay, inquiryMode };
   }
 
   // Обновляем моб-summary-bar (msb-price / msb-prepay — не имеют ID, обновлялись только CSS-классами)
@@ -982,6 +985,7 @@ async function submitBooking() {
           phone,
           email:   document.getElementById('f-email')?.value.trim() || undefined,
           dates,
+          pkg_idx: BOOKING_DATA.pkgIdx ?? 0,
           _hp:     document.getElementById('hp-website')?.value || '',
         }),
       });
