@@ -1008,14 +1008,12 @@ select.inp option{background:var(--bg-card);}
       </div>
     </div>
     <div style="margin-top:16px;max-width:540px;">
-      <div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">Сменить пароль</div>
+      <div style="font-size:.78rem;font-weight:700;margin-bottom:10px;">Пароль</div>
       <div class="card" style="overflow:hidden;">
         <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
-          <div class="form-group"><label class="form-lbl">Текущий пароль</label><input type="password" class="inp" id="pwd-current" placeholder="••••••••" autocomplete="current-password"></div>
-          <div class="form-group"><label class="form-lbl">Новый пароль</label><input type="password" class="inp" id="pwd-new" placeholder="••••••••" autocomplete="new-password"></div>
-          <div class="form-group"><label class="form-lbl">Повторите новый пароль</label><input type="password" class="inp" id="pwd-confirm" placeholder="••••••••" autocomplete="new-password"></div>
-          <div id="pwd-err" style="font-size:.65rem;color:var(--red);display:none;"></div>
-          <button class="btn btn-w btn-md btn-full" onclick="changePassword()">Сменить пароль</button>
+          <div style="font-size:.7rem;color:var(--muted);line-height:1.6;">Новый пароль будет сгенерирован и отправлен в Telegram.</div>
+          <div id="pwd-msg" style="font-size:.7rem;display:none;"></div>
+          <button class="btn btn-w btn-md btn-full" onclick="resetStaffPassword()">Сбросить пароль</button>
         </div>
       </div>
     </div>
@@ -2934,25 +2932,18 @@ async function saveProfile() {
   if(res?.ok) { document.getElementById('profile-name-display').textContent=payload.name; alert('Сохранено'); }
 }
 
-async function changePassword() {
-  const cur  = document.getElementById('pwd-current').value;
-  const nw   = document.getElementById('pwd-new').value;
-  const conf = document.getElementById('pwd-confirm').value;
-  const errEl = document.getElementById('pwd-err');
-  errEl.style.display = 'none';
-  if (!cur || !nw || !conf) { errEl.textContent = 'Заполните все поля'; errEl.style.display = ''; return; }
-  if (nw.length < 8)        { errEl.textContent = 'Минимум 8 символов'; errEl.style.display = ''; return; }
-  if (nw !== conf)          { errEl.textContent = 'Пароли не совпадают'; errEl.style.display = ''; return; }
-  const res = await api('/auth/change-password', {method:'POST', body: JSON.stringify({current_password: cur, new_password: nw, new_password_confirmation: conf})});
+async function resetStaffPassword() {
+  const msgEl = document.getElementById('pwd-msg');
+  msgEl.style.display = 'none';
+  const res = await api('/auth/reset-password', {method:'POST'});
   if (res?.ok) {
-    showToast('Пароль изменён');
-    document.getElementById('pwd-current').value = '';
-    document.getElementById('pwd-new').value = '';
-    document.getElementById('pwd-confirm').value = '';
+    msgEl.style.color = 'var(--green)';
+    msgEl.textContent = 'Новый пароль отправлен в Telegram';
   } else {
-    errEl.textContent = res?.error || 'Ошибка смены пароля';
-    errEl.style.display = '';
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = res?.error || 'Ошибка сброса пароля';
   }
+  msgEl.style.display = '';
 }
 
 function triggerAvatarUpload() { document.getElementById('avatar-file').click(); }

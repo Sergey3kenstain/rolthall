@@ -146,8 +146,13 @@ async function doLogin() {
     const data = await res.json();
     if (!data.ok) { showErr(data.error || 'Телефон или пароль неверны'); return; }
 
-    sessionStorage.setItem(TOKEN_KEY, data.token);
-    window.location.href = '/profile';
+    if (data.redirect_to === '/admin') {
+      localStorage.setItem('rh_token', data.token);
+      window.location.href = '/admin';
+    } else {
+      sessionStorage.setItem(TOKEN_KEY, data.token);
+      window.location.href = '/profile';
+    }
   } catch(e) {
     showErr('Ошибка соединения. Попробуйте ещё раз.');
   } finally {

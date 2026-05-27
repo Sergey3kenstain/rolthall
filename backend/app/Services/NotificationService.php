@@ -105,28 +105,29 @@ class NotificationService
     }
 
     /**
-     * Отправляем клиенту сообщение с учётными данными и закрепляем его.
+     * Отправляем пользователю сообщение с учётными данными и закрепляем его.
      * Если уже было старое сообщение — удаляем перед отправкой нового.
      * Возвращает true при успехе, false при ошибке (ошибка пишется в frontend.log).
      */
-    public function sendCredentials(Client $client, string|int $chatId): bool
+    public function sendCredentials(User $user): bool
     {
+        $chatId = $user->telegram_chat_id;
+        if (!$chatId) return false;
+
         $password = $this->generatePassword();
 
         // Удаляем старое закреплённое сообщение
-        if ($client->tg_credentials_msg_id) {
+        $oldMsgId = $user->tg_credentials_msg_id ?? $user->client?->tg_credentials_msg_id;
+        if ($oldMsgId) {
             try {
                 $this->telegram->deleteMessage([
                     'chat_id'    => $chatId,
-                    'message_id' => $client->tg_credentials_msg_id,
+                    'message_id' => $oldMsgId,
                 ]);
             } catch (\Throwable) {}
         }
 
-        $phone = $client->phone ?? '—';
-        $botUrl = 'https://t.me/' . ltrim(config('services.telegram.bot_username', 'rolthall_bot'), '@');
-
-        $botUsername = ltrim(config('services.telegram.bot_username', 'rolthall_bot'), '@');
+        $phone = $user->phone ?? '—';
 
         $text = "🔐 <b>Ваши данные для входа на сайт</b>\n\n"
             . "📱 <b>Телефон (логин):</b>\n<code>{$phone}</code>\n\n"
@@ -155,14 +156,22 @@ class NotificationService
                 'disable_notification' => true,
             ]);
 
-            $client->update([
+            $user->update([
                 'client_password'       => $password,
                 'tg_credentials_msg_id' => $msgId,
             ]);
 
+            // Синхронизируем с clients если есть
+            if ($client = $user->client) {
+                $client->update([
+                    'client_password'       => $password,
+                    'tg_credentials_msg_id' => $msgId,
+                ]);
+            }
+
             return true;
         } catch (\Throwable $e) {
-            $line = '[' . date('Y-m-d H:i:s') . '] credentials.send_failed client=' . $client->id
+            $line = '[' . date('Y-m-d H:i:s') . '] credentials.send_failed user=' . $user->id
                 . ' chat=' . $chatId . ' error=' . $e->getMessage() . "\n";
             file_put_contents(storage_path('logs/frontend.log'), $line, FILE_APPEND | LOCK_EX);
             return false;

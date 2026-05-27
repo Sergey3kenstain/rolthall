@@ -114,8 +114,8 @@ class PaymentController extends Controller
                     ]);
 
                     // Первая оплата — отправляем учётные данные и закрепляем
-                    if (!$client->client_password) {
-                        $sent = $this->notify->sendCredentials($client, $clientChatId);
+                    if (!$client->user->client_password) {
+                        $sent = $this->notify->sendCredentials($client->user);
                         if (!$sent) {
                             Log::warning('credentials.send_failed', [
                                 'client_id' => $client->id,

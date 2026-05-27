@@ -541,10 +541,10 @@ class AdminController extends Controller
      */
     public function resetClientPassword(Request $request, int $id): JsonResponse
     {
-        $client  = Client::with('user')->findOrFail($id);
-        $chatId  = $client->user->telegram_chat_id ?? null;
+        $client = Client::with('user')->findOrFail($id);
+        $user   = $client->user;
 
-        if (!$chatId) {
+        if (!$user?->telegram_chat_id) {
             return response()->json([
                 'ok'    => false,
                 'error' => 'У клиента нет привязанного Telegram-аккаунта',
@@ -552,7 +552,7 @@ class AdminController extends Controller
         }
 
         $notify = new NotificationService();
-        $sent   = $notify->sendCredentials($client, $chatId);
+        $sent   = $notify->sendCredentials($user);
 
         if (!$sent) {
             return response()->json([
@@ -561,7 +561,7 @@ class AdminController extends Controller
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        return response()->json(['ok' => true, 'password' => $client->fresh()->client_password]);
+        return response()->json(['ok' => true, 'password' => $user->fresh()->client_password]);
     }
 
     public function debugFrontendReceive(Request $request): \Illuminate\Http\Response

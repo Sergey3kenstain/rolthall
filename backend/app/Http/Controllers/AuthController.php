@@ -237,26 +237,28 @@ class AuthController extends Controller
     }
 
     /**
-     * Смена пароля текущего staff-пользователя
-     * POST /api/auth/change-password
+     * Сброс пароля staff-пользователя — генерация нового + отправка в Telegram
+     * POST /api/auth/reset-password
      */
-    public function changePassword(Request $request): JsonResponse
+    public function resetPassword(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'current_password'      => 'required|string',
-            'new_password'          => 'required|string|min:8|confirmed',
-        ]);
-
         $user = $request->user();
 
-        if (!Hash::check($data['current_password'], $user->password)) {
+        if (!$user->telegram_chat_id) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'Текущий пароль неверен.',
+                'error' => 'Telegram не привязан. Напишите боту /start, затем повторите.',
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $user->update(['password' => Hash::make($data['new_password'])]);
+        $sent = (new NotificationService())->sendCredentials($user);
+
+        if (!$sent) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Не удалось отправить сообщение в Telegram.',
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
 
         return response()->json(['ok' => true], 200, [], JSON_UNESCAPED_UNICODE);
     }

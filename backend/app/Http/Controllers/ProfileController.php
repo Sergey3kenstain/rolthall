@@ -38,28 +38,50 @@ class ProfileController extends Controller
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $client = $user->client;
+        if (!$user->client_password) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Пароль не установлен. Напишите боту /start для получения пароля.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
 
-        if (!$client || $client->client_password !== $data['password']) {
+        if ($user->client_password !== $data['password']) {
             return response()->json([
                 'ok'    => false,
                 'error' => 'Телефон или пароль неверны.',
             ], 401, [], JSON_UNESCAPED_UNICODE);
         }
 
-        if ($client->is_blacklisted) {
+        $client  = $user->client;
+        $isStaff = $user->hasAnyRole(['owner', 'admin', 'manager', 'developer']);
+
+        if (!$isStaff && $client?->is_blacklisted) {
             return response()->json([
                 'ok'    => false,
                 'error' => 'Доступ ограничен. Обратитесь к администратору.',
             ], 403, [], JSON_UNESCAPED_UNICODE);
         }
 
+        if ($isStaff) {
+            $user->tokens()->where('name', 'staff')->delete();
+            $token = $user->createToken('staff')->plainTextToken;
+            return response()->json([
+                'ok'         => true,
+                'token'      => $token,
+                'token_type' => 'sanctum',
+                'redirect_to' => '/admin',
+                'name'       => $user->name,
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
         $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
 
         return response()->json([
-            'ok'    => true,
-            'token' => $token,
-            'name'  => $user->name,
+            'ok'         => true,
+            'token'      => $token,
+            'token_type' => 'profile',
+            'redirect_to' => '/profile',
+            'name'       => $user->name,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -83,13 +105,7 @@ class ProfileController extends Controller
             return response()->json(['ok' => false, 'error' => 'Сессия истекла'], 401);
         }
 
-        $client = $user->client;
-        if (!$client) {
-            return response()->json(['ok' => false, 'error' => 'Клиент не найден'], 404);
-        }
-
-        $chatId = $user->telegram_chat_id;
-        if (!$chatId) {
+        if (!$user->telegram_chat_id) {
             return response()->json([
                 'ok'    => false,
                 'error' => 'Telegram не привязан. Напишите боту /start чтобы получить новый пароль.',
@@ -97,7 +113,7 @@ class ProfileController extends Controller
         }
 
         $notify = new NotificationService();
-        $sent   = $notify->sendCredentials($client, $chatId);
+        $sent   = $notify->sendCredentials($user);
 
         if (!$sent) {
             return response()->json([
