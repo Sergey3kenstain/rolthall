@@ -9,6 +9,7 @@ use App\Models\Hall;
 use App\Models\PricingRule;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\NotificationService;
 use App\Services\TBankService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -531,6 +532,35 @@ class AdminController extends Controller
         Client::findOrFail($id)->delete();
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Сброс пароля клиента — генерация нового + отправка в Telegram
+     * POST /api/admin/clients/{id}/reset-password
+     */
+    public function resetClientPassword(Request $request, int $id): JsonResponse
+    {
+        $client  = Client::with('user')->findOrFail($id);
+        $chatId  = $client->user->telegram_chat_id ?? null;
+
+        if (!$chatId) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'У клиента нет привязанного Telegram-аккаунта',
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $notify = new NotificationService();
+        $sent   = $notify->sendCredentials($client, $chatId);
+
+        if (!$sent) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Не удалось отправить сообщение в Telegram. Проверьте, написал ли клиент боту /start.',
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        return response()->json(['ok' => true, 'password' => $client->fresh()->client_password]);
     }
 
     public function debugFrontendReceive(Request $request): \Illuminate\Http\Response

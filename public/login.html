@@ -63,14 +63,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 48px;d
     <div class="page-eyebrow">Личный кабинет</div>
     <div class="page-title">Войти</div>
     <div class="login-card">
-      <div class="login-hint">Введите телефон и email, которые указывали при бронировании</div>
+      <div class="login-hint">Введите телефон и пароль. Пароль был отправлен в Telegram после первого бронирования.</div>
       <div class="form-group">
         <label class="form-label">Телефон</label>
         <input type="tel" class="form-input" id="lPhone" placeholder="+7 (___) ___-__-__" autocomplete="tel">
       </div>
       <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-input" id="lEmail" placeholder="your@email.com" autocomplete="email">
+        <label class="form-label">Пароль</label>
+        <input type="password" class="form-input" id="lPassword" placeholder="••••••••" autocomplete="current-password">
       </div>
       <div id="loginError" class="login-error"></div>
       <button class="btn-primary" id="loginBtn" onclick="doLogin()">Войти</button>
@@ -123,38 +123,30 @@ async function doLogin() {
   const rawPhone = document.getElementById('lPhone').value.trim();
   const digits   = rawPhone.replace(/\D/g, '');
   const phone    = digits.length >= 10 ? '+' + (digits.length === 10 ? '7' + digits : digits) : rawPhone;
-  const email    = document.getElementById('lEmail').value.trim();
+  const password = document.getElementById('lPassword').value;
   const btn      = document.getElementById('loginBtn');
   const errEl    = document.getElementById('loginError');
 
   errEl.style.display = 'none';
-  if (!rawPhone || !email) { showErr('Заполните оба поля'); return; }
-  if (digits.length < 10)  { showErr('Введите корректный номер телефона'); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); return; }
+  if (!rawPhone || !password) { showErr('Заполните оба поля'); return; }
+  if (digits.length < 10)     { showErr('Введите корректный номер телефона'); return; }
 
   btn.disabled = true; btn.textContent = 'Проверяем…';
 
   try {
-    const res  = await fetch('/api/auth/unified-login', {
+    const res = await fetch('/api/profile/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ phone, email }),
+      body: JSON.stringify({ phone, password }),
     });
 
     if (res.status === 429) { showErr('Слишком много попыток. Подождите минуту и попробуйте снова.'); return; }
 
     const data = await res.json();
+    if (!data.ok) { showErr(data.error || 'Телефон или пароль неверны'); return; }
 
-    if (!data.ok) { showErr(data.error || 'Пользователь не найден'); return; }
-
-    if (data.redirect_to === '/admin') {
-      localStorage.setItem('rh_token', data.token);
-      localStorage.setItem('rh_user', JSON.stringify(data.user));
-      window.location.href = '/admin';
-    } else {
-      sessionStorage.setItem(TOKEN_KEY, data.token);
-      window.location.href = '/profile';
-    }
+    sessionStorage.setItem(TOKEN_KEY, data.token);
+    window.location.href = '/profile';
   } catch(e) {
     showErr('Ошибка соединения. Попробуйте ещё раз.');
   } finally {
@@ -162,28 +154,19 @@ async function doLogin() {
   }
 }
 
-function initEmailMask(el) {
-  el.addEventListener('input', function() {
-    const clean = this.value.replace(/[^\x20-\x7E]/g, '');
-    if (clean !== this.value) this.value = clean;
-  });
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
   const phoneEl = document.getElementById('lPhone');
-  const emailEl = document.getElementById('lEmail');
+  const passEl  = document.getElementById('lPassword');
   initPhoneMask(phoneEl);
-  initEmailMask(emailEl);
   phoneEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-  emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  passEl.addEventListener('keydown',  e => { if (e.key === 'Enter') doLogin(); });
 
-  // Подставляем данные из формы бронирования если были
+  // Подставляем телефон из формы бронирования если был
   const form = sessionStorage.getItem('rh_booking_form');
   if (form) {
     try {
       const d = JSON.parse(form);
       if (d.phone) phoneEl.value = d.phone;
-      if (d.email) emailEl.value = d.email;
     } catch(_) {}
   }
 

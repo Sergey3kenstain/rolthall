@@ -101,7 +101,8 @@ class PaymentController extends Controller
                 ]);
 
                 // Уведомление клиенту в личку (если он написал боту /start)
-                $clientChatId = $booking->client->user->telegram_chat_id ?? null;
+                $client       = $booking->client;
+                $clientChatId = $client->user->telegram_chat_id ?? null;
                 if ($clientChatId) {
                     $this->notify->notifyClientConfirmed($clientChatId, [
                         'hall_name'   => $booking->hall->name,
@@ -111,6 +112,17 @@ class PaymentController extends Controller
                         'prepayment'  => $booking->prepayment_amount,
                         'guest_count' => $booking->guest_count,
                     ]);
+
+                    // Первая оплата — отправляем учётные данные и закрепляем
+                    if (!$client->client_password) {
+                        $sent = $this->notify->sendCredentials($client, $clientChatId);
+                        if (!$sent) {
+                            Log::warning('credentials.send_failed', [
+                                'client_id' => $client->id,
+                                'chat_id'   => $clientChatId,
+                            ]);
+                        }
+                    }
                 }
             } else {
                 // Тестовый платёж без реальной брони

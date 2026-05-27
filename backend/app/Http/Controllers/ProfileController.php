@@ -14,45 +14,46 @@ use Illuminate\Support\Facades\Log;
 class ProfileController extends Controller
 {
     /**
-     * Вход по телефону + email — возвращает токен сессии (хэш phone+email)
+     * Вход по телефону + паролю — возвращает токен сессии
      * POST /api/profile/login
      */
     public function login(Request $request): JsonResponse
     {
-        if ($request->input('_hp') !== null && $request->input('_hp') !== '') {
-            return response()->json(['ok' => false, 'error' => 'Bad request'], 422);
-        }
-
         $data = $request->validate([
-            'phone' => 'required|string|max:30',
-            'email' => 'required|email|max:191',
+            'phone'    => 'required|string|max:30',
+            'password' => 'required|string|max:64',
         ]);
 
-        // Нормализуем телефон — последние 10 цифр (без кода страны)
-        $inputDigits = preg_replace('/[^\d]/', '', $data['phone']);
-        $last10      = substr($inputDigits, -10);
+        $last10 = substr(preg_replace('/[^\d]/', '', $data['phone']), -10);
 
-        $user = User::where('email', $data['email'])
-            ->get()
-            ->first(fn($u) => str_ends_with(preg_replace('/[^\d]/', '', $u->phone ?? ''), $last10));
+        // Ищем пользователя по хвосту телефона
+        $user = User::all()->first(
+            fn($u) => str_ends_with(preg_replace('/[^\d]/', '', $u->phone ?? ''), $last10)
+        );
 
         if (!$user) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'Пользователь с таким телефоном и email не найден. Проверьте данные, которые указывали при бронировании.',
-            ], 404);
+                'error' => 'Телефон или пароль неверны.',
+            ], 404, [], JSON_UNESCAPED_UNICODE);
         }
 
-        // Проверка чёрного списка
         $client = $user->client;
-        if ($client && $client->is_blacklisted) {
+
+        if (!$client || $client->client_password !== $data['password']) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Телефон или пароль неверны.',
+            ], 401, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        if ($client->is_blacklisted) {
             return response()->json([
                 'ok'    => false,
                 'error' => 'Доступ ограничен. Обратитесь к администратору.',
-            ], 403);
+            ], 403, [], JSON_UNESCAPED_UNICODE);
         }
 
-        // Простой токен — хэш id+phone+email, достаточно для MVP
         $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
 
         return response()->json([
@@ -60,6 +61,52 @@ class ProfileController extends Controller
             'token' => $token,
             'name'  => $user->name,
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Клиент сбрасывает свой пароль — отправляем новые данные в Telegram
+     * POST /api/profile/reset-password
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $token = $request->input('token');
+        if (!$token) {
+            return response()->json(['ok' => false, 'error' => 'Нет токена'], 401);
+        }
+
+        $user = User::all()->first(function ($u) use ($token) {
+            $expected = hash('sha256', $u->id . $u->phone . $u->email . config('app.key'));
+            return hash_equals($expected, $token);
+        });
+
+        if (!$user) {
+            return response()->json(['ok' => false, 'error' => 'Сессия истекла'], 401);
+        }
+
+        $client = $user->client;
+        if (!$client) {
+            return response()->json(['ok' => false, 'error' => 'Клиент не найден'], 404);
+        }
+
+        $chatId = $user->telegram_chat_id;
+        if (!$chatId) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Telegram не привязан. Напишите боту /start чтобы получить новый пароль.',
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $notify = new NotificationService();
+        $sent   = $notify->sendCredentials($client, $chatId);
+
+        if (!$sent) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Не удалось отправить сообщение в Telegram. Убедитесь, что вы написали боту /start.',
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        return response()->json(['ok' => true], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Client;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Api as TelegramApi;
@@ -101,6 +102,74 @@ class NotificationService
                 : "⚠️ Предоплата не возвращается (отмена менее чем за 6 часов).");
 
         $this->send($chatId, $text);
+    }
+
+    /**
+     * Отправляем клиенту сообщение с учётными данными и закрепляем его.
+     * Если уже было старое сообщение — удаляем перед отправкой нового.
+     * Возвращает true при успехе, false при ошибке (ошибка пишется в frontend.log).
+     */
+    public function sendCredentials(Client $client, string|int $chatId): bool
+    {
+        $password = $this->generatePassword();
+
+        // Удаляем старое закреплённое сообщение
+        if ($client->tg_credentials_msg_id) {
+            try {
+                $this->telegram->deleteMessage([
+                    'chat_id'    => $chatId,
+                    'message_id' => $client->tg_credentials_msg_id,
+                ]);
+            } catch (\Throwable) {}
+        }
+
+        $phone = $client->phone ?? '—';
+        $botUrl = 'https://t.me/' . ltrim(config('services.telegram.bot_username', 'rolthall_bot'), '@');
+
+        $text = "🔐 <b>Ваши данные для входа на сайт</b>\n\n"
+            . "📱 <b>Телефон (логин):</b>\n<code>{$phone}</code>\n\n"
+            . "🔑 <b>Пароль:</b>\n<code>{$password}</code>\n\n"
+            . "Войти: <a href=\"https://hall.roltworld.com/login\">hall.roltworld.com/login</a>\n\n"
+            . "<i>Через бот авторизация не нужна — просто нажмите /start</i>";
+
+        try {
+            $msg = $this->telegram->sendMessage([
+                'chat_id'         => $chatId,
+                'text'            => $text,
+                'parse_mode'      => 'HTML',
+                'protect_content' => true,
+            ]);
+
+            $msgId = $msg->messageId;
+
+            $this->telegram->pinChatMessage([
+                'chat_id'              => $chatId,
+                'message_id'           => $msgId,
+                'disable_notification' => true,
+            ]);
+
+            $client->update([
+                'client_password'       => $password,
+                'tg_credentials_msg_id' => $msgId,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            $line = '[' . date('Y-m-d H:i:s') . '] credentials.send_failed client=' . $client->id
+                . ' chat=' . $chatId . ' error=' . $e->getMessage() . "\n";
+            file_put_contents(storage_path('logs/frontend.log'), $line, FILE_APPEND | LOCK_EX);
+            return false;
+        }
+    }
+
+    private function generatePassword(): string
+    {
+        $chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+        $pwd   = '';
+        for ($i = 0; $i < 8; $i++) {
+            $pwd .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+        return $pwd;
     }
 
     /**

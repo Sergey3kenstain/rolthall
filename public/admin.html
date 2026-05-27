@@ -490,9 +490,13 @@ select.inp option{background:var(--bg-card);}
   .kpi-icon-img{width:36px;height:36px;}
   .kpi-delta{font-size:.78rem;}
 }
+.rh-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:.72rem;font-weight:600;color:var(--white);z-index:9999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;max-width:90vw;}
+.rh-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.rh-toast.err{border-color:var(--red);color:#ff8080;}
 </style>
 </head>
 <body data-no-mob-header>
+<div class="rh-toast" id="rh-toast"></div>
 
 <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
   <symbol id="rh-logo" viewBox="0 0 1280 71"><g><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g></symbol>
@@ -1259,6 +1263,10 @@ select.inp option{background:var(--bg-card);}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost btn-md" onclick="closeClientModal()" style="flex:1;">Закрыть</button>
+      <button class="btn btn-outline btn-md" id="cd-reset-pwd-btn" onclick="resetClientPassword()" style="display:none;gap:6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+        Сбросить пароль
+      </button>
     </div>
   </div>
 </div>
@@ -1456,6 +1464,16 @@ select.inp option{background:var(--bg-card);}
 const API = '/api';
 const _token = localStorage.getItem('rh_token');
 if (!_token) window.location.href = '/login';
+
+let _toastTimer;
+function showToast(msg, type = '') {
+  const el = document.getElementById('rh-toast');
+  el.textContent = msg;
+  el.className = 'rh-toast' + (type ? ' ' + type : '');
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
 
 const MONTH_NAMES_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const WDAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
@@ -2718,6 +2736,10 @@ async function openClientModal(id) {
   document.getElementById('cd-since').textContent = fmtDisplayDate(firstBk);
   // Dev controls
   const devRow = document.getElementById('cd-dev-row');
+  const resetBtn = document.getElementById('cd-reset-pwd-btn');
+  if (_me?.role==='developer'||_me?.role==='owner'||_me?.role==='admin') {
+    resetBtn.style.display='flex';
+  } else { resetBtn.style.display='none'; }
   if (_me?.role==='developer'||_me?.role==='owner') {
     devRow.style.display='flex';
     document.getElementById('cd-ban-cb').checked = !!c.is_blacklisted;
@@ -2774,6 +2796,22 @@ async function saveClientNote() {
   if (!_openClientId) return;
   const note = document.getElementById('cd-note').value;
   await api(`/admin/clients/${_openClientId}/note`,{method:'POST',body:JSON.stringify({note})});
+}
+async function resetClientPassword() {
+  if (!_openClientId) return;
+  const btn = document.getElementById('cd-reset-pwd-btn');
+  btn.disabled = true; btn.textContent = 'Отправляем…';
+  try {
+    const data = await api(`/admin/clients/${_openClientId}/reset-password`, {method:'POST'});
+    if (data?.ok) {
+      showToast('Пароль сброшен и отправлен в Telegram клиента');
+    } else {
+      showToast(data?.error || 'Не удалось сбросить пароль', 'err');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Сбросить пароль`;
+  }
 }
 async function setUserRole(userId, role) { await api(`/admin/users/${userId}/role`,{method:'PUT',body:JSON.stringify({role})}); }
 async function toggleUserBlacklist(userId, val) { await api(`/admin/users/${userId}`,{method:'PUT',body:JSON.stringify({is_blacklisted:val})}); }

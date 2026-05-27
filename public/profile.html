@@ -406,6 +406,9 @@ async function showBookingsView(name, token) {
             ${row(tgIcon,   u.telegram ? '@' + u.telegram : '')}
             ${row(mailIcon, u.email)}
           </div>
+          <button onclick="doResetPassword()" style="margin-top:12px;font-family:var(--font);font-size:8px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(217,217,217,.45);background:transparent;border:1px solid rgba(255,255,255,.1);padding:7px 12px;cursor:pointer;transition:color .2s,border-color .2s;" onmouseover="this.style.color='#fff';this.style.borderColor='rgba(255,255,255,.35)'" onmouseout="this.style.color='rgba(217,217,217,.45)';this.style.borderColor='rgba(255,255,255,.1)'">
+            Сбросить пароль
+          </button>
         </div>
       </div>`;
     }
@@ -598,6 +601,43 @@ async function confirmReschedule() {
   } finally {
     btn.disabled = false; btn.textContent = 'Отправить запрос';
   }
+}
+
+async function doResetPassword() {
+  const token = sessionStorage.getItem('rh_profile_token');
+  if (!token) return;
+  try {
+    const res  = await fetch('/api/profile/reset-password', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body:    JSON.stringify({ token }),
+    });
+    if (res.status === 429) { showProfileMsg('Слишком много попыток. Подождите минуту.', 'err'); return; }
+    const data = await res.json();
+    if (data.ok) {
+      showProfileMsg('Новый пароль отправлен в Telegram и закреплён.');
+    } else {
+      showProfileMsg(data.error || 'Ошибка', 'err');
+    }
+  } catch(e) {
+    showProfileMsg('Ошибка соединения. Попробуйте ещё раз.', 'err');
+  }
+}
+
+function showProfileMsg(msg, type) {
+  let el = document.getElementById('profile-msg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'profile-msg';
+    el.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#26232e;border:1px solid rgba(255,255,255,.15);padding:10px 18px;font-size:.68rem;font-weight:600;color:#fff;z-index:9999;max-width:90vw;text-align:center;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.borderColor = type === 'err' ? 'rgba(255,100,100,.5)' : 'rgba(80,216,144,.4)';
+  el.style.color        = type === 'err' ? '#ff8080' : '#50d890';
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 </script>
 <div id="app-footer"></div>

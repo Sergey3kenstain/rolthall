@@ -49,7 +49,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/clients/{id}',             [AdminController::class, 'client']);
     Route::put('/clients/{id}',             [AdminController::class, 'updateClient']);
     Route::delete('/clients/{id}',          [AdminController::class, 'deleteClient']);
-    Route::post('/clients/{id}/note',       [AdminController::class, 'updateClientNote']);
+    Route::post('/clients/{id}/note',           [AdminController::class, 'updateClientNote']);
+    Route::post('/clients/{id}/reset-password', [AdminController::class, 'resetClientPassword']);
     Route::get('/users',                    [AdminController::class, 'users']);
     Route::put('/users/{id}',               [AdminController::class, 'updateUser']);
     Route::put('/users/{id}/role',          [AdminController::class, 'setUserRole']);
@@ -74,6 +75,7 @@ Route::post('/profile/login',    [ProfileController::class, 'login'])->middlewar
 Route::post('/profile/tg-login', [ProfileController::class, 'tgLogin'])->middleware('throttle:20,1');
 Route::get('/profile/bookings',             [ProfileController::class, 'bookings']);
 Route::post('/profile/reschedule-request',  [ProfileController::class, 'rescheduleRequest']);
+Route::post('/profile/reset-password',      [ProfileController::class, 'resetPassword'])->middleware('throttle:5,1');
 
 // ── Landing ───────────────────────────────────────────────────────────
 Route::post('/landing/booking', [LandingController::class, 'booking'])->middleware('throttle:10,1');
