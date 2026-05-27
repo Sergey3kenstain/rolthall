@@ -950,6 +950,7 @@ let guestCount      = 1;
 let hallCapacity    = 150;
 let apiPricing      = { weekday: 0, weekend: 0, wdDay: 0, weDay: 0, prepayPct: 100 };
 let selectedPkg     = null;    // allday: null | число (цена пакета)
+let selectedPkgIdx  = null;    // 0 | 1 — индекс выбранного пакета (не цена, чтобы не путать одинаковые цены)
 
 const eventDays  = new Set(); // allday: набор dateKey выбранных дат
 const selections = {}; // hourly/event: { 'YYYY-MM-DD': { start: H, end: H } }
@@ -1430,39 +1431,30 @@ function renderAlldayInfo() {
   const pricingSec = document.querySelector('.side-section:not(.side-date-picker)');
   if (pricingSec) pricingSec.style.display = inquiryMode ? 'none' : '';
 
-  if (inquiryMode) {
-    selectedPkg = 0;
-    el.innerHTML = `
-<div style="padding:20px;font-size:11px;font-weight:400;color:rgba(217,217,217,.6);line-height:1.7;">
-  Выберите даты, и мы свяжемся с вами для обсуждения условий.
-</div>
-<div style="padding:0 20px 16px;font-size:9px;color:rgba(217,217,217,.35);letter-spacing:.08em;text-transform:uppercase;">Отметьте даты</div>`;
-    return;
-  }
-
   const prepayPct = apiPricing.prepayPct ?? 50;
-  const s1 = selectedPkg === pkg1;
-  const s2 = selectedPkg === pkg2;
-  el.innerHTML = `
-<div class="event-pkg ${s1 ? 'selected' : ''}" onclick="selectPkg(this, ${pkg1})">
-  <div class="pkg-tag">Весь день — базовый</div>
-  <div class="pkg-price">${pkg1.toLocaleString('ru')}<span style="font-size:.5em;font-weight:300;margin:1em 0.5em;vertical-align:super;">₽</span></div>
-  <div class="pkg-name">День мероприятия</div>
-  <div class="pkg-desc">Аренда зала на весь день с 09:00 до 22:00. Предоплата ${prepayPct}% при бронировании.</div>
-  <div class="pkg-prepay">Предоплата: ${Math.round(pkg1 * prepayPct / 100).toLocaleString('ru')} ₽</div>
-</div>
-<div class="event-pkg ${s2 ? 'selected' : ''}" onclick="selectPkg(this, ${pkg2})">
-  <div class="pkg-tag">Весь день — полный</div>
-  <div class="pkg-price">${pkg2.toLocaleString('ru')}<span style="font-size:.5em;font-weight:300;margin:1em 0.5em;vertical-align:super;">₽</span></div>
-  <div class="pkg-name">День со светом и звуком</div>
-  <div class="pkg-desc">Профессиональный свет, звуковое оборудование, поддержка на весь день. Предоплата ${prepayPct}%.</div>
-  <div class="pkg-prepay">Предоплата: ${Math.round(pkg2 * prepayPct / 100).toLocaleString('ru')} ₽</div>
-</div>
-<div style="padding:0 20px 16px;font-size:9px;color:rgba(217,217,217,.35);letter-spacing:.08em;text-transform:uppercase;">Выберите пакет, затем отметьте даты</div>`;
+  const s1 = selectedPkgIdx === 0;
+  const s2 = selectedPkgIdx === 1;
+
+  const pkgBlock = (pkg, idx, tag, name, desc) => `
+<div class="event-pkg ${selectedPkgIdx === idx ? 'selected' : ''}" onclick="selectPkg(this, ${pkg}, ${idx})">
+  <div class="pkg-tag">${tag}</div>
+  ${(!inquiryMode && pkg > 0) ? `<div class="pkg-price">${pkg.toLocaleString('ru')}<span style="font-size:.5em;font-weight:300;margin:1em 0.5em;vertical-align:super;">₽</span></div>` : ''}
+  <div class="pkg-name">${name}</div>
+  <div class="pkg-desc">${desc}</div>
+  ${(!inquiryMode && pkg > 0) ? `<div class="pkg-prepay">Предоплата: ${Math.round(pkg * prepayPct / 100).toLocaleString('ru')} ₽</div>` : ''}
+</div>`;
+
+  el.innerHTML =
+    pkgBlock(pkg1, 0, 'Весь день — базовый', 'День мероприятия', `Аренда зала на весь день с 09:00 до 22:00.${!inquiryMode ? ` Предоплата ${prepayPct}% при бронировании.` : ''}`) +
+    pkgBlock(pkg2, 1, 'Весь день — полный',  'День со светом и звуком', `Профессиональный свет, звуковое оборудование, поддержка на весь день.${!inquiryMode ? ` Предоплата ${prepayPct}%.` : ''}`) +
+    `<div style="padding:0 20px 16px;font-size:9px;color:rgba(217,217,217,.35);letter-spacing:.08em;text-transform:uppercase;">Выберите формат, затем отметьте даты</div>`;
+
+  if (inquiryMode && selectedPkgIdx === null) selectedPkg = 0;
 }
 
-function selectPkg(el, price) {
-  selectedPkg = price;
+function selectPkg(el, price, idx) {
+  selectedPkg    = price;
+  selectedPkgIdx = idx;
   renderAlldayInfo(); // перерисовываем с новым selected
   updateSheet();
 }
@@ -1637,7 +1629,8 @@ function setFormat(format, btn) {
   const alldayPkgs  = document.getElementById('eventPackages');
   const guestWrap   = document.getElementById('guestSliderWrap');
 
-  selectedPkg = null;
+  selectedPkg    = null;
+  selectedPkgIdx = null;
 
   if (format === 'allday') {
     if (slotsScroll) slotsScroll.style.display = 'none';
@@ -1820,7 +1813,7 @@ function goToBooking() {
 
   if (currentFormat === 'allday') {
     const sortedDays = [...eventDays].sort();
-    if (selectedPkg == null || !sortedDays.length) return;
+    if (selectedPkgIdx == null || !sortedDays.length) return;
     const grandTotal = selectedPkg * sortedDays.length;
     p.set('format',    'allday');
     p.set('dates',     sortedDays.join(','));

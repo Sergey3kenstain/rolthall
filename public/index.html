@@ -986,13 +986,19 @@ function applyCms() {
     const allHourlyRules=(C.pricing_rules||[]).filter(r=>r.booking_format==='hourly');
     if(allHourlyRules.length){
       const dtLbl={weekday:'Будни',weekend:'Выходные'};
+      // Описание берём из CMS hourly (по day_type + guest_tier), цену — из engine pricing_rules
+      const cmsHourly=(C.pricing?.hourly||[]).filter(r=>r.engine);
+      const cmsDesc=(dayType,tier)=>{
+        const row=cmsHourly.find(r=>r.day_type===dayType&&(r.guest_tier||'below30')===tier);
+        return row?.desc||'';
+      };
       const below30=allHourlyRules.filter(r=>r.guest_tier==='below30').sort((a,b)=>a.day_type==='weekday'?-1:1);
       const above30=allHourlyRules.filter(r=>r.guest_tier==='above30').sort((a,b)=>a.day_type==='weekday'?-1:1);
       const tbody=document.querySelector('#tab-hourly tbody');
       if(tbody){
-        const rows=below30.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type}</td><td>${r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`);
+        const rows=below30.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type}</td><td>${cmsDesc(r.day_type,'below30')||r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`);
         if(above30.length) rows.push('<tr class="pricing-sep"><td colspan="3"></td></tr>');
-        above30.forEach(r=>rows.push(`<tr><td>${dtLbl[r.day_type]||r.day_type}</td><td>${r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`));
+        above30.forEach(r=>rows.push(`<tr><td>${dtLbl[r.day_type]||r.day_type}</td><td>${cmsDesc(r.day_type,'above30')||r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`));
         tbody.innerHTML=rows.join('');
       }
     }
