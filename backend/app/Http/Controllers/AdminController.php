@@ -414,7 +414,7 @@ class AdminController extends Controller
 
     public function clients(Request $request): JsonResponse
     {
-        if (!$this->isOwner($request)) {
+        if (!$request->user()->hasAnyRole(['owner', 'developer', 'admin'])) {
             return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
         }
 
@@ -452,6 +452,7 @@ class AdminController extends Controller
                 'last_booking'    => $lastBooking,
                 'is_blacklisted'  => $c->is_blacklisted,
                 'created_at'      => $c->created_at->format('Y-m-d'),
+                'role'            => $c->user?->getRoleNames()->first(),
             ];
         });
 
