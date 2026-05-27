@@ -134,6 +134,7 @@ async function doLogin() {
   if (!rawPhone || !email) { showErr('Заполните оба поля'); return; }
   if (digits.length < 10) { showErr('Введите корректный номер телефона'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); return; }
+  if (document.getElementById('hp-website')?.value?.trim()) return;
 
   btn.disabled = true; btn.textContent = 'Проверяем…';
 
@@ -141,7 +142,7 @@ async function doLogin() {
     const res  = await fetch('/api/auth/unified-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ phone, email, _hp: document.getElementById('hp-website')?.value || '' }),
+      body: JSON.stringify({ phone, email }),
     });
 
     if (res.status === 429) { showErr('Слишком много попыток. Подождите минуту и попробуйте снова.'); return; }

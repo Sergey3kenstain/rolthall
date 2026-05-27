@@ -167,6 +167,7 @@ class ProfileController extends Controller
                 'phone'    => $user->phone,
                 'email'    => $user->email,
                 'telegram' => $user->telegram_username,
+                'avatar'   => $user->telegram_avatar_url,
             ],
             'bookings' => $bookings,
         ], 200, [], JSON_UNESCAPED_UNICODE);
