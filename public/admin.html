@@ -2859,9 +2859,10 @@ async function loadProfileTab() {
   document.getElementById('profile-initials-lbl').textContent = ini;
   document.getElementById('profile-name-display').textContent = name||'—';
   document.getElementById('profile-role-display').textContent = roles[data.role]||data.role||'';
-  if (data.avatar) {
+  const avatarUrl = data.telegram_avatar_url || data.avatar || '';
+  if (avatarUrl) {
     const img=document.getElementById('profile-avatar-img');
-    img.src=data.avatar; img.style.display='block';
+    img.src=avatarUrl; img.style.display='block';
     document.getElementById('profile-initials-lbl').style.display='none';
   }
 }

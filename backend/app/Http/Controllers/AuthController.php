@@ -8,6 +8,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -100,6 +101,7 @@ class AuthController extends Controller
         if (!$user) {
             ActionLog::write('auth.login_failed', null, null, null, null,
                 ['phone' => $data['phone'], 'email' => $data['email']], $request);
+            Log::warning('auth.login_failed', ['email' => $data['email'], 'phone_tail' => substr($last10, -4), 'ip' => $request->ip()]);
             return response()->json([
                 'ok'    => false,
                 'error' => 'Пользователь с таким телефоном и email не найден.',
@@ -167,13 +169,14 @@ class AuthController extends Controller
     {
         $user = $request->user();
         return response()->json([
-            'ok'    => true,
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'role'  => $user->getRoleNames()->first(),
-            'roles' => $user->getRoleNames()->values()->all(),
+            'ok'                  => true,
+            'id'                  => $user->id,
+            'name'                => $user->name,
+            'email'               => $user->email,
+            'phone'               => $user->phone,
+            'role'                => $user->getRoleNames()->first(),
+            'roles'               => $user->getRoleNames()->values()->all(),
+            'telegram_avatar_url' => $user->telegram_avatar_url,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 

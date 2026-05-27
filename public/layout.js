@@ -4,37 +4,34 @@
    Перехватывает JS ошибки и упавшие fetch — отправляет на /api/debug/frontend
    Я проверяю /api/admin/debug/log после твоих тестов чтобы видеть ошибки.
 */
-(function () {
-  function send(data) {
-    try {
-      navigator.sendBeacon('/api/debug/frontend', JSON.stringify(
-        Object.assign({ url: location.href, ts: new Date().toISOString() }, data)
-      ));
-    } catch (e) {}
-  }
-
-  // JS ошибки
-  window.addEventListener('error', function (e) {
-    send({ type: 'js', msg: e.message, src: (e.filename || '') + ':' + e.lineno });
-  });
-
-  // Unhandled promise rejections
-  window.addEventListener('unhandledrejection', function (e) {
-    send({ type: 'promise', msg: String(e.reason && e.reason.message || e.reason) });
-  });
-
-  // Перехват fetch — логируем не-2xx ответы
-  var _fetch = window.fetch;
-  window.fetch = function (url, opts) {
-    return _fetch.apply(this, arguments).then(function (res) {
-      if (!res.ok) send({ type: 'fetch', url: String(url).split('?')[0], status: res.status });
-      return res;
-    }).catch(function (err) {
-      send({ type: 'fetch_err', url: String(url).split('?')[0], msg: err.message });
-      throw err;
+if (!window._rhErrInit) {
+  window._rhErrInit = true;
+  (function () {
+    function send(data) {
+      try {
+        navigator.sendBeacon('/api/debug/frontend', JSON.stringify(
+          Object.assign({ url: location.href, ts: new Date().toISOString() }, data)
+        ));
+      } catch (e) {}
+    }
+    window.addEventListener('error', function (e) {
+      send({ type: 'js', msg: e.message, src: (e.filename || '') + ':' + e.lineno });
     });
-  };
-})();
+    window.addEventListener('unhandledrejection', function (e) {
+      send({ type: 'promise', msg: String(e.reason && e.reason.message || e.reason) });
+    });
+    var _fetch = window.fetch;
+    window.fetch = function (url, opts) {
+      return _fetch.apply(this, arguments).then(function (res) {
+        if (!res.ok) send({ type: 'fetch', url: String(url).split('?')[0], status: res.status });
+        return res;
+      }).catch(function (err) {
+        send({ type: 'fetch_err', url: String(url).split('?')[0], msg: err.message });
+        throw err;
+      });
+    };
+  })();
+}
 
 (function () {
   const PATH = window.location.pathname;

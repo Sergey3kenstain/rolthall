@@ -3,6 +3,26 @@
    body[data-no-mob-header]   → skip entirely (admin panel)
    body[data-mob-nav="page"]  → inject mob-top only, keep page's own mob-nav
 ──────────────────────────────────────────────────────────────────────── */
+
+/* ── Frontend error collector (активируется, если layout.js ещё не сделал это) ── */
+if (!window._rhErrInit) {
+  window._rhErrInit = true;
+  (function () {
+    function send(data) {
+      try { navigator.sendBeacon('/api/debug/frontend', JSON.stringify(Object.assign({ url: location.href, ts: new Date().toISOString() }, data))); } catch (e) {}
+    }
+    window.addEventListener('error', function (e) { send({ type: 'js', msg: e.message, src: (e.filename || '') + ':' + e.lineno }); });
+    window.addEventListener('unhandledrejection', function (e) { send({ type: 'promise', msg: String(e.reason && e.reason.message || e.reason) }); });
+    var _f = window.fetch;
+    window.fetch = function (url, opts) {
+      return _f.apply(this, arguments).then(function (res) {
+        if (!res.ok) send({ type: 'fetch', url: String(url).split('?')[0], status: res.status });
+        return res;
+      }).catch(function (err) { send({ type: 'fetch_err', url: String(url).split('?')[0], msg: err.message }); throw err; });
+    };
+  })();
+}
+
 (function () {
   if (document.body.hasAttribute('data-no-mob-header')) return;
 
