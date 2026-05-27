@@ -27,9 +27,13 @@ class ProfileController extends Controller
             'email' => 'required|email|max:191',
         ]);
 
-        $user = User::where('phone', $data['phone'])
-            ->where('email', $data['email'])
-            ->first();
+        // Нормализуем телефон — последние 10 цифр (без кода страны)
+        $inputDigits = preg_replace('/[^\d]/', '', $data['phone']);
+        $last10      = substr($inputDigits, -10);
+
+        $user = User::where('email', $data['email'])
+            ->get()
+            ->first(fn($u) => str_ends_with(preg_replace('/[^\d]/', '', $u->phone ?? ''), $last10));
 
         if (!$user) {
             return response()->json([

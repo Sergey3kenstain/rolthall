@@ -1141,35 +1141,30 @@ select.inp option{background:var(--bg-card);}
 
   <!-- DEBUG LOG -->
   <div class="tab-pane" id="tab-debug">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-      <div>
-        <div style="font-size:.9rem;font-weight:700;">Debug Log</div>
-        <div style="font-size:.65rem;color:var(--text-d);margin-top:2px;">Только для разработчика</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <div style="margin-bottom:20px;">
+      <div style="font-size:.9rem;font-weight:700;">Debug Log</div>
+      <div style="font-size:.65rem;color:var(--text-d);margin-top:2px;">Только для разработчика</div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);">Server Log (laravel.log)</div>
+      <div style="display:flex;gap:6px;">
         <button class="btn btn-ghost btn-sm" onclick="loadDebugTab()">Обновить</button>
-        <button class="btn btn-ghost btn-sm" onclick="downloadDebugLog()">Скачать</button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="clearDebugLog()">Очистить логи</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadDebugSection('server')">Скачать</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="clearDebugSection('server')">Очистить</button>
       </div>
     </div>
+    <pre id="dbg-server-log" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;font-size:.6rem;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow-y:auto;color:var(--text-m);margin-bottom:24px;">Загрузка…</pre>
 
-    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:8px;">Тарифы из БД</div>
-    <div style="overflow-x:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:20px;">
-      <table class="ab-table">
-        <thead><tr>
-          <th>ID</th><th>Формат</th><th>День</th><th>Гости</th>
-          <th>Мин ч</th><th>Макс ч</th><th>₽/ч</th><th>₽/день</th>
-          <th>Предоплата</th><th>Акт.</th>
-        </tr></thead>
-        <tbody id="dbg-pricing-tbody"><tr><td colspan="10" style="text-align:center;color:var(--text-d);padding:16px;">Загрузка…</td></tr></tbody>
-      </table>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);">Frontend Log</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="loadDebugTab()">Обновить</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadDebugSection('frontend')">Скачать</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="clearDebugSection('frontend')">Очистить</button>
+      </div>
     </div>
-
-    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:8px;">Server Log (laravel.log)</div>
-    <pre id="dbg-server-log" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;font-size:.6rem;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:320px;overflow-y:auto;color:var(--text-m);margin-bottom:20px;">Загрузка…</pre>
-
-    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:8px;">Frontend Log</div>
-    <pre id="dbg-frontend-log" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;font-size:.6rem;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:320px;overflow-y:auto;color:var(--text-m);">Загрузка…</pre>
+    <pre id="dbg-frontend-log" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;font-size:.6rem;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow-y:auto;color:var(--text-m);">Загрузка…</pre>
   </div>
 
 </main>
@@ -2924,12 +2919,11 @@ function saveNotifications() {
 }
 
 /* ── DEBUG LOG ─────────────────────────────────────────────────────── */
-let _debugRaw = { pricing: [], server: [], frontend: [] };
+let _debugRaw = { server: [], frontend: [] };
 
 async function loadDebugTab() {
   document.getElementById('dbg-server-log').textContent   = 'Загрузка…';
   document.getElementById('dbg-frontend-log').textContent = 'Загрузка…';
-  document.getElementById('dbg-pricing-tbody').innerHTML  = '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--text-d);">Загрузка…</td></tr>';
 
   const data = await api('/admin/debug/log').catch(() => null);
   if (!data?.ok) {
@@ -2938,27 +2932,6 @@ async function loadDebugTab() {
   }
 
   _debugRaw = data;
-
-  // Тарифы
-  const tbody = document.getElementById('dbg-pricing-tbody');
-  if (!data.pricing?.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--text-d);">Нет тарифов в БД</td></tr>';
-  } else {
-    const fmt = { hourly: 'Почасовая', event: 'Событие', allday: 'Весь день' };
-    const day = { weekday: 'Будни', weekend: 'Выходные' };
-    tbody.innerHTML = data.pricing.map(r => `<tr>
-      <td>${r.id}</td>
-      <td>${fmt[r.booking_format] || r.booking_format}</td>
-      <td>${day[r.day_type] || r.day_type}</td>
-      <td>${r.guest_tier}</td>
-      <td>${r.min_hours ?? '—'}</td>
-      <td>${r.max_hours ?? '∞'}</td>
-      <td>${r.price_per_hour != null ? r.price_per_hour.toLocaleString('ru') + ' ₽' : '—'}</td>
-      <td>${r.price_per_day  != null ? r.price_per_day.toLocaleString('ru')  + ' ₽' : '—'}</td>
-      <td>${r.prepayment_percent ?? '—'} %</td>
-      <td style="color:${r.is_active ? 'var(--success)' : 'var(--danger)'}">${r.is_active ? '✓' : '✗'}</td>
-    </tr>`).join('');
-  }
 
   // Server log
   const sLines = data.server || [];
@@ -2973,33 +2946,23 @@ async function loadDebugTab() {
     : '(пусто)';
 }
 
-async function clearDebugLog() {
-  if (!confirm('Очистить laravel.log и frontend.log?')) return;
-  const r = await api('/admin/debug/log', { method: 'DELETE' }).catch(() => null);
+async function clearDebugSection(type) {
+  const label = type === 'server' ? 'laravel.log' : 'frontend.log';
+  if (!confirm(`Очистить ${label}?`)) return;
+  const r = await api(`/admin/debug/log?type=${type}`, { method: 'DELETE' }).catch(() => null);
   if (r?.ok) {
-    document.getElementById('dbg-server-log').textContent   = '(очищено)';
-    document.getElementById('dbg-frontend-log').textContent = '(очищено)';
-    _debugRaw.server   = [];
-    _debugRaw.frontend = [];
+    const el = type === 'server' ? 'dbg-server-log' : 'dbg-frontend-log';
+    document.getElementById(el).textContent = '(очищено)';
+    _debugRaw[type] = [];
   }
 }
 
-function downloadDebugLog() {
-  const lines = [
-    '=== PRICING RULES ===',
-    JSON.stringify(_debugRaw.pricing, null, 2),
-    '',
-    '=== SERVER LOG ===',
-    (_debugRaw.server  || []).join('\n'),
-    '',
-    '=== FRONTEND LOG ===',
-    (_debugRaw.frontend || []).join('\n'),
-  ].join('\n');
-
-  const blob = new Blob([lines], { type: 'text/plain' });
-  const a    = document.createElement('a');
-  a.href     = URL.createObjectURL(blob);
-  a.download = `rolthall-debug-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+function downloadDebugSection(type) {
+  const lines = (type === 'server' ? _debugRaw.server : _debugRaw.frontend) || [];
+  const blob  = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a     = document.createElement('a');
+  a.href      = URL.createObjectURL(blob);
+  a.download  = `rolthall-${type}-log-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
   a.click();
   URL.revokeObjectURL(a.href);
 }

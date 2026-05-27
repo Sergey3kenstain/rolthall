@@ -67,7 +67,19 @@ class TelegramController extends Controller
         }
 
         match (true) {
-            str_starts_with($text, '/start')  => $this->sendStart($chatId, $firstName, $user),
+            str_starts_with($text, '/start')   => $this->sendStart($chatId, $firstName, $user),
+            str_starts_with($text, '/booking') => $this->sendWebAppButton(
+                $chatId,
+                "📅 Забронировать зал\n\nВыберите удобный день и время, оплатите онлайн — бронь подтвердится автоматически.",
+                '📅 Открыть расписание',
+                config('app.url') . '/calendar',
+            ),
+            str_starts_with($text, '/lk') => $this->sendWebAppButton(
+                $chatId,
+                "👤 Личный кабинет\n\nПосмотрите ваши брони, статус оплаты и историю посещений.",
+                '👤 Открыть личный кабинет',
+                config('app.url') . '/profile',
+            ),
             str_starts_with($text, '/mychat') => $this->sendMessage(
                 $chatId,
                 "Chat ID: <code>{$chatId}</code>\n" .
@@ -175,6 +187,27 @@ class TelegramController extends Controller
             $user->update(['telegram_avatar_url' => $url]);
         } catch (\Throwable $e) {
             Log::error('TG avatar fetch error', ['chat_id' => $chatId, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Сообщение с одной WebApp-кнопкой
+     */
+    private function sendWebAppButton(int|string $chatId, string $text, string $btnLabel, string $url): void
+    {
+        try {
+            $this->telegram->sendMessage([
+                'chat_id'      => $chatId,
+                'text'         => $text,
+                'parse_mode'   => 'HTML',
+                'reply_markup' => json_encode([
+                    'inline_keyboard' => [[
+                        ['text' => $btnLabel, 'web_app' => ['url' => $url]],
+                    ]],
+                ]),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Telegram sendWebAppButton error', ['error' => $e->getMessage()]);
         }
     }
 

@@ -569,7 +569,13 @@ class AdminController extends Controller
             return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
         }
 
-        foreach ([storage_path('logs/laravel.log'), storage_path('logs/frontend.log')] as $path) {
+        $type = $request->query('type', 'all');
+        $map  = [
+            'server'   => [storage_path('logs/laravel.log')],
+            'frontend' => [storage_path('logs/frontend.log')],
+            'all'      => [storage_path('logs/laravel.log'), storage_path('logs/frontend.log')],
+        ];
+        foreach ($map[$type] ?? $map['all'] as $path) {
             if (file_exists($path)) {
                 file_put_contents($path, '');
             }
