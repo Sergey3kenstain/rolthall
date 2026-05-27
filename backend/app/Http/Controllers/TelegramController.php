@@ -172,13 +172,15 @@ class TelegramController extends Controller
             $photos = $this->telegram->getUserProfilePhotos([
                 'user_id' => $chatId,
                 'limit'   => 1,
-            ]);
+            ])->toArray();
 
-            $fileId = $photos['photos'][0][0]['file_id'] ?? null;
+            // Берём фото среднего размера (320px), если нет — первое доступное
+            $sizes  = $photos['photos'][0] ?? [];
+            $photo  = $sizes[1] ?? $sizes[0] ?? null;
+            $fileId = $photo['file_id'] ?? null;
             if (!$fileId) return;
 
-            $file     = $this->telegram->getFile(['file_id' => $fileId]);
-            $filePath = $file['file_path'] ?? null;
+            $filePath = $this->telegram->getFile(['file_id' => $fileId])->file_path ?? null;
             if (!$filePath) return;
 
             $token = config('services.telegram.bot_token');
