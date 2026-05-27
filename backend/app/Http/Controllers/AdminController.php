@@ -102,20 +102,28 @@ class AdminController extends Controller
         // 1. Сохраняем CMS в БД
         $hall->update(['cms' => $cms]);
 
-        // 2. Создаём pricing_rules из cms.pricing.hourly только если ещё не существует
-        //    (firstOrCreate — не перезаписываем engine pricing при повторных публикациях)
-        $hourly = $cms['pricing']['hourly'] ?? [];
-        foreach ($hourly as $row) {
+        // 2. firstOrCreate pricing_rules из CMS (hourly → below30, event_table → event)
+        foreach ($cms['pricing']['hourly'] ?? [] as $row) {
             if (empty($row['engine'])) continue;
             PricingRule::firstOrCreate(
                 ['hall_id' => $hall->id, 'booking_format' => 'hourly', 'day_type' => $row['day_type'], 'guest_tier' => 'below30'],
                 ['price_per_hour' => (int) $row['price'], 'description' => $row['desc'] ?? null, 'is_active' => true, 'min_hours' => 1]
             );
         }
+        foreach ($cms['pricing']['event_table'] ?? [] as $row) {
+            if (empty($row['engine'])) continue;
+            PricingRule::firstOrCreate(
+                ['hall_id' => $hall->id, 'booking_format' => 'event', 'day_type' => $row['day_type'], 'guest_tier' => 'any'],
+                ['price_per_hour' => (int) $row['price'], 'description' => $row['desc'] ?? null, 'is_active' => true]
+            );
+        }
 
-        // 3. Обратная синхронизация: обновляем cms.pricing.hourly из актуального engine pricing
+        // 3. Обратная синхронизация: обновляем cms из актуального engine pricing
         $below30 = PricingRule::where('hall_id', $hall->id)
             ->where('booking_format', 'hourly')->where('guest_tier', 'below30')->where('is_active', true)
+            ->get()->keyBy('day_type');
+        $eventRules = PricingRule::where('hall_id', $hall->id)
+            ->where('booking_format', 'event')->where('is_active', true)
             ->get()->keyBy('day_type');
 
         if (!empty($cms['pricing']['hourly'])) {
@@ -128,8 +136,17 @@ class AdminController extends Controller
                 }
                 return $row;
             }, $cms['pricing']['hourly']);
-            $hall->update(['cms' => $cms]);
         }
+        if (!empty($cms['pricing']['event_table'])) {
+            $cms['pricing']['event_table'] = array_map(function ($row) use ($eventRules) {
+                if (empty($row['engine'])) return $row;
+                $dt   = $row['day_type'] ?? null;
+                $rule = $dt ? ($eventRules[$dt] ?? null) : null;
+                if ($rule) $row['price'] = $rule->price_per_hour;
+                return $row;
+            }, $cms['pricing']['event_table']);
+        }
+        $hall->update(['cms' => $cms]);
 
         // 4. Генерируем cms_data.js
         $allRules = PricingRule::where('hall_id', $hall->id)->where('is_active', true)->get()

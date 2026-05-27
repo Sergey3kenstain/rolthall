@@ -316,9 +316,6 @@ section { padding: 120px 48px; }
   border-bottom:1px solid var(--accent-border);
 }
 .pricing-table thead th:last-child { text-align:right; }
-.pricing-table th:nth-child(1),.pricing-table td:nth-child(1){width:110px;}
-.pricing-table th:nth-child(2),.pricing-table td:nth-child(2){width:130px;white-space:nowrap;}
-.pricing-table th:nth-child(4),.pricing-table td:nth-child(4){width:180px;white-space:nowrap;}
 .pricing-table tbody tr { border-bottom:1px solid rgba(217,217,217,.06); transition:background .2s; }
 .pricing-table tbody tr:hover { background:rgba(255,255,255,.03); }
 .pricing-table tbody td { padding:22px 24px; font-size:12px; font-weight:400; color:rgba(217,217,217,.7); }
@@ -502,14 +499,10 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
   .pricing-tabs { flex-wrap:wrap; }
   .tab-btn { font-size:8px; padding:10px 14px; }
   .pricing-table thead { display:none; }
-  .pricing-table tbody tr { display:block; border-bottom:1px solid rgba(255,255,255,.08); padding:12px 0; }
-  .pricing-table tbody td { display:block; padding:3px 16px; font-size:12px; }
-  .pricing-table tbody td[data-label]::before { content:attr(data-label)": "; font-size:8px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:rgba(217,217,217,.3); margin-right:4px; }
-  .pricing-table tbody td:first-child { padding-top:0; }
-  .pricing-table tbody td:last-child { padding-bottom:0; text-align:left; margin-top:4px; }
-  .pricing-table th:nth-child(1),.pricing-table td:nth-child(1){width:auto;}
-  .pricing-table th:nth-child(2),.pricing-table td:nth-child(2){width:auto;white-space:normal;}
-  .pricing-table th:nth-child(4),.pricing-table td:nth-child(4){width:auto;white-space:normal;}
+  .pricing-table tbody td { display:block; padding:8px 16px; }
+  .pricing-table tbody td:first-child { padding-top:16px; }
+  .pricing-table tbody td:last-child { padding-bottom:16px; text-align:left; }
+  .pricing-table tbody tr { display:block; border-bottom:1px solid rgba(255,255,255,.08); }
 }
 </style>
 </head>
@@ -680,19 +673,27 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
   </div>
   <div class="pricing-tabs reveal">
     <button class="tab-btn active" onclick="switchTab('hourly',this)">Почасовая аренда</button>
+    <button class="tab-btn" onclick="switchTab('evento',this)">Событие</button>
     <button class="tab-btn" onclick="switchTab('event',this)">Мероприятия</button>
   </div>
   <div class="tab-content active" id="tab-hourly">
     <table class="pricing-table">
-      <thead><tr><th>День недели</th><th>Гости</th><th>Назначение</th><th>Стоимость</th></tr></thead>
+      <thead><tr><th>День недели</th><th>Назначение</th><th>Стоимость</th></tr></thead>
       <tbody>
-        <tr><td>Будни</td><td data-label="Гости">до 30 чел.</td><td data-label="Назначение">Мероприятия (до 30 чел.)</td><td>10 000 ₽ / час</td></tr>
-        <tr><td>Будни</td><td data-label="Гости">более 30 чел.</td><td data-label="Назначение">Крупные мероприятия</td><td>— ₽ / час</td></tr>
-        <tr><td>Выходные</td><td data-label="Гости">до 30 чел.</td><td data-label="Назначение">Мастер-классы (до 30 чел.)</td><td>15 000 ₽ / час</td></tr>
-        <tr><td>Выходные</td><td data-label="Гости">более 30 чел.</td><td data-label="Назначение">Крупные мероприятия</td><td>— ₽ / час</td></tr>
+        <tr><td>Будни</td><td>Мероприятия (до 30 чел.)</td><td>10 000 ₽ / час</td></tr>
+        <tr><td>Выходные</td><td>Мастер-классы (до 30 чел.)</td><td>15 000 ₽ / час</td></tr>
       </tbody>
     </table>
     <p id="hourly-note" style="font-size:10px;font-weight:300;color:rgba(217,217,217,.35);margin-top:16px;padding-left:24px;line-height:1.7"></p>
+  </div>
+  <div class="tab-content" id="tab-evento">
+    <table class="pricing-table">
+      <thead><tr><th>День недели</th><th>Назначение</th><th>Стоимость</th></tr></thead>
+      <tbody>
+        <tr><td>Будни</td><td>Событие (будни)</td><td>— ₽</td></tr>
+        <tr><td>Выходные</td><td>Событие (выходные)</td><td>— ₽</td></tr>
+      </tbody>
+    </table>
   </div>
   <div class="tab-content" id="tab-event">
     <div class="event-cards">
@@ -973,19 +974,23 @@ function applyCms() {
   // Pricing
   if (C.pricing) {
     const p=C.pricing;
-    // Почасовая аренда: берём из pricing_rules (все тиры), не из CMS-поля hourly
-    const hourlyRules=(C.pricing_rules||[]).filter(r=>r.booking_format==='hourly');
+    // Почасовая: below30 из pricing_rules, 3 колонки
+    const hourlyRules=(C.pricing_rules||[]).filter(r=>r.booking_format==='hourly'&&r.guest_tier==='below30');
     if(hourlyRules.length){
       const dtLbl={weekday:'Будни',weekend:'Выходные'};
-      const tierLbl={below30:'до 30 чел.',above30:'более 30 чел.',any:''};
-      const sorted=[...hourlyRules].sort((a,b)=>{
-        if(a.day_type!==b.day_type) return a.day_type==='weekday'?-1:1;
-        return a.guest_tier==='below30'?-1:1;
-      });
+      const sorted=[...hourlyRules].sort((a,b)=>a.day_type==='weekday'?-1:1);
       const tbody=document.querySelector('#tab-hourly tbody');
-      if(tbody) tbody.innerHTML=sorted.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type||''}</td><td data-label="Гости">${tierLbl[r.guest_tier]||r.guest_tier||''}</td><td data-label="Назначение">${r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`).join('');
+      if(tbody) tbody.innerHTML=sorted.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type}</td><td>${r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`).join('');
     }
     if(p.hourly_note){const el=document.getElementById('hourly-note');if(el)el.textContent=p.hourly_note;}
+    // Событие: из pricing_rules, 3 колонки
+    const eventRules=(C.pricing_rules||[]).filter(r=>r.booking_format==='event');
+    if(eventRules.length){
+      const dtLbl={weekday:'Будни',weekend:'Выходные'};
+      const sorted=[...eventRules].sort((a,b)=>a.day_type==='weekday'?-1:1);
+      const tbody=document.querySelector('#tab-evento tbody');
+      if(tbody) tbody.innerHTML=sorted.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type}</td><td>${r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽</td></tr>`).join('');
+    }
     if (p.events?.length) {
       const wrap=document.querySelector('.event-cards');
       if(wrap) wrap.innerHTML=p.events.map((e,i)=>`<div class="event-card${e.featured?' featured':''} reveal${i?' reveal-delay-'+i:''}"><span class="event-card-label">${e.label||e.subtitle||''}</span><div class="event-card-price"><span class="event-card-currency">₽</span>${Number(e.price).toLocaleString('ru-RU')}</div><div class="event-card-title">${e.title||''}</div><div class="event-card-desc">${e.desc||e.description||''}</div></div>`).join('');

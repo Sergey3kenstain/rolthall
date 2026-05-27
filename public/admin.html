@@ -892,6 +892,18 @@ select.inp option{background:var(--bg-card);}
       <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddHourlyRow()">+ Строка</button>
       <div class="form-group" style="margin-top:12px;"><label class="form-lbl">Сноска к таблице</label><input type="text" class="inp" id="cms-hourly-note" placeholder="* Если более 30 человек — стоимость согласовывается индивидуально."></div>
       <div class="form-divider" style="margin:16px 0;"></div>
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;">Событие</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.75rem;" id="cms-event-table">
+        <thead><tr style="color:var(--text-d);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;">
+          <th style="padding:6px 8px;text-align:left;">День</th>
+          <th style="padding:6px 8px;text-align:left;">Описание</th>
+          <th style="padding:6px 8px;text-align:left;width:110px;">₽</th>
+          <th style="padding:6px 8px;text-align:center;width:60px;">В систему</th>
+        </tr></thead>
+        <tbody id="cms-event-tbody"></tbody>
+      </table>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddEventRow()">+ Строка</button>
+      <div class="form-divider" style="margin:16px 0;"></div>
       <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;">Пакеты мероприятий</div>
       <div id="cms-events-list"></div>
       <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="cmsAddEventCard()">+ Пакет</button>
@@ -2198,6 +2210,7 @@ async function loadHallsTab() {
   // Pricing
   cmsRenderHourly(cms.pricing?.hourly || []);
   g('cms-hourly-note', cms.pricing?.hourly_note);
+  cmsRenderEventTable(cms.pricing?.event_table || []);
   cmsRenderEvents(cms.pricing?.events || []);
 
   // Rules
@@ -2427,6 +2440,46 @@ function cmsGetHourly() {
   });
 }
 
+/* ── Event pricing table (Событие) ── */
+function cmsRenderEventTable(rows) {
+  const tbody = document.getElementById('cms-event-tbody');
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr data-i="${i}">
+      <td style="padding:4px 8px;">
+        <select class="inp" style="font-size:.72rem;padding:5px 8px;">
+          <option value="weekday"${r.day_type==='weekday'?' selected':''}>Будни</option>
+          <option value="weekend"${r.day_type==='weekend'?' selected':''}>Выходные</option>
+        </select>
+      </td>
+      <td style="padding:4px 8px;"><input class="inp" style="font-size:.72rem;padding:5px 8px;" value="${r.desc||''}" placeholder="Событие (будни)…"></td>
+      <td style="padding:4px 8px;"><input class="inp" type="number" style="font-size:.72rem;padding:5px 8px;" value="${r.price||''}"></td>
+      <td style="padding:4px 8px;text-align:center;"><input type="checkbox" title="Синхронизировать с движком бронирования"${r.engine?' checked':''}></td>
+      <td style="padding:4px 4px;"><button class="cms-del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+    </tr>`).join('');
+}
+function cmsAddEventRow() {
+  const tbody = document.getElementById('cms-event-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding:4px 8px;"><select class="inp" style="font-size:.72rem;padding:5px 8px;"><option value="weekday">Будни</option><option value="weekend">Выходные</option></select></td>
+    <td style="padding:4px 8px;"><input class="inp" style="font-size:.72rem;padding:5px 8px;" placeholder="Событие…"></td>
+    <td style="padding:4px 8px;"><input class="inp" type="number" style="font-size:.72rem;padding:5px 8px;" placeholder="50000"></td>
+    <td style="padding:4px 8px;text-align:center;"><input type="checkbox" title="Синхронизировать с движком бронирования"></td>
+    <td style="padding:4px 4px;"><button class="cms-del-btn" onclick="this.closest('tr').remove()">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function cmsGetEventTable() {
+  return [...document.querySelectorAll('#cms-event-tbody tr')].map(tr => {
+    const cells = tr.querySelectorAll('td');
+    return {
+      day_type: cells[0].querySelector('select').value,
+      desc:     cells[1].querySelector('input').value,
+      price:    +cells[2].querySelector('input').value || 0,
+      engine:   cells[3].querySelector('input').checked,
+    };
+  });
+}
+
 /* ── Event packages ── */
 function cmsRenderEvents(items) {
   const list = document.getElementById('cms-events-list');
@@ -2560,7 +2613,7 @@ async function publishHallCms() {
   const cms = {
     hero: { image:val('cms-hero-image'), title:val('cms-hero-title'), vertical:val('cms-hero-vertical'), desc:val('cms-hero-desc'), price_from:+val('cms-hero-price')||null, min_hours:+val('cms-hero-minhours')||null, capacity:+val('cms-hero-capacity')||null },
     about: { section_title:val('cms-about-title'), area_label:val('cms-about-area'), features:[{title:val('cms-f1-title'),text:val('cms-f1-text')},{title:val('cms-f2-title'),text:val('cms-f2-text')},{title:val('cms-f3-title'),text:val('cms-f3-text')}], carousel:cmsGetCarousel() },
-    pricing: { hourly:cmsGetHourly(), hourly_note:val('cms-hourly-note'), events:cmsGetEvents() },
+    pricing: { hourly:cmsGetHourly(), hourly_note:val('cms-hourly-note'), event_table:cmsGetEventTable(), events:cmsGetEvents() },
     rules: { note:val('cms-rules-note'), accordion:cmsGetRulesAccordion(), ban:{label:val('cms-ban-label'),title:val('cms-ban-title'),items:cmsGetBanItems()} },
     faq: cmsGetFaq(),
     contacts: { address:val('cms-addr'), phone:val('cms-phone'), telegram:val('cms-tg'), whatsapp:val('cms-wa'), instagram:val('cms-ig'), map_src:val('cms-map-src'), map_link:val('cms-map-link'), hours_wd:val('cms-hours-wd'), hours_we:val('cms-hours-we') },
