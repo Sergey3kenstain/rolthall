@@ -890,7 +890,7 @@ async function submitBooking() {
   try {
     if (BOOKING_DATA.format === 'hourly') {
       const tgStored2 = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
-      const tgChatId  = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || tgStored2?.id || null;
+      const tgChatId  = String(window.Telegram?.WebApp?.initDataUnsafe?.user?.id || tgStored2?.id || '') || null;
 
       const res  = await fetch('/api/bookings/hold', {
         method:  'POST',
