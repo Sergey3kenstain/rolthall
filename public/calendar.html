@@ -98,8 +98,7 @@ nav.d-nav {
 }
 
 /* Mobile-only elements: hidden by default, shown in @media */
-.mob-format-tabs,
-.mob-date-strip { display: none; }
+.mob-format-tabs { display: none; }
 
 /* ══ FORMAT SELECTOR ══ */
 /* Desktop sidebar */
@@ -156,25 +155,8 @@ nav.d-nav {
 #desktopSheetWrap { display: none; }
 
 @media (min-width: 1024px) {
-  /* Week nav bar above the grid */
-  .week-nav-bar {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 24px; flex-shrink: 0;
-    border-bottom: 1px solid var(--accent-border);
-    background: var(--charcoal-mid);
-  }
-  .wnb-btn {
-    width: 28px; height: 28px; background: transparent;
-    border: 1px solid var(--accent-border);
-    color: rgba(217,217,217,.5); font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: border-color .2s, color .2s;
-  }
-  .wnb-btn:hover { border-color: rgba(255,255,255,.4); color: var(--accent); }
-  .wnb-label {
-    flex: 1; font-size: 9px; font-weight: 600; letter-spacing: .1em;
-    text-transform: uppercase; color: rgba(217,217,217,.45); text-align: center;
-  }
+  /* week-nav-bar заменена полоской дат — скрыта */
+  .week-nav-bar { display: none; }
 
   /* Week grid */
   .wg-header {
@@ -523,6 +505,39 @@ nav.d-nav {
 .mob-date-chip.event-sel .mob-date-day,
 .mob-date-chip.event-sel .mob-date-num { color: var(--charcoal) !important; }
 
+/* ══ DATE STRIP (all screens) ══ */
+.mob-date-strip {
+  display: flex; align-items: center;
+  border-bottom: 1px solid var(--accent-border);
+  background: var(--charcoal-mid);
+  flex-shrink: 0;
+}
+.mob-date-nav {
+  width: 36px; flex-shrink: 0; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent; color: rgba(217,217,217,.4); cursor: pointer;
+  font-size: 18px; font-family: var(--font); transition: color .2s;
+}
+.mob-date-nav:hover { color: var(--accent); }
+.mob-date-nav:first-child { border-right: 1px solid var(--accent-border); }
+.mob-date-nav:last-child  { border-left:  1px solid var(--accent-border); }
+.mob-dates-scroll { display: flex; flex: 1; overflow-x: auto; scrollbar-width: none; }
+.mob-dates-scroll::-webkit-scrollbar { display: none; }
+.mob-date-chip {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
+  padding: 10px; border-right: 1px solid var(--accent-border);
+  cursor: pointer; transition: background .15s; min-width: 44px;
+  font-family: var(--font); background: transparent; border-bottom: 2px solid transparent;
+}
+.mob-date-chip.selected  { background: rgba(255,255,255,.08); border-bottom-color: var(--accent); }
+.mob-date-chip.past      { opacity: .3; cursor: not-allowed; pointer-events: none; }
+.mob-date-chip.today     .mob-date-day { color: var(--success); }
+.mob-date-chip.today     .mob-date-num { color: var(--success); }
+.mob-date-chip.selected  .mob-date-day { color: rgba(217,217,217,.6); }
+.mob-date-chip.selected  .mob-date-num { color: var(--accent); }
+.mob-date-day { font-size: 6.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(217,217,217,.3); }
+.mob-date-num { font-size: 16px; font-weight: 800; color: rgba(217,217,217,.6); margin-top: 1px; }
+
 /* ══ MOBILE OVERRIDES ══ */
 @media (max-width: 1023px) {
   nav.d-nav { display: none; }
@@ -542,44 +557,6 @@ nav.d-nav {
 
   /* Mobile format tabs */
   .mob-format-tabs { display: flex; }
-
-  /* Mobile date strip */
-  .mob-date-strip {
-    display: flex; align-items: center; gap: 0;
-    border-bottom: 1px solid var(--accent-border);
-    background: var(--charcoal-mid);
-  }
-  .mob-date-nav {
-    width: 36px; flex-shrink: 0; height: 60px;
-    display: flex; align-items: center; justify-content: center;
-    border: none; background: transparent; color: rgba(217,217,217,.4); cursor: pointer;
-    font-size: 18px; font-family: var(--font);
-    transition: color .2s;
-  }
-  .mob-date-nav:hover { color: var(--accent); }
-  .mob-date-nav:first-child { border-right: 1px solid var(--accent-border); }
-  .mob-date-nav:last-child  { border-left:  1px solid var(--accent-border); }
-  .mob-dates-scroll { display: flex; flex: 1; overflow-x: auto; scrollbar-width: none; }
-  .mob-dates-scroll::-webkit-scrollbar { display: none; }
-  .mob-date-chip {
-    flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
-    padding: 10px 10px; border-right: 1px solid var(--accent-border);
-    cursor: pointer; transition: background .15s; min-width: 44px;
-    font-family: var(--font); background: transparent; border-bottom: 2px solid transparent;
-  }
-  .mob-date-chip.selected { background: rgba(255,255,255,.08); border-bottom-color: var(--accent); }
-  .mob-date-chip.past { opacity: .3; cursor: not-allowed; pointer-events: none; }
-  .mob-date-chip.today .mob-date-day { color: var(--success); }
-  .mob-date-chip.today .mob-date-num { color: var(--success); }
-  .mob-date-chip.selected .mob-date-day { color: rgba(217,217,217,.6); }
-  .mob-date-chip.selected .mob-date-num { color: var(--accent); }
-  .mob-date-day { font-size: 6.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(217,217,217,.3); }
-  .mob-date-num { font-size: 16px; font-weight: 800; color: rgba(217,217,217,.6); margin-top: 1px; }
-  .mob-date-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--warning); margin-top: 3px; }
-  .mob-date-dot.danger { background: var(--danger); }
-  .mob-date-chip.allday-blocked { background: var(--danger-bg) !important; cursor: not-allowed; pointer-events: none; }
-  .mob-date-chip.allday-blocked .mob-date-day,
-  .mob-date-chip.allday-blocked .mob-date-num { color: var(--danger); }
 
   .info-bar { padding: 12px 16px; }
   .info-bar-title { font-size: 12px; }
