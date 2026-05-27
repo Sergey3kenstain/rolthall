@@ -652,7 +652,7 @@ input[type=range].guest-slider::-moz-range-thumb {
   font-size: 8px; color: rgba(217,217,217,.22); font-weight: 500; letter-spacing: .05em;
 }
 @media (min-width: 1024px) {
-  .guest-slider-wrap { padding: 16px 24px 18px; }
+  .guest-slider-wrap { display: none; }
 }
 </style>
 <script>
@@ -699,34 +699,6 @@ function _initTg() {
 
 <!-- ══ PAGE SHELL ══ -->
 <div class="page-shell">
-
-
-  <!-- ══ MOBILE: format tabs ══ -->
-  <div class="mob-format-tabs">
-    <button class="mob-format-tab active" data-fmt="hourly" onclick="setFormat('hourly',this)">Почасовая</button>
-    <button class="mob-format-tab" data-fmt="event" onclick="setFormat('event',this)">Событие</button>
-    <button class="mob-format-tab" data-fmt="allday" onclick="setFormat('allday',this)">Весь день</button>
-  </div>
-
-  <!-- ══ MOBILE: guest slider ══ -->
-  <div class="guest-slider-wrap" id="guestSliderWrap">
-    <div class="guest-slider-header">
-      <span class="guest-slider-label">Количество человек</span>
-      <div class="guest-count-display">
-        <span class="guest-count-display-val" style="font-size:20px;font-weight:900;color:var(--accent);letter-spacing:-.02em;line-height:1;">1</span>
-        <span class="guest-tier-badge guest-tier-badge-el below">до 30</span>
-      </div>
-    </div>
-    <input type="range" class="guest-slider" id="guestSlider" min="1" max="150" value="1" oninput="onGuestSlider(this)">
-    <div class="guest-slider-bounds"><span>1</span><span class="guest-slider-max">150</span></div>
-  </div>
-
-  <!-- ══ MOBILE: date strip ══ -->
-  <div class="mob-date-strip">
-    <button class="mob-date-nav" onclick="shiftWeek(-1)">‹</button>
-    <div class="mob-dates-scroll" id="mobDatesScroll"></div>
-    <button class="mob-date-nav" onclick="shiftWeek(1)">›</button>
-  </div>
 
   <!-- ══ MAIN LAYOUT ══ -->
   <div class="cal-layout">
@@ -786,6 +758,33 @@ function _initTg() {
 
     <!-- MAIN PANEL -->
     <div class="cal-main">
+
+      <!-- ══ MOBILE: format tabs ══ -->
+      <div class="mob-format-tabs">
+        <button class="mob-format-tab active" data-fmt="hourly" onclick="setFormat('hourly',this)">Почасовая</button>
+        <button class="mob-format-tab" data-fmt="event" onclick="setFormat('event',this)">Событие</button>
+        <button class="mob-format-tab" data-fmt="allday" onclick="setFormat('allday',this)">Весь день</button>
+      </div>
+
+      <!-- ══ MOBILE: guest slider ══ -->
+      <div class="guest-slider-wrap" id="guestSliderWrap">
+        <div class="guest-slider-header">
+          <span class="guest-slider-label">Количество человек</span>
+          <div class="guest-count-display">
+            <span class="guest-count-display-val" style="font-size:20px;font-weight:900;color:var(--accent);letter-spacing:-.02em;line-height:1;">1</span>
+            <span class="guest-tier-badge guest-tier-badge-el below">до 30</span>
+          </div>
+        </div>
+        <input type="range" class="guest-slider" id="guestSlider" min="1" max="150" value="1" oninput="onGuestSlider(this)">
+        <div class="guest-slider-bounds"><span>1</span><span class="guest-slider-max">150</span></div>
+      </div>
+
+      <!-- ══ MOBILE: date strip ══ -->
+      <div class="mob-date-strip">
+        <button class="mob-date-nav" onclick="shiftWeek(-1)">‹</button>
+        <div class="mob-dates-scroll" id="mobDatesScroll"></div>
+        <button class="mob-date-nav" onclick="shiftWeek(1)">›</button>
+      </div>
 
       <!-- Week nav bar (desktop only, replaces info-bar) -->
       <div class="week-nav-bar">
