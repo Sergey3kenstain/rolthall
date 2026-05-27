@@ -126,11 +126,13 @@ class NotificationService
         $phone = $client->phone ?? '—';
         $botUrl = 'https://t.me/' . ltrim(config('services.telegram.bot_username', 'rolthall_bot'), '@');
 
+        $botUsername = ltrim(config('services.telegram.bot_username', 'rolthall_bot'), '@');
+
         $text = "🔐 <b>Ваши данные для входа на сайт</b>\n\n"
             . "📱 <b>Телефон (логин):</b>\n<code>{$phone}</code>\n\n"
             . "🔑 <b>Пароль:</b>\n<code>{$password}</code>\n\n"
-            . "Войти: <a href=\"https://hall.roltworld.com/login\">hall.roltworld.com/login</a>\n\n"
-            . "<i>Через бот авторизация не нужна — просто нажмите /start</i>";
+            . "Войти на сайт: <a href=\"https://hall.roltworld.com/login\">hall.roltworld.com/login</a>\n\n"
+            . "<i>Через бот авторизация не нужна — просто нажмите кнопку ниже</i>";
 
         try {
             $msg = $this->telegram->sendMessage([
@@ -138,6 +140,11 @@ class NotificationService
                 'text'            => $text,
                 'parse_mode'      => 'HTML',
                 'protect_content' => true,
+                'reply_markup'    => json_encode([
+                    'inline_keyboard' => [[
+                        ['text' => '🚪 Войти в личный кабинет', 'url' => "https://t.me/{$botUsername}?start=lk"],
+                    ]],
+                ]),
             ]);
 
             $msgId = $msg->messageId;
@@ -164,12 +171,27 @@ class NotificationService
 
     private function generatePassword(): string
     {
-        $chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-        $pwd   = '';
-        for ($i = 0; $i < 8; $i++) {
-            $pwd .= $chars[random_int(0, strlen($chars) - 1)];
+        $lower   = 'abcdefghjkmnpqrstuvwxyz';
+        $upper   = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+        $digits  = '23456789';
+        $special = '!@#$%&*';
+        $all     = $lower . $upper . $digits . $special;
+        $length  = random_int(8, 12);
+
+        // Гарантируем минимум по одному символу каждого типа
+        $pwd = $lower[random_int(0, strlen($lower)-1)]
+             . $upper[random_int(0, strlen($upper)-1)]
+             . $digits[random_int(0, strlen($digits)-1)]
+             . $special[random_int(0, strlen($special)-1)];
+
+        for ($i = 4; $i < $length; $i++) {
+            $pwd .= $all[random_int(0, strlen($all) - 1)];
         }
-        return $pwd;
+
+        // Перемешиваем чтобы гарантированные символы не были всегда в начале
+        $arr = mb_str_split($pwd);
+        shuffle($arr);
+        return implode('', $arr);
     }
 
     /**

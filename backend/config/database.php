@@ -60,7 +60,8 @@ return [
             'strict' => false,   // MySQL 5.7 совместимость
             'engine' => 'InnoDB ROW_FORMAT=DYNAMIC',
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                Mysql::ATTR_SSL_CA    => env('MYSQL_ATTR_SSL_CA'),
+                \PDO::ATTR_PERSISTENT => true,
             ]) : [],
         ],
 
