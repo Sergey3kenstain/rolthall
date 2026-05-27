@@ -633,6 +633,9 @@ select.inp option{background:var(--bg-card);}
   <!-- СВОДНАЯ -->
   <div class="tab-pane active" id="tab-analytics">
 
+    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:8px;">
+      <button id="analytics-csv-btn" class="btn btn-ghost btn-sm" onclick="downloadAnalyticsCSV()" style="display:none;white-space:nowrap;">Скачать CSV</button>
+    </div>
     <div class="filter-bar">
       <div class="filter-dropdown-wrap">
         <div class="filter-chip" onclick="toggleDd('dd-period')">
@@ -963,7 +966,10 @@ select.inp option{background:var(--bg-card);}
   <div class="tab-pane" id="tab-log">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="font-size:.9rem;font-weight:700;">Лог действий</div>
-      <button class="btn btn-ghost btn-sm" onclick="loadLogTab()">Обновить</button>
+      <div style="display:flex;gap:8px;">
+        <button id="log-csv-btn" class="btn btn-ghost btn-sm" onclick="downloadLogCSV()" style="display:none;white-space:nowrap;">Скачать CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadLogTab()">Обновить</button>
+      </div>
     </div>
     <div style="overflow-x:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);">
       <table class="ab-table">
@@ -1031,16 +1037,20 @@ select.inp option{background:var(--bg-card);}
         <span style="font-size:.72rem;color:var(--green);">Бот подключён и активен</span>
       </div>
       <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
-        <div class="form-group"><label class="form-lbl">Bot Token</label><input type="text" class="inp" id="tg-token" placeholder="1234567890:AAH…"></div>
-        <div class="form-group"><label class="form-lbl">Admin Chat ID</label><input type="text" class="inp" id="tg-chat" placeholder="-1002048316794"></div>
-        <div class="form-group"><label class="form-lbl">Thread ID (топик группы)</label><input type="text" class="inp" id="tg-thread" placeholder="312"></div>
-        <div class="form-group">
-          <label class="form-lbl">Для тестирования клиентских уведомлений</label>
-          <input type="text" class="inp" id="tg-test-client" placeholder="123456789 (Telegram Platform ID)">
-          <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Числовой TG ID пользователя — куда слать тестовые клиентские шаблоны</div>
+        <div id="tg-technical-settings">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="form-group"><label class="form-lbl">Bot Token</label><input type="text" class="inp" id="tg-token" placeholder="1234567890:AAH…"></div>
+            <div class="form-group"><label class="form-lbl">Admin Chat ID</label><input type="text" class="inp" id="tg-chat" placeholder="-1002048316794"></div>
+            <div class="form-group"><label class="form-lbl">Thread ID (топик группы)</label><input type="text" class="inp" id="tg-thread" placeholder="312"></div>
+            <div class="form-group">
+              <label class="form-lbl">Для тестирования клиентских уведомлений</label>
+              <input type="text" class="inp" id="tg-test-client" placeholder="123456789 (Telegram Platform ID)">
+              <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Числовой TG ID пользователя — куда слать тестовые клиентские шаблоны</div>
+            </div>
+            <div style="font-size:.62rem;color:var(--text-d);line-height:1.7;">Webhook проксируется через Cloudflare Worker.<br>Изменение токена требует перерегистрации webhook.</div>
+            <button class="btn btn-w btn-md btn-full" onclick="saveTelegram()">Сохранить</button>
+          </div>
         </div>
-        <div style="font-size:.62rem;color:var(--text-d);line-height:1.7;">Webhook проксируется через Cloudflare Worker.<br>Изменение токена требует перерегистрации webhook.</div>
-        <button class="btn btn-w btn-md btn-full" onclick="saveTelegram()">Сохранить</button>
       </div>
     </div>
 
@@ -1597,12 +1607,20 @@ async function initUser() {
     sAv.insertAdjacentHTML('beforeend', `<img src="${avatarUrl}" alt="" style="${imgStyle}" onerror="this.remove()">`);
     mobAv.insertAdjacentHTML('beforeend', `<img src="${avatarUrl}" alt="" style="${imgStyle}" onerror="this.remove()">`);
   }
-  if(data.role==='owner') { const b=document.getElementById('csv-btn'); if(b) b.style.display=''; }
-  if(data.role==='developer') {
+  const r = data.role;
+  if (r==='owner'||r==='developer') {
+    const b=document.getElementById('csv-btn'); if(b) b.style.display='';
+    const ab=document.getElementById('analytics-csv-btn'); if(ab) ab.style.display='';
+  }
+  if (r==='developer') {
     const nd = document.getElementById('nav-debug');
     const mnd = document.getElementById('mob-nav-debug');
     if (nd)  nd.style.display  = 'flex';
     if (mnd) mnd.style.display = 'flex';
+    const lb=document.getElementById('log-csv-btn'); if(lb) lb.style.display='';
+  }
+  if (r!=='developer') {
+    const ts=document.getElementById('tg-technical-settings'); if(ts) ts.style.display='none';
   }
 }
 
@@ -2842,21 +2860,24 @@ async function setUserRole(userId, role) { await api(`/admin/users/${userId}/rol
 async function toggleUserBlacklist(userId, val) { await api(`/admin/users/${userId}`,{method:'PUT',body:JSON.stringify({is_blacklisted:val})}); }
 async function toggleUserActive(userId, val) { await api(`/admin/users/${userId}`,{method:'PUT',body:JSON.stringify({is_active:val})}); }
 
-async function downloadClientsCSV() {
-  const btn = document.getElementById('csv-btn');
+async function downloadCSV(url, filename, btnId) {
+  const btn = btnId ? document.getElementById(btnId) : null;
   if (btn) { btn.disabled=true; btn.textContent='Загрузка…'; }
   try {
-    const r = await fetch(API+'/admin/clients/csv', {headers:{Authorization:'Bearer '+_token}});
+    const r = await fetch(API+url, {headers:{Authorization:'Bearer '+_token}});
     const blob = await r.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'clients_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.download = filename+'_'+new Date().toISOString().slice(0,10)+'.csv';
     a.click();
     URL.revokeObjectURL(a.href);
   } finally {
     if (btn) { btn.disabled=false; btn.textContent='Скачать CSV'; }
   }
 }
+function downloadClientsCSV()  { downloadCSV('/admin/clients/csv',   'clients',   'csv-btn'); }
+function downloadAnalyticsCSV(){ downloadCSV('/admin/analytics/csv', 'analytics', 'analytics-csv-btn'); }
+function downloadLogCSV()      { downloadCSV('/admin/log/csv',       'action_log','log-csv-btn'); }
 
 /* ══ LOG TAB ══ */
 async function loadLogTab() {
@@ -3015,14 +3036,14 @@ async function loadTelegramTab() {
 }
 
 async function saveTelegram() {
-  const payload = {
+  const payload = _me?.role==='developer' ? {
     token:             document.getElementById('tg-token').value.trim(),
     chat_id:           document.getElementById('tg-chat').value.trim(),
     thread_id:         document.getElementById('tg-thread').value.trim(),
     test_client_tg_id: document.getElementById('tg-test-client').value.trim(),
-  };
+  } : {};
   const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify(payload)});
-  if (res?.ok) { const b=document.querySelector('#tab-telegram .card .btn-w'); b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000); }
+  if (res?.ok) { const b=document.querySelector('#tg-technical-settings .btn-w'); if(b){b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000);} }
 }
 
 async function saveTplTemplates() {

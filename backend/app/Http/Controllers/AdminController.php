@@ -126,33 +126,43 @@ class AdminController extends Controller
 
     // ── Telegram settings ────────────────────────────────────────────────
 
-    public function telegramSettings(): JsonResponse
+    public function telegramSettings(Request $request): JsonResponse
     {
-        $file  = storage_path('app/telegram_settings.json');
-        $saved = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
-        return response()->json([
-            'ok'                => true,
-            'token'             => $saved['token']             ?? config('services.telegram.bot_token'),
-            'chat_id'           => $saved['chat_id']           ?? config('services.telegram.admin_chat_id'),
-            'thread_id'         => $saved['thread_id']         ?? config('services.telegram.admin_thread_id'),
-            'test_client_tg_id' => $saved['test_client_tg_id'] ?? null,
-            'templates'         => $saved['templates']         ?? null,
-            'cmd_templates'     => $saved['cmd_templates']     ?? null,
-        ]);
+        $file      = storage_path('app/telegram_settings.json');
+        $saved     = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
+        $isDev     = $request->user()->hasRole('developer');
+
+        $result = [
+            'ok'            => true,
+            'templates'     => $saved['templates']     ?? null,
+            'cmd_templates' => $saved['cmd_templates'] ?? null,
+        ];
+
+        if ($isDev) {
+            $result['token']             = $saved['token']             ?? config('services.telegram.bot_token');
+            $result['chat_id']           = $saved['chat_id']           ?? config('services.telegram.admin_chat_id');
+            $result['thread_id']         = $saved['thread_id']         ?? config('services.telegram.admin_thread_id');
+            $result['test_client_tg_id'] = $saved['test_client_tg_id'] ?? null;
+        }
+
+        return response()->json($result);
     }
 
     public function saveTelegramSettings(Request $request): JsonResponse
     {
-        $file     = storage_path('app/telegram_settings.json');
-        $existing = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+        $file      = storage_path('app/telegram_settings.json');
+        $existing  = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+        $isDev     = $request->user()->hasRole('developer');
 
         $rules = [];
-        if ($request->has('token'))             $rules['token']             = 'required|string';
-        if ($request->has('chat_id'))           $rules['chat_id']           = 'required|string';
-        if ($request->has('thread_id'))         $rules['thread_id']         = 'nullable|string';
-        if ($request->has('test_client_tg_id')) $rules['test_client_tg_id'] = 'nullable|string';
-        if ($request->has('templates'))         $rules['templates']         = 'nullable|array';
-        if ($request->has('cmd_templates'))    $rules['cmd_templates']    = 'nullable|array';
+        if ($isDev) {
+            if ($request->has('token'))             $rules['token']             = 'required|string';
+            if ($request->has('chat_id'))           $rules['chat_id']           = 'required|string';
+            if ($request->has('thread_id'))         $rules['thread_id']         = 'nullable|string';
+            if ($request->has('test_client_tg_id')) $rules['test_client_tg_id'] = 'nullable|string';
+        }
+        if ($request->has('templates'))    $rules['templates']    = 'nullable|array';
+        if ($request->has('cmd_templates')) $rules['cmd_templates'] = 'nullable|array';
 
         $data   = $request->validate($rules);
         $merged = array_merge($existing, $data);
@@ -673,6 +683,94 @@ class AdminController extends Controller
         return response($csv, 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="clients_' . now()->format('Y-m-d') . '.csv"',
+        ]);
+    }
+
+    public function analyticsCsv(Request $request): Response
+    {
+        if (!$this->isOwner($request)) abort(403);
+
+        $bookings = Booking::with(['hall', 'client'])
+            ->orderByDesc('date')->orderByDesc('time_start')
+            ->get();
+
+        $esc = fn($v) => '"' . str_replace('"', '""', (string)($v ?? '')) . '"';
+
+        $STATUS = ['pending'=>'Ожидание','confirmed'=>'Подтверждена','cancelled'=>'Отменена','completed'=>'Завершена','hold'=>'Холд'];
+        $FORMAT = ['hourly'=>'Почасово','event'=>'Мероприятие'];
+
+        $rows = [implode(',', ['Дата события','Время начала','Время конца','ID брони','Статус','Формат','Часов','Гостей','Сумма (руб)','ID транзакции','Зал','Имя клиента','Телефон','Email','Telegram','Дата создания заявки'])];
+
+        foreach ($bookings as $b) {
+            $ts = substr($b->time_start, 0, 5);
+            $te = substr($b->time_end,   0, 5);
+
+            if ($b->format === 'event') {
+                $hours = 12;
+            } else {
+                [$sh, $sm] = array_map('intval', explode(':', $ts));
+                [$eh, $em] = array_map('intval', explode(':', $te));
+                $hours = round(($eh * 60 + $em - $sh * 60 - $sm) / 60, 1);
+            }
+
+            $rows[] = implode(',', [
+                $b->date->format('d.m.Y'),
+                $ts,
+                $te,
+                $b->id,
+                $esc($STATUS[$b->status] ?? $b->status),
+                $esc($FORMAT[$b->format] ?? $b->format),
+                $hours,
+                $b->guest_count ?? 0,
+                $b->total_amount ?? 0,
+                $esc($b->transaction_id),
+                $esc($b->hall?->name),
+                $esc($b->client?->name),
+                $esc($b->client?->phone),
+                $esc($b->client?->email),
+                $esc($b->client?->telegram_username),
+                $b->created_at->format('d.m.Y H:i'),
+            ]);
+        }
+
+        return response("\xEF\xBB\xBF" . implode("\n", $rows), 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="analytics_' . now()->format('Y-m-d') . '.csv"',
+        ]);
+    }
+
+    public function actionLogCsv(Request $request): Response
+    {
+        if (!$this->isDeveloper($request)) abort(403);
+
+        $logs = DB::table('action_logs as al')
+            ->leftJoin('users as u', 'u.id', '=', 'al.user_id')
+            ->select('al.id', 'al.user_id', 'al.role', 'al.action',
+                     'al.target_type', 'al.target_id', 'al.payload', 'al.ip', 'al.created_at',
+                     'u.name as user_name')
+            ->orderByDesc('al.created_at')
+            ->limit(10000)
+            ->get();
+
+        $esc = fn($v) => '"' . str_replace('"', '""', (string)($v ?? '')) . '"';
+
+        $rows = [implode(',', ['Время','Пользователь','Роль','Действие','Тип объекта','ID объекта','IP','Данные'])];
+        foreach ($logs as $l) {
+            $rows[] = implode(',', [
+                $l->created_at,
+                $esc($l->user_name),
+                $esc($l->role),
+                $esc($l->action),
+                $esc($l->target_type),
+                $l->target_id ?? '',
+                $esc($l->ip),
+                $esc($l->payload),
+            ]);
+        }
+
+        return response("\xEF\xBB\xBF" . implode("\n", $rows), 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="action_log_' . now()->format('Y-m-d') . '.csv"',
         ]);
     }
 

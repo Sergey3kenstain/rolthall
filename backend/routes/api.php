@@ -43,8 +43,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/bookings/{id}/cancel',         [AdminController::class, 'cancelBooking']);
     Route::put('/bookings/{id}/admin-note',      [AdminController::class, 'saveBookingAdminNote']);
     Route::get('/analytics',                [AdminController::class, 'analytics']);
+    Route::get('/analytics/csv',            [AdminController::class, 'analyticsCsv']);
     Route::get('/heatmap',                  [AdminController::class, 'heatmap']);
     Route::get('/log',                      [AdminController::class, 'actionLog']);
+    Route::get('/log/csv',                  [AdminController::class, 'actionLogCsv']);
     Route::get('/clients',                  [AdminController::class, 'clients']);
     Route::get('/clients/csv',              [AdminController::class, 'clientsCsv']);
     Route::get('/clients/{id}',             [AdminController::class, 'client']);
