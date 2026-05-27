@@ -788,9 +788,9 @@ function _initTg() {
 
       <!-- ══ MOBILE: date strip ══ -->
       <div class="mob-date-strip">
-        <button class="mob-date-nav" onclick="shiftWeek(-1)">‹</button>
+        <button class="mob-date-nav" onclick="shiftMobMonth(-1)">‹</button>
         <div class="mob-dates-scroll" id="mobDatesScroll"></div>
-        <button class="mob-date-nav" onclick="shiftWeek(1)">›</button>
+        <button class="mob-date-nav" onclick="shiftMobMonth(1)">›</button>
       </div>
 
       <!-- Week nav bar (desktop only, replaces info-bar) -->
@@ -925,6 +925,7 @@ const DAY_SHORT   = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 /* ===== STATE ===== */
 let currentHall     = 'a';
 let weekOffset      = 0;
+let mobMonthOffset  = 0; // 0 = текущий месяц, 1 = следующий и т.д.
 let selectedDateIdx = 0;
 let currentFormat   = 'hourly'; // 'hourly' | 'event' | 'allday'
 let guestCount      = 1;
@@ -955,6 +956,21 @@ function getStripDates() {
     days.push(d);
   }
   return days;
+}
+
+function toDateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getMobMonthDates() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const base = new Date(today.getFullYear(), today.getMonth() + mobMonthOffset, 1);
+  const year = base.getFullYear(), month = base.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startDay = mobMonthOffset === 0 ? today.getDate() : 1;
+  const dates = [];
+  for (let d = startDay; d <= daysInMonth; d++) dates.push(new Date(year, month, d));
+  return dates;
 }
 
 function isWeekend(date) { const d = date.getDay(); return d === 0 || d === 6; }
@@ -1024,6 +1040,21 @@ async function loadWeekAvailability() {
     }));
   } catch (e) { console.error('availability load error', e); }
 }
+async function loadMonthAvailability() {
+  const dates = getMobMonthDates();
+  const today = new Date(); today.setHours(0,0,0,0);
+  try {
+    await Promise.all(dates.map(async d => {
+      if (d < today) return;
+      const key = toDateKey(d);
+      if (bookedByDate[key] !== undefined) return; // already loaded
+      const res = await fetch(`/api/halls/1/availability?date=${key}`, { headers: { Accept: 'application/json' } })
+        .then(r => r.json()).catch(() => null);
+      if (res?.slots) bookedByDate[key] = new Set(res.slots.filter(s => s.booked).map(s => s.hour));
+    }));
+  } catch(e) { console.error('month availability error', e); }
+}
+
 function isSelected(h) {
   const s = curSel();
   if (!s) return false;
@@ -1087,25 +1118,24 @@ function renderDates() {
   }).join('');
 }
 
-/* ===== RENDER DATES (mobile strip) ===== */
+/* ===== RENDER DATES (mobile strip — full month) ===== */
 function renderMobDates() {
   const scroll = document.getElementById('mobDatesScroll');
   if (!scroll) return;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const days  = getStripDates();
+  const today  = new Date(); today.setHours(0,0,0,0);
+  const days   = getMobMonthDates();
+  const curKey = curDateKey();
 
-  scroll.innerHTML = days.map((d, i) => {
-    const key             = dateKeyFor(days, i);
+  scroll.innerHTML = days.map(d => {
+    const key             = toDateKey(d);
     const isToday         = d.getTime() === today.getTime();
-    const isPast          = d.getTime() < today.getTime();
     const isAlldaySel     = currentFormat === 'allday' && eventDays.has(key);
-    const isSel           = i === selectedDateIdx && currentFormat !== 'allday';
+    const isSel           = key === curKey && currentFormat !== 'allday';
     const hasBusy         = hasBookings(key);
     const isAlldayBlocked = currentFormat === 'allday' && hasBusy && !isAlldaySel;
     const hasMySel        = currentFormat !== 'allday' && selections[key]?.end != null;
     let cls = 'mob-date-chip';
     if (isToday)         cls += ' today';
-    if (isPast)          cls += ' past';
     if (isAlldayBlocked) cls += ' allday-blocked';
     if (isSel)           cls += ' selected';
     if (hasMySel)        cls += ' has-sel';
@@ -1113,13 +1143,19 @@ function renderMobDates() {
     const dot = isAlldayBlocked
       ? `<div class="mob-date-dot danger"></div>`
       : (hasBusy && !isSel && !isAlldaySel ? `<div class="mob-date-dot"></div>` : '');
-    const click = (isPast || isAlldayBlocked) ? '' : (currentFormat === 'allday' ? `toggleEventDay(${i})` : `selectDate(${i})`);
+    const click = isAlldayBlocked ? '' : (currentFormat === 'allday'
+      ? `toggleEventDayByKey('${key}')`
+      : `selectMobDate('${key}')`);
     return `<div class="${cls}" ${click ? `onclick="${click}"` : ''}>
       <div class="mob-date-day">${DAY_SHORT[d.getDay()]}</div>
       <div class="mob-date-num">${d.getDate()}</div>
       ${dot}
     </div>`;
   }).join('');
+
+  // Скролл к выбранной дате (или к сегодня)
+  const target = scroll.querySelector('.mob-date-chip.selected, .mob-date-chip.today');
+  if (target) scroll.scrollLeft = Math.max(0, target.offsetLeft - 8);
 }
 
 /* ===== RENDER SLOTS ===== */
@@ -1672,10 +1708,43 @@ function selectDate(idx) {
 }
 
 function shiftWeek(dir) {
-  if (dir < 0 && weekOffset <= 0) return; // не уходим в прошлое
+  if (dir < 0 && weekOffset <= 0) return;
   weekOffset += dir;
   selectedDateIdx = dir > 0 ? 0 : 6;
+  // Синхронизируем мобильный месяц с выбранной датой
+  const selDate = getStripDates()[selectedDateIdx];
+  const today   = new Date();
+  mobMonthOffset = (selDate.getFullYear() - today.getFullYear()) * 12 + (selDate.getMonth() - today.getMonth());
+  if (mobMonthOffset < 0) mobMonthOffset = 0;
   reloadAndRedraw();
+}
+
+async function shiftMobMonth(dir) {
+  if (dir < 0 && mobMonthOffset <= 0) return;
+  mobMonthOffset += dir;
+  await loadMonthAvailability();
+  renderMobDates();
+}
+
+async function selectMobDate(key) {
+  const d     = new Date(key + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff  = Math.round((d - today) / 86400000);
+  if (diff < 0) return;
+  weekOffset      = Math.floor(diff / 7);
+  selectedDateIdx = diff % 7;
+  await loadWeekAvailability();
+  redraw();
+}
+
+function toggleEventDayByKey(key) {
+  if (!eventDays.has(key) && hasBookings(key)) return;
+  if (eventDays.has(key)) eventDays.delete(key);
+  else                     eventDays.add(key);
+  renderDates();
+  renderMobDates();
+  renderWeekGrid(getStripDates());
+  updateSheet();
 }
 
 /* ===== NAVIGATE TO BOOKING ===== */
@@ -1735,27 +1804,8 @@ function goToBooking() {
   window.location.href = '/booking?' + p.toString();
 }
 
-/* ===== DATE STRIP SWIPE ===== */
-function initDateStripSwipe() {
-  const strip = document.querySelector('.mob-date-strip');
-  if (!strip) return;
-  let startX = 0, startY = 0;
-  strip.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  }, { passive: true });
-  strip.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      shiftWeek(dx < 0 ? 1 : -1);
-    }
-  }, { passive: true });
-}
-
 /* ===== INIT ===== */
 initWgClickHandler();
-initDateStripSwipe();
 
 (async () => {
   try {
@@ -1764,7 +1814,7 @@ initDateStripSwipe();
   } catch(e) { initGuestSlider(150); }
 
   await fetchAndUpdatePricing();
-  await loadWeekAvailability();
+  await Promise.all([loadWeekAvailability(), loadMonthAvailability()]);
   redraw();
 })();
 
