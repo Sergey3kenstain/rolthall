@@ -12,6 +12,7 @@ class Client extends Model
         'user_id', 'name', 'phone', 'email', 'telegram_username',
         'avatar_url', 'is_blacklisted', 'blacklist_reason',
         'admin_note', 'bookings_count', 'total_paid',
+        'client_password', 'tg_credentials_msg_id',
     ];
 
     protected $casts = [
