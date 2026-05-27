@@ -677,15 +677,15 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
   </div>
   <div class="tab-content active" id="tab-hourly">
     <table class="pricing-table">
-      <thead><tr><th>День недели</th><th>Назначение</th><th>Стоимость</th></tr></thead>
+      <thead><tr><th>День недели</th><th>Гости</th><th>Назначение</th><th>Стоимость</th></tr></thead>
       <tbody>
-        <tr><td>Будни</td><td>Тренировки / Самостоятельная практика</td><td>3 500 ₽ / час</td></tr>
-        <tr><td>Выходные</td><td>Тренировки / Самостоятельная практика</td><td>5 000 ₽ / час</td></tr>
-        <tr><td>Будни</td><td>Мероприятия <span class="price-note">*до 30 чел.</span></td><td>10 000 ₽ / час</td></tr>
-        <tr><td>Выходные</td><td>Мастер-классы <span class="price-note">*до 30 чел.</span></td><td>15 000 ₽ / час</td></tr>
+        <tr><td>Будни</td><td>до 30 чел.</td><td>Мероприятия (до 30 чел.)</td><td>10 000 ₽ / час</td></tr>
+        <tr><td>Будни</td><td>более 30 чел.</td><td>Крупные мероприятия</td><td>— ₽ / час</td></tr>
+        <tr><td>Выходные</td><td>до 30 чел.</td><td>Мастер-классы (до 30 чел.)</td><td>15 000 ₽ / час</td></tr>
+        <tr><td>Выходные</td><td>более 30 чел.</td><td>Крупные мероприятия</td><td>— ₽ / час</td></tr>
       </tbody>
     </table>
-    <p style="font-size:10px;font-weight:300;color:rgba(217,217,217,.35);margin-top:16px;padding-left:24px;line-height:1.7">* Если на мероприятии планируется более 30 человек, стоимость согласовывается индивидуально.</p>
+    <p id="hourly-note" style="font-size:10px;font-weight:300;color:rgba(217,217,217,.35);margin-top:16px;padding-left:24px;line-height:1.7"></p>
   </div>
   <div class="tab-content" id="tab-event">
     <div class="event-cards">
@@ -966,12 +966,19 @@ function applyCms() {
   // Pricing
   if (C.pricing) {
     const p=C.pricing;
-    if (p.hourly?.length) {
+    // Почасовая аренда: берём из pricing_rules (все тиры), не из CMS-поля hourly
+    const hourlyRules=(C.pricing_rules||[]).filter(r=>r.booking_format==='hourly');
+    if(hourlyRules.length){
       const dtLbl={weekday:'Будни',weekend:'Выходные'};
+      const tierLbl={below30:'до 30 чел.',above30:'более 30 чел.',any:''};
+      const sorted=[...hourlyRules].sort((a,b)=>{
+        if(a.day_type!==b.day_type) return a.day_type==='weekday'?-1:1;
+        return a.guest_tier==='below30'?-1:1;
+      });
       const tbody=document.querySelector('#tab-hourly tbody');
-      if(tbody) tbody.innerHTML=p.hourly.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type||''}</td><td>${r.desc||r.label||r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`).join('');
+      if(tbody) tbody.innerHTML=sorted.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type||''}</td><td>${tierLbl[r.guest_tier]||r.guest_tier||''}</td><td>${r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽ / час</td></tr>`).join('');
     }
-    if (p.hourly_note){ const el=document.querySelector('#tab-hourly > p'); if(el) el.textContent=p.hourly_note; }
+    if(p.hourly_note){const el=document.getElementById('hourly-note');if(el)el.textContent=p.hourly_note;}
     if (p.events?.length) {
       const wrap=document.querySelector('.event-cards');
       if(wrap) wrap.innerHTML=p.events.map((e,i)=>`<div class="event-card${e.featured?' featured':''} reveal${i?' reveal-delay-'+i:''}"><span class="event-card-label">${e.label||e.subtitle||''}</span><div class="event-card-price"><span class="event-card-currency">₽</span>${Number(e.price).toLocaleString('ru-RU')}</div><div class="event-card-title">${e.title||''}</div><div class="event-card-desc">${e.desc||e.description||''}</div></div>`).join('');

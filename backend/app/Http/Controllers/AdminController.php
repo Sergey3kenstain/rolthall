@@ -102,17 +102,36 @@ class AdminController extends Controller
         // 1. Сохраняем CMS в БД
         $hall->update(['cms' => $cms]);
 
-        // 2. Синхронизируем pricing_rules из cms.pricing.hourly (строки с engine:true → below30 hourly)
+        // 2. Создаём pricing_rules из cms.pricing.hourly только если ещё не существует
+        //    (firstOrCreate — не перезаписываем engine pricing при повторных публикациях)
         $hourly = $cms['pricing']['hourly'] ?? [];
         foreach ($hourly as $row) {
             if (empty($row['engine'])) continue;
-            PricingRule::updateOrCreate(
+            PricingRule::firstOrCreate(
                 ['hall_id' => $hall->id, 'booking_format' => 'hourly', 'day_type' => $row['day_type'], 'guest_tier' => 'below30'],
                 ['price_per_hour' => (int) $row['price'], 'description' => $row['desc'] ?? null, 'is_active' => true, 'min_hours' => 1]
             );
         }
 
-        // 3. Генерируем cms_data.js
+        // 3. Обратная синхронизация: обновляем cms.pricing.hourly из актуального engine pricing
+        $below30 = PricingRule::where('hall_id', $hall->id)
+            ->where('booking_format', 'hourly')->where('guest_tier', 'below30')->where('is_active', true)
+            ->get()->keyBy('day_type');
+
+        if (!empty($cms['pricing']['hourly'])) {
+            $cms['pricing']['hourly'] = array_map(function ($row) use ($below30) {
+                if (empty($row['engine'])) return $row;
+                $dt   = $row['day_type'] ?? null;
+                $rule = $dt ? ($below30[$dt] ?? null) : null;
+                if ($rule && ($row['desc'] ?? '') === ($rule->description ?? '')) {
+                    $row['price'] = $rule->price_per_hour;
+                }
+                return $row;
+            }, $cms['pricing']['hourly']);
+            $hall->update(['cms' => $cms]);
+        }
+
+        // 4. Генерируем cms_data.js
         $allRules = PricingRule::where('hall_id', $hall->id)->where('is_active', true)->get()
             ->map(fn($r) => [
                 'booking_format' => $r->booking_format,
