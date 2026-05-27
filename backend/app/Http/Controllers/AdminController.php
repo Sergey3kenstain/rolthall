@@ -504,7 +504,22 @@ class AdminController extends Controller
             return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
         }
 
-        $c = Client::findOrFail($id);
+        $c      = Client::findOrFail($id);
+        $viewer = $request->user();
+
+        if ($request->has('role') && $c->user) {
+            $newRole = $request->input('role');
+            $allowed = $viewer->hasRole('developer')
+                ? ['developer', 'owner', 'admin', 'client']
+                : ['admin', 'client'];
+
+            if (!in_array($newRole, $allowed)) {
+                return response()->json(['ok' => false, 'error' => 'Недостаточно прав для этой роли'], 403, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            $c->user->syncRoles([$newRole]);
+        }
+
         $c->fill($request->only(['name', 'phone', 'email', 'telegram_username', 'is_blacklisted', 'blacklist_reason']));
         $c->save();
 
@@ -807,13 +822,22 @@ class AdminController extends Controller
 
     public function setUserRole(Request $request, int $id): JsonResponse
     {
-        if (!$this->isOwner($request)) {
-            return response()->json(['ok' => false, 'error' => 'Forbidden'], 403);
+        $viewer  = $request->user();
+        $data    = $request->validate(['role' => 'required|string|in:developer,owner,admin,client']);
+        $newRole = $data['role'];
+
+        if ($viewer->hasRole('developer')) {
+            // разраб может назначать любую роль
+        } elseif ($viewer->hasRole('owner')) {
+            if (!in_array($newRole, ['admin', 'client'])) {
+                return response()->json(['ok' => false, 'error' => 'Недостаточно прав для этой роли'], 403, [], JSON_UNESCAPED_UNICODE);
+            }
+        } else {
+            return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $data = $request->validate(['role' => 'required|string|in:developer,owner,admin,client']);
         $user = User::findOrFail($id);
-        $user->syncRoles([$data['role']]);
+        $user->syncRoles([$newRole]);
 
         return response()->json(['ok' => true]);
     }

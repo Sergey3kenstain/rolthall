@@ -2753,15 +2753,27 @@ async function openClientModal(id) {
   if (_me?.role==='developer'||_me?.role==='owner'||_me?.role==='admin') {
     resetBtn.style.display='flex';
   } else { resetBtn.style.display='none'; }
-  if (_me?.role==='developer'||_me?.role==='owner') {
-    devRow.style.display='flex';
-    document.getElementById('cd-ban-cb').checked = !!c.is_blacklisted;
-    const roleBtn  = document.getElementById('cd-role-sel');
-    const rolePopup = document.getElementById('cd-role-popup');
-    if (roleBtn)  roleBtn.textContent = ROLE_LABELS[c.role] || c.role || 'Клиент';
-    if (rolePopup) rolePopup.innerHTML = ['client','manager','admin','owner','developer'].map(r=>
-      `<div class="role-popup-item${c.role===r?' active':''}" onclick="setClientRole('${r}')">${ROLE_LABELS[r]}</div>`
-    ).join('');
+  const myRole    = _me?.role;
+  const roleBtn   = document.getElementById('cd-role-sel');
+  const rolePopup = document.getElementById('cd-role-popup');
+  const banCb     = document.getElementById('cd-ban-cb');
+  if (myRole==='developer' || myRole==='owner' || myRole==='admin') {
+    devRow.style.display = 'flex';
+    if (roleBtn) roleBtn.textContent = ROLE_LABELS[c.role] || c.role || 'Клиент';
+    if (myRole === 'admin') {
+      if (roleBtn)   { roleBtn.style.pointerEvents='none'; roleBtn.style.opacity='.55'; }
+      if (rolePopup) rolePopup.innerHTML = '';
+      if (banCb)     banCb.closest('label').style.display = 'none';
+    } else {
+      if (roleBtn)   { roleBtn.style.pointerEvents=''; roleBtn.style.opacity=''; }
+      if (banCb)     { banCb.closest('label').style.display=''; banCb.checked=!!c.is_blacklisted; }
+      const assignable = myRole==='developer'
+        ? ['client','admin','owner','developer']
+        : ['client','admin'];
+      if (rolePopup) rolePopup.innerHTML = assignable.map(r=>
+        `<div class="role-popup-item${c.role===r?' active':''}" onclick="setClientRole('${r}')">${ROLE_LABELS[r]}</div>`
+      ).join('');
+    }
   } else { devRow.style.display='none'; }
   // Note
   document.getElementById('cd-note').value = c.admin_note||'';
