@@ -884,6 +884,7 @@ select.inp option{background:var(--bg-card);}
       <table style="width:100%;border-collapse:collapse;font-size:.75rem;" id="cms-hourly-table">
         <thead><tr style="color:var(--text-d);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;">
           <th style="padding:6px 8px;text-align:left;">День</th>
+          <th style="padding:6px 8px;text-align:left;width:100px;">Гостей</th>
           <th style="padding:6px 8px;text-align:left;">Описание</th>
           <th style="padding:6px 8px;text-align:left;width:110px;">₽ / час</th>
           <th style="padding:6px 8px;text-align:center;width:60px;">В систему</th>
@@ -2407,9 +2408,15 @@ function cmsRenderHourly(rows) {
   tbody.innerHTML = rows.map((r, i) => `
     <tr data-i="${i}">
       <td style="padding:4px 8px;">
-        <select class="inp" style="font-size:.72rem;padding:5px 8px;" onchange="void 0">
+        <select class="inp" style="font-size:.72rem;padding:5px 8px;">
           <option value="weekday"${r.day_type==='weekday'?' selected':''}>Будни</option>
           <option value="weekend"${r.day_type==='weekend'?' selected':''}>Выходные</option>
+        </select>
+      </td>
+      <td style="padding:4px 8px;">
+        <select class="inp" style="font-size:.72rem;padding:5px 8px;">
+          <option value="below30"${(r.guest_tier||'below30')==='below30'?' selected':''}>до 30</option>
+          <option value="above30"${r.guest_tier==='above30'?' selected':''}>от 30</option>
         </select>
       </td>
       <td style="padding:4px 8px;"><input class="inp" style="font-size:.72rem;padding:5px 8px;" value="${r.desc||''}" placeholder="Тренировки…"></td>
@@ -2420,10 +2427,10 @@ function cmsRenderHourly(rows) {
 }
 function cmsAddHourlyRow() {
   const tbody = document.getElementById('cms-hourly-tbody');
-  const i = tbody.rows.length;
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td style="padding:4px 8px;"><select class="inp" style="font-size:.72rem;padding:5px 8px;"><option value="weekday">Будни</option><option value="weekend">Выходные</option></select></td>
+    <td style="padding:4px 8px;"><select class="inp" style="font-size:.72rem;padding:5px 8px;"><option value="below30">до 30</option><option value="above30">от 30</option></select></td>
     <td style="padding:4px 8px;"><input class="inp" style="font-size:.72rem;padding:5px 8px;" placeholder="Тренировки…"></td>
     <td style="padding:4px 8px;"><input class="inp" type="number" style="font-size:.72rem;padding:5px 8px;" placeholder="3500"></td>
     <td style="padding:4px 8px;text-align:center;"><input type="checkbox" title="Синхронизировать с движком бронирования"></td>
@@ -2434,10 +2441,11 @@ function cmsGetHourly() {
   return [...document.querySelectorAll('#cms-hourly-tbody tr')].map(tr => {
     const cells = tr.querySelectorAll('td');
     return {
-      day_type: cells[0].querySelector('select').value,
-      desc:     cells[1].querySelector('input').value,
-      price:    +cells[2].querySelector('input').value || 0,
-      engine:   cells[3].querySelector('input').checked,
+      day_type:   cells[0].querySelector('select').value,
+      guest_tier: cells[1].querySelector('select').value,
+      desc:       cells[2].querySelector('input').value,
+      price:      +cells[3].querySelector('input').value || 0,
+      engine:     cells[4].querySelector('input').checked,
     };
   });
 }

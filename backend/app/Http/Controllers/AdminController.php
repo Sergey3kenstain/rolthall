@@ -102,13 +102,18 @@ class AdminController extends Controller
         // 1. Сохраняем CMS в БД
         $hall->update(['cms' => $cms]);
 
-        // 2. firstOrCreate pricing_rules из CMS (hourly → below30, event_table → event)
+        // 2. firstOrCreate pricing_rules из CMS (hourly — с guest_tier из строки, event_table → event)
         foreach ($cms['pricing']['hourly'] ?? [] as $row) {
             if (empty($row['engine'])) continue;
-            PricingRule::firstOrCreate(
-                ['hall_id' => $hall->id, 'booking_format' => 'hourly', 'day_type' => $row['day_type'], 'guest_tier' => 'below30'],
+            $tier = $row['guest_tier'] ?? 'below30';
+            $rule = PricingRule::firstOrCreate(
+                ['hall_id' => $hall->id, 'booking_format' => 'hourly', 'day_type' => $row['day_type'], 'guest_tier' => $tier],
                 ['price_per_hour' => (int) $row['price'], 'description' => $row['desc'] ?? null, 'is_active' => true, 'min_hours' => 1]
             );
+            // Всегда обновляем description из CMS (цену не трогаем — её меняют через engine pricing)
+            if (!empty($row['desc'])) {
+                $rule->update(['description' => $row['desc']]);
+            }
         }
         foreach ($cms['pricing']['event_table'] ?? [] as $row) {
             if (empty($row['engine'])) continue;
