@@ -70,7 +70,8 @@ Route::get('/halls/{hall}/availability',    [HallController::class, 'availabilit
 Route::post('/debug/frontend',  [AdminController::class, 'debugFrontendReceive']);
 
 // ── Profile ───────────────────────────────────────────────────────────
-Route::post('/profile/login', [ProfileController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/profile/login',    [ProfileController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/profile/tg-login', [ProfileController::class, 'tgLogin'])->middleware('throttle:20,1');
 Route::get('/profile/bookings',             [ProfileController::class, 'bookings']);
 Route::post('/profile/reschedule-request',  [ProfileController::class, 'rescheduleRequest']);
 

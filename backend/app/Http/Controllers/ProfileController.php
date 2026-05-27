@@ -62,6 +62,60 @@ class ProfileController extends Controller
     }
 
     /**
+     * Автовход через Telegram WebApp initData
+     * POST /api/profile/tg-login
+     */
+    public function tgLogin(Request $request): JsonResponse
+    {
+        $initData = $request->input('init_data', '');
+        if (!$initData) {
+            return response()->json(['ok' => false, 'error' => 'Нет init_data'], 400);
+        }
+
+        parse_str($initData, $params);
+        $hash = $params['hash'] ?? '';
+        unset($params['hash']);
+
+        ksort($params);
+        $dataCheckString = collect($params)
+            ->map(fn($v, $k) => "{$k}={$v}")
+            ->implode("\n");
+
+        $secretKey    = hash_hmac('sha256', config('services.telegram.bot_token'), 'WebAppData', true);
+        $expectedHash = hash_hmac('sha256', $dataCheckString, $secretKey);
+
+        if (!hash_equals($expectedHash, $hash)) {
+            return response()->json(['ok' => false, 'error' => 'Неверная подпись Telegram'], 403);
+        }
+
+        $tgUser = json_decode($params['user'] ?? '{}', true);
+        $chatId = (string) ($tgUser['id'] ?? '');
+
+        if (!$chatId) {
+            return response()->json(['ok' => false, 'error' => 'Нет ID пользователя'], 400);
+        }
+
+        $user = User::where('telegram_chat_id', $chatId)->first();
+
+        if (!$user) {
+            return response()->json(['ok' => false, 'error' => 'not_found'], 404);
+        }
+
+        $client = $user->client;
+        if ($client && $client->is_blacklisted) {
+            return response()->json(['ok' => false, 'error' => 'Доступ ограничен.'], 403);
+        }
+
+        $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
+
+        return response()->json([
+            'ok'    => true,
+            'token' => $token,
+            'name'  => $user->name,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * Брони клиента по токену
      * GET /api/profile/bookings?token=...
      */

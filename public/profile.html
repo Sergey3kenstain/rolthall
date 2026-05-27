@@ -511,10 +511,36 @@ async function confirmCancel() {
   }
 }
 
-// Проверяем токен — если нет, редиректим на логин
-const saved = sessionStorage.getItem(TOKEN_KEY);
-if (!saved) { window.location.href = '/login'; }
-else { showBookingsView('', saved); }
+// Запуск: сначала пробуем автовход через Telegram WebApp, иначе — по токену/редирект
+(async function init() {
+  const saved = sessionStorage.getItem(TOKEN_KEY);
+  if (saved) { showBookingsView('', saved); return; }
+
+  // Если открыто через Telegram WebApp — пробуем автовход по initData
+  const tg       = window.Telegram?.WebApp;
+  const initData = tg?.initData;
+  if (initData) {
+    try {
+      const res  = await fetch('/api/profile/tg-login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body:    JSON.stringify({ init_data: initData }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        sessionStorage.setItem(TOKEN_KEY, data.token);
+        showBookingsView(data.name || '', data.token);
+        return;
+      }
+      // not_found — пользователь ещё не бронировал, показываем форму входа
+      if (data.error !== 'not_found') {
+        console.warn('tg-login error:', data.error);
+      }
+    } catch (e) { /* продолжаем к форме */ }
+  }
+
+  window.location.href = '/login';
+})();
 
 let rescheduleTarget = null;
 function showRescheduleModal(id, currentDate) {
