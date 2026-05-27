@@ -129,13 +129,19 @@ async function doLogin() {
   const email    = document.getElementById('lEmail').value.trim();
   const btn      = document.getElementById('loginBtn');
   const errEl    = document.getElementById('loginError');
+  const hp       = document.getElementById('hp-website')?.value ?? '';
+
+  console.log('[login] phone raw:', rawPhone, '→ digits:', digits, '→ sent:', phone);
+  console.log('[login] email:', email);
+  console.log('[login] honeypot:', JSON.stringify(hp));
 
   errEl.style.display = 'none';
-  if (!rawPhone || !email) { showErr('Заполните оба поля'); return; }
-  if (digits.length < 10) { showErr('Введите корректный номер телефона'); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); return; }
-  if (document.getElementById('hp-website')?.value?.trim()) return;
+  if (!rawPhone || !email) { showErr('Заполните оба поля'); console.log('[login] STOP: empty fields'); return; }
+  if (digits.length < 10)  { showErr('Введите корректный номер телефона'); console.log('[login] STOP: phone too short', digits.length); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); console.log('[login] STOP: email invalid'); return; }
+  if (hp.trim()) { showErr('Пожалуйста, обновите страницу и попробуйте снова.'); console.log('[login] STOP: honeypot filled:', JSON.stringify(hp)); return; }
 
+  console.log('[login] sending request...');
   btn.disabled = true; btn.textContent = 'Проверяем…';
 
   try {
@@ -145,9 +151,11 @@ async function doLogin() {
       body: JSON.stringify({ phone, email }),
     });
 
+    console.log('[login] response status:', res.status);
     if (res.status === 429) { showErr('Слишком много попыток. Подождите минуту и попробуйте снова.'); return; }
 
     const data = await res.json();
+    console.log('[login] response data:', data);
 
     if (!data.ok) { showErr(data.error || 'Пользователь не найден'); return; }
 
@@ -160,6 +168,7 @@ async function doLogin() {
       window.location.href = '/profile';
     }
   } catch(e) {
+    console.log('[login] fetch error:', e.message);
     showErr('Ошибка соединения. Попробуйте ещё раз.');
   } finally {
     btn.disabled = false; btn.textContent = 'Войти';
