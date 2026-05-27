@@ -80,6 +80,10 @@ class AuthController extends Controller
      */
     public function unifiedLogin(Request $request): JsonResponse
     {
+        if ($request->input('_hp') !== null && $request->input('_hp') !== '') {
+            return response()->json(['ok' => false, 'error' => 'Bad request'], 422);
+        }
+
         $data = $request->validate([
             'phone' => 'required|string|max:30',
             'email' => 'required|email|max:191',
@@ -170,6 +174,96 @@ class AuthController extends Controller
             'phone' => $user->phone,
             'role'  => $user->getRoleNames()->first(),
             'roles' => $user->getRoleNames()->values()->all(),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Синхронизация данных Telegram WebApp
+     * POST /api/auth/tg-sync
+     *
+     * Принимает initData из Telegram.WebApp.initData, верифицирует HMAC,
+     * сохраняет telegram_chat_id, telegram_username, telegram_avatar_url.
+     */
+    public function tgSync(Request $request): JsonResponse
+    {
+        $initData = $request->input('init_data', '');
+        if (!$initData) {
+            return response()->json(['ok' => false, 'error' => 'No init_data'], 400);
+        }
+
+        // Верификация подписи Telegram
+        parse_str($initData, $params);
+        $hash = $params['hash'] ?? '';
+        unset($params['hash']);
+
+        ksort($params);
+        $dataCheckString = collect($params)
+            ->map(fn($v, $k) => "{$k}={$v}")
+            ->implode("\n");
+
+        $secretKey    = hash_hmac('sha256', config('services.telegram.bot_token'), 'WebAppData', true);
+        $expectedHash = hash_hmac('sha256', $dataCheckString, $secretKey);
+
+        if (!hash_equals($expectedHash, $hash)) {
+            return response()->json(['ok' => false, 'error' => 'Invalid signature'], 403);
+        }
+
+        // Парсим user из initData
+        $tgUser = json_decode($params['user'] ?? '{}', true);
+        $chatId   = (string) ($tgUser['id']         ?? '');
+        $username = $tgUser['username']  ?? null;
+        $photoUrl = $tgUser['photo_url'] ?? null;
+
+        if (!$chatId) {
+            return response()->json(['ok' => false, 'error' => 'No user id'], 400);
+        }
+
+        // Найти пользователя по chat_id или username
+        $user = User::where('telegram_chat_id', $chatId)->first()
+            ?? ($username ? User::where('telegram_username', $username)->first() : null);
+
+        if ($user) {
+            $updates = ['telegram_chat_id' => $chatId];
+            if ($username) $updates['telegram_username'] = $username;
+            if ($photoUrl && !$user->telegram_avatar_url) $updates['telegram_avatar_url'] = $photoUrl;
+            $user->update($updates);
+        }
+
+        return response()->json([
+            'ok'       => true,
+            'linked'   => (bool) $user,
+            'chat_id'  => $chatId,
+            'username' => $username,
+        ]);
+    }
+
+    /**
+     * Получаем сохранённые данные пользователя по Telegram chat_id
+     * GET /api/auth/tg-profile?tg_id=123456789
+     *
+     * Используется для предзаполнения формы бронирования если пользователь
+     * ранее бронировал или отправил контакт боту.
+     */
+    public function tgProfile(Request $request): JsonResponse
+    {
+        $tgId = $request->query('tg_id');
+        if (!$tgId) {
+            return response()->json(['ok' => false], 400);
+        }
+
+        $user = User::where('telegram_chat_id', (string) $tgId)->first();
+
+        if (!$user) {
+            return response()->json(['ok' => false, 'found' => false]);
+        }
+
+        return response()->json([
+            'ok'       => true,
+            'found'    => true,
+            'name'     => $user->name  ?? '',
+            'phone'    => $user->phone ?? '',
+            'email'    => $user->email ?? '',
+            'username' => $user->telegram_username ?? '',
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

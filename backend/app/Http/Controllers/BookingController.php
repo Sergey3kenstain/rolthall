@@ -24,6 +24,10 @@ class BookingController extends Controller
      */
     public function hold(Request $request): JsonResponse
     {
+        if ($request->input('_hp') !== null && $request->input('_hp') !== '') {
+            return response()->json(['ok' => false, 'error' => 'Bad request'], 422);
+        }
+
         $data = $request->validate([
             'hall_id'        => 'required|integer|exists:halls,id',
             'format'         => 'nullable|in:hourly,event,allday',
@@ -86,6 +90,10 @@ class BookingController extends Controller
      */
     public function eventHold(Request $request): JsonResponse
     {
+        if ($request->input('_hp') !== null && $request->input('_hp') !== '') {
+            return response()->json(['ok' => false, 'error' => 'Bad request'], 422);
+        }
+
         $data = $request->validate([
             'hall_id'        => 'required|integer|exists:halls,id',
             'dates'          => 'required|array|min:1',

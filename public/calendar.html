@@ -668,8 +668,25 @@ function _initTg() {
   if (!tg) return;
   var u = tg.initDataUnsafe && tg.initDataUnsafe.user;
   if (u) {
-    try { sessionStorage.setItem('rh_tg_user', JSON.stringify({id:u.id, username:u.username||'', first_name:u.first_name||''})); } catch(e){}
-    try { tg.ready(); tg.expand(); } catch(e){}
+    try {
+      sessionStorage.setItem('rh_tg_user', JSON.stringify({
+        id:         u.id,
+        username:   u.username   || '',
+        first_name: u.first_name || '',
+        photo_url:  u.photo_url  || '',
+      }));
+    } catch(e) {}
+
+    // Синхронизируем данные с бэкендом (связываем TG-аккаунт с бронями)
+    if (tg.initData) {
+      fetch('/api/auth/tg-sync', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body:    JSON.stringify({ init_data: tg.initData }),
+      }).catch(function() {});
+    }
+
+    try { tg.ready(); tg.expand(); } catch(e) {}
   }
 }
 </script>
@@ -1011,7 +1028,19 @@ async function fetchAndUpdatePricing() {
       apiPricing.weekend   = weRes?.rules?.[0]?.price_per_hour      ?? 0;
       apiPricing.prepayPct = wdRes?.rules?.[0]?.prepayment_percent  ?? 100;
     }
-  } catch(e) { console.error('pricing fetch', e); }
+    // Лог для debug-панели
+    const pricingSnapshot = { format: fmt, guestCount, apiPricing: {...apiPricing} };
+    fetch('/api/debug/frontend', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ level: 'info', message: 'pricing_loaded', data: pricingSnapshot }),
+    }).catch(() => {});
+  } catch(e) {
+    console.error('pricing fetch', e);
+    fetch('/api/debug/frontend', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ level: 'error', message: 'pricing_fetch_error', data: e.message }),
+    }).catch(() => {});
+  }
   renderPricing();
   if (fmt === 'allday') renderAlldayInfo();
   renderSlots();

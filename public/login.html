@@ -71,6 +71,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 48px;d
         <label class="form-label">Email</label>
         <input type="email" class="form-input" id="lEmail" placeholder="your@email.com" autocomplete="email">
       </div>
+      <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+        <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
       <div id="loginError" class="login-error"></div>
       <button class="btn-primary" id="loginBtn" onclick="doLogin()">Войти</button>
     </div>
@@ -135,7 +138,7 @@ async function doLogin() {
     const res  = await fetch('/api/auth/unified-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ phone, email }),
+      body: JSON.stringify({ phone, email, _hp: document.getElementById('hp-website')?.value || '' }),
     });
     const data = await res.json();
 

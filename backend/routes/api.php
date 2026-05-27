@@ -12,9 +12,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth ──────────────────────────────────────────────────────────────
-Route::post('/auth/unified-login', [AuthController::class, 'unifiedLogin']);
-Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login',    [AuthController::class, 'login']);
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/auth/unified-login', [AuthController::class, 'unifiedLogin']);
+    Route::post('/auth/register',      [AuthController::class, 'register']);
+    Route::post('/auth/login',         [AuthController::class, 'login']);
+});
+Route::post('/auth/tg-sync',    [AuthController::class, 'tgSync'])->middleware('throttle:30,1');
+Route::get('/auth/tg-profile',  [AuthController::class, 'tgProfile'])->middleware('throttle:30,1');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me',      [AuthController::class, 'me']);
@@ -50,6 +54,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::put('/users/{id}',               [AdminController::class, 'updateUser']);
     Route::put('/users/{id}/role',          [AdminController::class, 'setUserRole']);
     Route::get('/debug/log',                [AdminController::class, 'debugLog']);
+    Route::delete('/debug/log',             [AdminController::class, 'clearDebugLog']);
     Route::get('/telegram/settings',        [AdminController::class, 'telegramSettings']);
     Route::post('/telegram/settings',       [AdminController::class, 'saveTelegramSettings']);
     Route::post('/telegram/test-template',  [AdminController::class, 'testTemplate']);
@@ -65,16 +70,18 @@ Route::get('/halls/{hall}/availability',    [HallController::class, 'availabilit
 Route::post('/debug/frontend',  [AdminController::class, 'debugFrontendReceive']);
 
 // ── Profile ───────────────────────────────────────────────────────────
-Route::post('/profile/login',               [ProfileController::class, 'login']);
+Route::post('/profile/login', [ProfileController::class, 'login'])->middleware('throttle:10,1');
 Route::get('/profile/bookings',             [ProfileController::class, 'bookings']);
 Route::post('/profile/reschedule-request',  [ProfileController::class, 'rescheduleRequest']);
 
 // ── Landing ───────────────────────────────────────────────────────────
-Route::post('/landing/booking', [LandingController::class, 'booking']);
+Route::post('/landing/booking', [LandingController::class, 'booking'])->middleware('throttle:10,1');
 
 // ── Bookings ──────────────────────────────────────────────────────────
-Route::post('/bookings/hold',           [BookingController::class, 'hold']);
-Route::post('/bookings/event-hold',     [BookingController::class, 'eventHold']);
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/bookings/hold',       [BookingController::class, 'hold']);
+    Route::post('/bookings/event-hold', [BookingController::class, 'eventHold']);
+});
 Route::get('/bookings/{booking}/status',[BookingController::class, 'status']);
 Route::post('/bookings/{booking}/cancel',[BookingController::class, 'cancel']);
 

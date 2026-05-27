@@ -28,6 +28,11 @@ class AdminController extends Controller
         return $r->user()->hasAnyRole(['owner', 'developer']);
     }
 
+    private function isDeveloper(Request $r): bool
+    {
+        return $r->user()->hasRole('developer');
+    }
+
     // ── Hall ──────────────────────────────────────────────────────────────
 
     public function halls(?int $id = null): JsonResponse
@@ -534,7 +539,7 @@ class AdminController extends Controller
 
     public function debugLog(Request $request): JsonResponse
     {
-        if (!$this->isOwner($request)) {
+        if (!$this->isDeveloper($request)) {
             return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
         }
 
@@ -544,11 +549,33 @@ class AdminController extends Controller
             return array_reverse(array_slice($lines, -$n));
         };
 
+        $pricing = \App\Models\PricingRule::all([
+            'id', 'booking_format', 'day_type', 'guest_tier',
+            'min_hours', 'max_hours', 'price_per_hour', 'price_per_day',
+            'prepayment_percent', 'is_active',
+        ])->toArray();
+
         return response()->json([
             'ok'       => true,
-            'frontend' => $readLog(storage_path('logs/frontend.log'), 100),
-            'server'   => $readLog(storage_path('logs/laravel.log'),  50),
+            'pricing'  => $pricing,
+            'frontend' => $readLog(storage_path('logs/frontend.log'), 150),
+            'server'   => $readLog(storage_path('logs/laravel.log'),  80),
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function clearDebugLog(Request $request): JsonResponse
+    {
+        if (!$this->isDeveloper($request)) {
+            return response()->json(['ok' => false, 'error' => 'Недостаточно прав'], 403);
+        }
+
+        foreach ([storage_path('logs/laravel.log'), storage_path('logs/frontend.log')] as $path) {
+            if (file_exists($path)) {
+                file_put_contents($path, '');
+            }
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     public function clientsCsv(Request $request): Response

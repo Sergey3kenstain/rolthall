@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\Client;
 use App\Models\Hall;
-use App\Models\PricingRule;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +12,8 @@ use Illuminate\Support\Str;
 
 class BookingService
 {
+    public function __construct(private PricingService $pricing) {}
+
     /**
      * Создаём hold-бронирование (10 минут на оплату)
      */
@@ -22,7 +23,7 @@ class BookingService
         $date       = $data['date'];
         $format     = $data['format']      ?? 'hourly';
         $guestCount = (int)($data['guest_count'] ?? 1);
-        $dayType    = $this->getDayType($date);
+        $dayType    = $this->pricing->getDayType($date);
 
         if ($format === 'allday') {
             $timeStart = '09:00:00';
@@ -31,7 +32,7 @@ class BookingService
         } else {
             $timeStart = $data['time_start'] . ':00';
             $timeEnd   = $data['time_end']   . ':00';
-            $hours     = $this->calcHours($data['time_start'], $data['time_end']);
+            $hours     = $this->pricing->calcHours($data['time_start'], $data['time_end']);
         }
 
         // Проверяем конфликт слотов
@@ -47,14 +48,9 @@ class BookingService
         }
 
         // Рассчитываем стоимость по новой матрице тарифов
-        $rule = $this->getPricingRule($hall->id, $dayType, $format, $hours, $guestCount);
-
-        $total = $format === 'allday'
-            ? ($rule?->price_per_day ?? 0)
-            : ($rule?->price_per_hour ?? 0) * $hours;
-
-        $prepaymentPct = $rule?->prepayment_percent ?? 100;
-        $prepayment    = (int) round($total * $prepaymentPct / 100);
+        $rule       = $this->pricing->findRule($hall->id, $dayType, $format, $hours, $guestCount);
+        $total      = $this->pricing->calcTotal($rule, $format, $hours);
+        $prepayment = $this->pricing->calcPrepayment($total, $rule?->prepayment_percent ?? 100);
 
         return DB::transaction(function () use ($data, $hall, $date, $timeStart, $timeEnd, $hours, $guestCount, $format, $total, $prepayment) {
             $client = $this->resolveClient($data);
@@ -163,7 +159,7 @@ class BookingService
     public function canRefund(Booking $booking): bool
     {
         $start = Carbon::parse("{$booking->date->toDateString()} {$booking->time_start}");
-        return now()->diffInHours($start, false) >= 6;
+        return $this->pricing->canRefund($start);
     }
 
     // ── Private ──────────────────────────────────────────────────────────
@@ -198,34 +194,4 @@ class BookingService
         );
     }
 
-    private function calcHours(string $start, string $end): int
-    {
-        return (int) explode(':', $end)[0] - (int) explode(':', $start)[0];
-    }
-
-    private function getDayType(string $date): string
-    {
-        return in_array(date('N', strtotime($date)), [6, 7]) ? 'weekend' : 'weekday';
-    }
-
-    private function getPricingRule(int $hallId, string $dayType, string $format, int $hours, int $guestCount): ?PricingRule
-    {
-        // Для почасовой — гостевой тир, для остальных — any
-        $guestTier = 'any';
-        if ($format === 'hourly') {
-            $guestTier = $guestCount > 30 ? 'above30' : 'below30';
-        }
-
-        return PricingRule::where('hall_id', $hallId)
-            ->where('booking_format', $format)
-            ->where('day_type', $dayType)
-            ->where('guest_tier', $guestTier)
-            ->where('is_active', true)
-            ->when($format !== 'allday', function ($q) use ($hours) {
-                $q->where('min_hours', '<=', $hours)
-                  ->where(fn($q2) => $q2->whereNull('max_hours')->orWhere('max_hours', '>=', $hours));
-            })
-            ->orderBy('min_hours', 'desc')
-            ->first();
-    }
 }

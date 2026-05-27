@@ -37,41 +37,88 @@ class TelegramController extends Controller
      */
     private function handleMessage(array $message): void
     {
-        $chatId = $message['chat']['id'] ?? null;
-        $text   = $message['text'] ?? '';
-
+        $from   = $message['from'] ?? [];
+        $chatId = $from['id'] ?? ($message['chat']['id'] ?? null);
         if (!$chatId) return;
 
-        $username = $message['chat']['username'] ?? null;
+        $username  = $from['username']   ?? null;
+        $firstName = $from['first_name'] ?? null;
+        $text      = $message['text']    ?? '';
 
-        // Сохраняем chat_id при любом входящем сообщении
-        if ($username) {
-            User::where('telegram_username', $username)
-                ->whereNull('telegram_chat_id')
-                ->update(['telegram_chat_id' => (string) $chatId]);
+        // Пользователь поделился контактом
+        if (isset($message['contact'])) {
+            $this->handleContact($message['contact'], $chatId);
+            return;
+        }
+
+        // Найти пользователя по chat_id или username
+        $user = User::where('telegram_chat_id', (string) $chatId)->first()
+            ?? ($username ? User::where('telegram_username', $username)->first() : null);
+
+        if ($user) {
+            $updates = ['telegram_chat_id' => (string) $chatId];
+            if ($username) $updates['telegram_username'] = $username;
+            $user->update($updates);
+
+            // Подтягиваем аватар если ещё нет
+            if (!$user->telegram_avatar_url) {
+                $this->fetchAndSaveAvatar($user, $chatId);
+            }
         }
 
         match (true) {
-            str_starts_with($text, '/start') => $this->sendStart($chatId),
+            str_starts_with($text, '/start')  => $this->sendStart($chatId, $firstName, $user),
             str_starts_with($text, '/mychat') => $this->sendMessage(
                 $chatId,
                 "Chat ID: <code>{$chatId}</code>\n" .
                 "Thread ID: <code>" . ($message['message_thread_id'] ?? 'нет (личный чат)') . "</code>",
-                $message['message_thread_id'] ?? null
             ),
             default => null,
         };
     }
 
     /**
-     * Приветствие /start с кнопкой открытия Mini App
+     * Пользователь поделился контактом — сохраняем телефон
      */
-    private function sendStart(int|string $chatId): void
+    private function handleContact(array $contact, int|string $chatId): void
     {
+        $rawPhone = $contact['phone_number'] ?? null;
+        if (!$rawPhone) return;
+
+        // Нормализуем: убираем пробелы и дефисы, добавляем +
+        $digits = preg_replace('/[^\d]/', '', $rawPhone);
+        $phone  = '+' . $digits;
+
+        $user = User::where('telegram_chat_id', (string) $chatId)->first()
+            ?? User::where('phone', $phone)->first();
+
+        if ($user) {
+            $data = ['telegram_chat_id' => (string) $chatId];
+            if (!$user->phone) $data['phone'] = $phone;
+            $user->update($data);
+        }
+
+        // Убираем reply-клавиатуру и благодарим
+        $this->telegram->sendMessage([
+            'chat_id'      => $chatId,
+            'text'         => "✅ Отлично! Теперь уведомления о бронях будут приходить сюда.",
+            'parse_mode'   => 'HTML',
+            'reply_markup' => json_encode(['remove_keyboard' => true]),
+        ]);
+    }
+
+    /**
+     * Приветствие /start — inline-кнопка WebApp + reply-клавиатура для телефона
+     */
+    private function sendStart(int|string $chatId, ?string $firstName, ?User $user): void
+    {
+        $name = $firstName ? ", {$firstName}" : '';
+
         try {
+            // Сообщение 1: приветствие + кнопка открыть Mini App
             $this->telegram->sendMessage([
                 'chat_id'      => $chatId,
-                'text'         => "👋 Привет! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\nНажми кнопку ниже чтобы выбрать время и забронировать зал. После оплаты уведомление придёт сюда.",
+                'text'         => "👋 Привет{$name}! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\nНажми кнопку ниже чтобы выбрать время и забронировать зал. После оплаты уведомление придёт сюда.",
                 'parse_mode'   => 'HTML',
                 'reply_markup' => json_encode([
                     'inline_keyboard' => [[
@@ -82,13 +129,57 @@ class TelegramController extends Controller
                     ]],
                 ]),
             ]);
+
+            // Сообщение 2: запрос телефона (только если ещё не сохранён)
+            $needPhone = !$user || !$user->phone;
+            if ($needPhone) {
+                $this->telegram->sendMessage([
+                    'chat_id'      => $chatId,
+                    'text'         => "📱 Поделитесь номером телефона — так мы свяжем уведомления с вашими бронями.",
+                    'parse_mode'   => 'HTML',
+                    'reply_markup' => json_encode([
+                        'keyboard' => [[
+                            ['text' => '📱 Поделиться номером', 'request_contact' => true],
+                        ]],
+                        'resize_keyboard'   => true,
+                        'one_time_keyboard' => true,
+                    ]),
+                ]);
+            }
         } catch (\Throwable $e) {
             Log::error('Telegram sendStart error', ['error' => $e->getMessage()]);
         }
     }
 
     /**
-     * Отправляем сообщение в Telegram
+     * Получаем аватар пользователя через API и сохраняем URL
+     */
+    private function fetchAndSaveAvatar(User $user, int|string $chatId): void
+    {
+        try {
+            $photos = $this->telegram->getUserProfilePhotos([
+                'user_id' => $chatId,
+                'limit'   => 1,
+            ]);
+
+            $fileId = $photos['photos'][0][0]['file_id'] ?? null;
+            if (!$fileId) return;
+
+            $file     = $this->telegram->getFile(['file_id' => $fileId]);
+            $filePath = $file['file_path'] ?? null;
+            if (!$filePath) return;
+
+            $token = config('services.telegram.bot_token');
+            $url   = "https://api.telegram.org/file/bot{$token}/{$filePath}";
+
+            $user->update(['telegram_avatar_url' => $url]);
+        } catch (\Throwable $e) {
+            Log::error('TG avatar fetch error', ['chat_id' => $chatId, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Отправляем произвольное сообщение в Telegram
      */
     public function sendMessage(int|string $chatId, string $text, ?int $threadId = null): void
     {

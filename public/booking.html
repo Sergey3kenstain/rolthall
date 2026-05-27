@@ -599,6 +599,10 @@ function _initTg() {
             <span class="form-hint">Уведомления через @rolthall_bot</span>
           </div>
 
+          <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+            <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
           <div class="notice">
             <div class="notice-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="16" height="16"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
@@ -900,6 +904,7 @@ async function submitBooking() {
           telegram:        telegram || null,
           tg_user_id:      tgChatId,
           notes,
+          _hp:             document.getElementById('hp-website')?.value || '',
           consent_offer:   true,
           consent_policy:  true,
           consent_refund:  true,
@@ -927,6 +932,7 @@ async function submitBooking() {
           name, phone, email,
           telegram:        telegram || null,
           notes,
+          _hp:             document.getElementById('hp-website')?.value || '',
           consent_offer:   true,
           consent_policy:  true,
           consent_refund:  true,
@@ -977,13 +983,32 @@ document.addEventListener('DOMContentLoaded', function() {
   initBookingPage();
   restoreFormData();
 
-  // TG данные: из sessionStorage (сохранено в <head> выше) или напрямую
+  // TG данные: из sessionStorage (сохранено при _initTg()) или напрямую
   const tgDirect = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const tgStored = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
   const tgUser   = tgDirect || tgStored;
+
   if (tgUser?.username) {
     const el = document.getElementById('f-telegram');
     if (el && !el.value) el.value = '@' + tgUser.username;
+  }
+
+  // Если есть tg_id — подтягиваем сохранённые name/phone/email с сервера
+  if (tgUser?.id) {
+    fetch('/api/auth/tg-profile?tg_id=' + encodeURIComponent(tgUser.id), {
+      headers: { 'Accept': 'application/json' },
+    }).then(r => r.json()).then(function(d) {
+      if (!d.ok || !d.found) return;
+      const nameEl  = document.getElementById('f-name');
+      const phoneEl = document.getElementById('f-phone');
+      const emailEl = document.getElementById('f-email');
+      const tgEl    = document.getElementById('f-telegram');
+      if (nameEl  && !nameEl.value  && d.name)     nameEl.value  = d.name;
+      if (phoneEl && !phoneEl.value && d.phone)     phoneEl.value = d.phone;
+      if (emailEl && !emailEl.value && d.email)     emailEl.value = d.email;
+      if (tgEl    && !tgEl.value    && d.username)  tgEl.value    = '@' + d.username;
+      saveFormData();
+    }).catch(function() {});
   }
 
   // Сохраняем данные при изменении любого поля

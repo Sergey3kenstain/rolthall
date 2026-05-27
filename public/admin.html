@@ -549,6 +549,10 @@ select.inp option{background:var(--bg-card);}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
       Уведомления
     </button>
+    <button class="nav-item" data-tab="debug" id="nav-debug" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+      Debug Log
+    </button>
   </nav>
   <div class="sidebar-footer">
     <button class="btn-logout" onclick="doLogout()">
@@ -610,6 +614,10 @@ select.inp option{background:var(--bg-card);}
     <button class="mob-nav-item" data-tab="notifications">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       Уведомл.
+    </button>
+    <button class="mob-nav-item" data-tab="debug" id="mob-nav-debug" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+      Debug
     </button>
   </div>
 </nav>
@@ -835,9 +843,34 @@ select.inp option{background:var(--bg-card);}
       </div>
     </div>
 
-    <!-- PRICING -->
+    <!-- BOOKING ENGINE PRICING -->
+    <div class="cms-section" id="engine-pricing-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div>
+          <div class="cms-section-title" style="margin-bottom:2px;">Цены бронирования</div>
+          <div style="font-size:.63rem;color:var(--text-d);">Именно эти цены считает calendar.html — отдельно от лендинга</div>
+        </div>
+        <button class="btn btn-w btn-sm" onclick="saveEnginePricing()">Сохранить цены</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:.72rem;" id="engine-pricing-table">
+          <thead><tr style="color:var(--text-d);font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);">
+            <th style="padding:6px 8px;text-align:left;">Формат</th>
+            <th style="padding:6px 8px;text-align:left;">День</th>
+            <th style="padding:6px 8px;text-align:left;">Гости</th>
+            <th style="padding:6px 8px;text-align:left;min-width:90px;">₽ / час</th>
+            <th style="padding:6px 8px;text-align:left;min-width:100px;">₽ / день</th>
+            <th style="padding:6px 8px;text-align:left;min-width:80px;">Предоплата %</th>
+            <th style="padding:6px 8px;text-align:center;">Активен</th>
+          </tr></thead>
+          <tbody id="engine-pricing-tbody"><tr><td colspan="7" style="padding:16px;text-align:center;color:var(--text-d);">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRICING (CMS — для лендинга) -->
     <div class="cms-section">
-      <div class="cms-section-title">Тарифы</div>
+      <div class="cms-section-title">Тарифы <span style="font-size:.62rem;font-weight:400;color:var(--text-d);">(отображение на лендинге)</span></div>
       <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;">Почасовая аренда</div>
       <table style="width:100%;border-collapse:collapse;font-size:.75rem;" id="cms-hourly-table">
         <thead><tr style="color:var(--text-d);font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;">
@@ -1104,6 +1137,39 @@ select.inp option{background:var(--bg-card);}
       </div>
     </div>
     <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveNotifications()">Сохранить</button>
+  </div>
+
+  <!-- DEBUG LOG -->
+  <div class="tab-pane" id="tab-debug">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+      <div>
+        <div style="font-size:.9rem;font-weight:700;">Debug Log</div>
+        <div style="font-size:.65rem;color:var(--text-d);margin-top:2px;">Только для разработчика</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="loadDebugTab()">Обновить</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadDebugLog()">Скачать</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="clearDebugLog()">Очистить логи</button>
+      </div>
+    </div>
+
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:8px;">Тарифы из БД</div>
+    <div style="overflow-x:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:20px;">
+      <table class="ab-table">
+        <thead><tr>
+          <th>ID</th><th>Формат</th><th>День</th><th>Гости</th>
+          <th>Мин ч</th><th>Макс ч</th><th>₽/ч</th><th>₽/день</th>
+          <th>Предоплата</th><th>Акт.</th>
+        </tr></thead>
+        <tbody id="dbg-pricing-tbody"><tr><td colspan="10" style="text-align:center;color:var(--text-d);padding:16px;">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:8px;">Server Log (laravel.log)</div>
+    <pre id="dbg-server-log" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;font-size:.6rem;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:320px;overflow-y:auto;color:var(--text-m);margin-bottom:20px;">Загрузка…</pre>
+
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:8px;">Frontend Log</div>
+    <pre id="dbg-frontend-log" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;font-size:.6rem;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:320px;overflow-y:auto;color:var(--text-m);">Загрузка…</pre>
   </div>
 
 </main>
@@ -1400,6 +1466,7 @@ function switchTab(tab) {
       profile: loadProfileTab,
       telegram: loadTelegramTab,
       notifications: loadNotificationsTab,
+      debug: loadDebugTab,
     };
     loaders[tab]?.();
   }
@@ -1457,6 +1524,12 @@ async function initUser() {
   document.getElementById('mob-avatar').childNodes[0].textContent=ini;
   document.getElementById('mob-avatar-popup-name').textContent=name||'—';
   if(data.role==='owner') { const b=document.getElementById('csv-btn'); if(b) b.style.display=''; }
+  if(data.role==='developer') {
+    const nd = document.getElementById('nav-debug');
+    const mnd = document.getElementById('mob-nav-debug');
+    if (nd)  nd.style.display  = 'flex';
+    if (mnd) mnd.style.display = 'flex';
+  }
 }
 
 function toggleMobAvatarPopup(e) {
@@ -2050,6 +2123,71 @@ async function loadHallsTab() {
   g('cms-map-link', cms.contacts?.map_link);
   g('cms-hours-wd', cms.contacts?.hours_wd);
   g('cms-hours-we', cms.contacts?.hours_we);
+
+  // Booking engine pricing
+  loadEnginePricing();
+}
+
+/* ── BOOKING ENGINE PRICING ── */
+let _engineRules = [];
+
+function renderEnginePricing(rules) {
+  _engineRules = rules;
+  const fmt  = { hourly:'Почасовая', event:'Событие', allday:'Весь день' };
+  const day  = { weekday:'Будни', weekend:'Выходные' };
+  const tbody = document.getElementById('engine-pricing-tbody');
+  if (!rules.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--text-d);">Нет тарифов</td></tr>';
+    return;
+  }
+  const cell = 'style="padding:4px 6px;"';
+  tbody.innerHTML = rules.map((r, i) => `<tr>
+    <td style="padding:6px 8px;">${fmt[r.booking_format]||r.booking_format}</td>
+    <td style="padding:6px 8px;">${day[r.day_type]||r.day_type}</td>
+    <td style="padding:6px 8px;">${r.guest_tier||'—'}</td>
+    <td ${cell}>${r.price_per_hour!=null
+      ? `<input class="inp ep-in" data-idx="${i}" data-f="price_per_hour" type="number" min="0" step="100" value="${r.price_per_hour}" style="width:82px;padding:4px 8px;font-size:.72rem;">`
+      : '<span style="color:var(--text-d);">—</span>'}</td>
+    <td ${cell}>${r.price_per_day!=null
+      ? `<input class="inp ep-in" data-idx="${i}" data-f="price_per_day" type="number" min="0" step="500" value="${r.price_per_day}" style="width:90px;padding:4px 8px;font-size:.72rem;">`
+      : '<span style="color:var(--text-d);">—</span>'}</td>
+    <td ${cell}><input class="inp ep-in" data-idx="${i}" data-f="prepayment_percent" type="number" min="0" max="100" step="5" value="${r.prepayment_percent??''}" style="width:70px;padding:4px 8px;font-size:.72rem;"></td>
+    <td style="padding:6px 8px;text-align:center;"><input type="checkbox" class="ep-in" data-idx="${i}" data-f="is_active" ${r.is_active?'checked':''}></td>
+  </tr>`).join('');
+}
+
+async function loadEnginePricing() {
+  const tbody = document.getElementById('engine-pricing-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--text-d);">Загрузка…</td></tr>';
+  const rules = await api('/admin/pricing').catch(() => null);
+  if (!Array.isArray(rules)) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--red);">Ошибка загрузки</td></tr>';
+    return;
+  }
+  renderEnginePricing(rules);
+}
+
+async function saveEnginePricing() {
+  const patch = {};
+  document.querySelectorAll('.ep-in').forEach(el => {
+    const idx = +el.dataset.idx;
+    const f   = el.dataset.f;
+    if (!patch[idx]) patch[idx] = { id: _engineRules[idx].id };
+    patch[idx][f] = el.type === 'checkbox' ? el.checked : (el.value !== '' ? +el.value : null);
+  });
+  _engineRules.forEach((r, i) => {
+    if (patch[i] && patch[i].is_active === undefined) patch[i].is_active = !!r.is_active;
+  });
+  const rules = Object.values(patch);
+  const btn = document.querySelector('#engine-pricing-section .btn-w');
+  const res = await api('/admin/pricing', { method:'PUT', body:JSON.stringify({ rules }) }).catch(() => null);
+  if (res?.ok) {
+    if (btn) { btn.textContent='✓ Сохранено'; setTimeout(()=>btn.textContent='Сохранить цены',2000); }
+    loadEnginePricing();
+  } else {
+    if (btn) { btn.textContent='✗ Ошибка'; setTimeout(()=>btn.textContent='Сохранить цены',2000); }
+  }
 }
 
 /* ── Hero preview ── */
@@ -2783,6 +2921,87 @@ function saveNotifications() {
   localStorage.setItem('rh_notif', JSON.stringify(settings));
   const b = document.querySelector('#tab-notifications .btn-w');
   if (b) { b.textContent = '✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000); }
+}
+
+/* ── DEBUG LOG ─────────────────────────────────────────────────────── */
+let _debugRaw = { pricing: [], server: [], frontend: [] };
+
+async function loadDebugTab() {
+  document.getElementById('dbg-server-log').textContent   = 'Загрузка…';
+  document.getElementById('dbg-frontend-log').textContent = 'Загрузка…';
+  document.getElementById('dbg-pricing-tbody').innerHTML  = '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--text-d);">Загрузка…</td></tr>';
+
+  const data = await api('/debug/log').catch(() => null);
+  if (!data?.ok) {
+    document.getElementById('dbg-server-log').textContent = 'Ошибка загрузки';
+    return;
+  }
+
+  _debugRaw = data;
+
+  // Тарифы
+  const tbody = document.getElementById('dbg-pricing-tbody');
+  if (!data.pricing?.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--text-d);">Нет тарифов в БД</td></tr>';
+  } else {
+    const fmt = { hourly: 'Почасовая', event: 'Событие', allday: 'Весь день' };
+    const day = { weekday: 'Будни', weekend: 'Выходные' };
+    tbody.innerHTML = data.pricing.map(r => `<tr>
+      <td>${r.id}</td>
+      <td>${fmt[r.booking_format] || r.booking_format}</td>
+      <td>${day[r.day_type] || r.day_type}</td>
+      <td>${r.guest_tier}</td>
+      <td>${r.min_hours ?? '—'}</td>
+      <td>${r.max_hours ?? '∞'}</td>
+      <td>${r.price_per_hour != null ? r.price_per_hour.toLocaleString('ru') + ' ₽' : '—'}</td>
+      <td>${r.price_per_day  != null ? r.price_per_day.toLocaleString('ru')  + ' ₽' : '—'}</td>
+      <td>${r.prepayment_percent ?? '—'} %</td>
+      <td style="color:${r.is_active ? 'var(--success)' : 'var(--danger)'}">${r.is_active ? '✓' : '✗'}</td>
+    </tr>`).join('');
+  }
+
+  // Server log
+  const sLines = data.server || [];
+  document.getElementById('dbg-server-log').textContent = sLines.length
+    ? sLines.join('\n')
+    : '(пусто)';
+
+  // Frontend log
+  const fLines = data.frontend || [];
+  document.getElementById('dbg-frontend-log').textContent = fLines.length
+    ? fLines.join('\n')
+    : '(пусто)';
+}
+
+async function clearDebugLog() {
+  if (!confirm('Очистить laravel.log и frontend.log?')) return;
+  const r = await api('/debug/log', { method: 'DELETE' }).catch(() => null);
+  if (r?.ok) {
+    document.getElementById('dbg-server-log').textContent   = '(очищено)';
+    document.getElementById('dbg-frontend-log').textContent = '(очищено)';
+    _debugRaw.server   = [];
+    _debugRaw.frontend = [];
+  }
+}
+
+function downloadDebugLog() {
+  const lines = [
+    '=== PRICING RULES ===',
+    JSON.stringify(_debugRaw.pricing, null, 2),
+    '',
+    '=== SERVER LOG ===',
+    (_debugRaw.server  || []).join('\n'),
+    '',
+    '=== FRONTEND LOG ===',
+    (_debugRaw.frontend || []).join('\n'),
+  ].join('\n');
+
+  const blob = new Blob([lines], { type: 'text/plain' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `rolthall-debug-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 /* INIT */
