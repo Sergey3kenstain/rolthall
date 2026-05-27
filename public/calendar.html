@@ -1235,7 +1235,9 @@ function renderWeekGrid(days) {
         const click = (isPast || isAlldayBlocked) ? '' : (currentFormat === 'allday'
           ? `toggleEventDay(${i})`
           : `selectDateWG(${i})`);
-        const dot = isAlldayBlocked ? `<div class="mob-date-dot danger" style="margin:3px auto 0;"></div>` : '';
+        const dot = isAlldayBlocked
+          ? `<div class="mob-date-dot danger" style="margin:3px auto 0;"></div>`
+          : (hasBusy && !isAlldaySel ? `<div class="mob-date-dot" style="margin:3px auto 0;"></div>` : '');
         return `<div class="${cls}" ${click ? `onclick="${click}"` : ''}>
   <span class="wgd-day">${DAY_SHORT[d.getDay()]}</span>
   <span class="wgd-num">${d.getDate()}</span>
