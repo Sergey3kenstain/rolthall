@@ -102,21 +102,27 @@ class AdminController extends Controller
         // 1. Сохраняем CMS в БД
         $hall->update(['cms' => $cms]);
 
-        // 2. Синхронизируем pricing_rules из cms.pricing.hourly (первые 2 строки — training)
+        // 2. Синхронизируем pricing_rules из cms.pricing.hourly (строки с engine:true → below30 hourly)
         $hourly = $cms['pricing']['hourly'] ?? [];
         foreach ($hourly as $row) {
-            if (empty($row['engine'])) continue; // только строки с engine:true
+            if (empty($row['engine'])) continue;
             PricingRule::updateOrCreate(
-                ['hall_id' => $hall->id, 'day_type' => $row['day_type']],
+                ['hall_id' => $hall->id, 'booking_format' => 'hourly', 'day_type' => $row['day_type'], 'guest_tier' => 'below30'],
                 ['price_per_hour' => (int) $row['price'], 'description' => $row['desc'] ?? null, 'is_active' => true, 'min_hours' => 1]
             );
         }
 
         // 3. Генерируем cms_data.js
-        $rules = PricingRule::where('hall_id', $hall->id)->where('is_active', true)->get()
-            ->map(fn($r) => ['day_type' => $r->day_type, 'description' => $r->description, 'price' => $r->price_per_hour]);
+        $allRules = PricingRule::where('hall_id', $hall->id)->where('is_active', true)->get()
+            ->map(fn($r) => [
+                'booking_format' => $r->booking_format,
+                'day_type'       => $r->day_type,
+                'guest_tier'     => $r->guest_tier,
+                'description'    => $r->description,
+                'price'          => $r->price_per_hour ?? $r->price_per_day,
+            ]);
 
-        $payload = array_merge($cms, ['pricing_rules' => $rules]);
+        $payload = array_merge($cms, ['pricing_rules' => $allRules]);
         $js = 'window.HALL_CMS=' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
         $dir = config('cms.public_dir', public_path());
         file_put_contents(rtrim($dir, '/') . '/cms_data.js', $js);
@@ -292,10 +298,38 @@ class AdminController extends Controller
             $hall = Hall::find($hallId);
             if (!$hall || !$hall->cms) continue;
 
-            $rules = PricingRule::where('hall_id', $hallId)->where('is_active', true)->get()
-                ->map(fn($r) => ['day_type' => $r->day_type, 'description' => $r->description, 'price' => $r->price_per_hour]);
+            $cms = $hall->cms;
 
-            $payload = array_merge($hall->cms, ['pricing_rules' => $rules->toArray()]);
+            // Синхронизируем cms.pricing.hourly из below30 hourly правил (цены на лендинге)
+            if (!empty($cms['pricing']['hourly'])) {
+                $below30 = PricingRule::where('hall_id', $hallId)
+                    ->where('booking_format', 'hourly')
+                    ->where('guest_tier', 'below30')
+                    ->where('is_active', true)
+                    ->get()->keyBy('day_type');
+
+                $cms['pricing']['hourly'] = array_map(function ($row) use ($below30) {
+                    if (empty($row['engine'])) return $row;
+                    $dt = $row['day_type'] ?? null;
+                    if ($dt && isset($below30[$dt])) {
+                        $row['price'] = $below30[$dt]->price_per_hour;
+                    }
+                    return $row;
+                }, $cms['pricing']['hourly']);
+
+                $hall->update(['cms' => $cms]);
+            }
+
+            $allRules = PricingRule::where('hall_id', $hallId)->where('is_active', true)->get()
+                ->map(fn($r) => [
+                    'booking_format' => $r->booking_format,
+                    'day_type'       => $r->day_type,
+                    'guest_tier'     => $r->guest_tier,
+                    'description'    => $r->description,
+                    'price'          => $r->price_per_hour ?? $r->price_per_day,
+                ]);
+
+            $payload = array_merge($cms, ['pricing_rules' => $allRules->toArray()]);
             $js = 'window.HALL_CMS=' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
             file_put_contents($dir . '/cms_data.js', $js);
         }
