@@ -2691,11 +2691,13 @@ function renderClientsList(items) {
     const tg     = c.telegram ? `<a class="cl-link" href="https://t.me/${c.telegram.replace('@','')}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>${c.telegram}</a>` : '';
     const email  = c.email  ? `<a class="cl-link" href="mailto:${c.email}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>${c.email}</a>` : '';
     const ban    = c.is_blacklisted ? '<span class="cl-ban">БАН</span>' : '';
+    const ROLE_BADGE = {owner:'#E67E22',admin:'#376FFF',manager:'#27AE60',developer:'#9B59B6'};
+    const roleBadge = ROLE_BADGE[c.role] ? `<span style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${ROLE_BADGE[c.role]};background:${ROLE_BADGE[c.role]}1a;border:1px solid ${ROLE_BADGE[c.role]}44;padding:2px 6px;border-radius:4px;">${{owner:'Владелец',admin:'Админ',manager:'Менеджер',developer:'Разраб'}[c.role]}</span>` : '';
     const note   = c.admin_note ? `<div style="font-size:11px;color:var(--text-d);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px;">✎ ${c.admin_note}</div>` : '';
     return `<div class="cl-row" onclick="openClientModal(${c.id})">
       <div class="cl-av" style="${avBg}">${avImg}${!c.avatar_url?ini:''}</div>
       <div class="cl-main">
-        <div class="cl-row-name">${c.name||'—'} ${ban}</div>
+        <div class="cl-row-name">${c.name||'—'} ${roleBadge}${ban}</div>
         <div class="cl-contacts">${phone}${tg}${email}</div>
         ${note}
       </div>
