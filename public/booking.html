@@ -861,9 +861,9 @@ function initBookingPage() {
 
     if (inquiryMode) {
       setEl('sumPayLabel', 'Стоимость');
-      setEl('sumPrepay',   'По договорённости');
+      setEl('sumPrepay',   '—');
       setEl('sumTotal',    '');
-      setEl('mobPrepay',   'По договорённости');
+      setEl('mobPrepay',   '—');
       setEl('mobTotal',    '');
       document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
         b.textContent = 'Отправить заявку';
