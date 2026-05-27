@@ -253,6 +253,7 @@ footer { background: var(--charcoal-deep); border-top: 1px solid var(--accent-bo
 }
 </style>
 <script src="/layout.js" defer></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -512,7 +513,7 @@ async function confirmCancel() {
 }
 
 // Запуск: сначала пробуем автовход через Telegram WebApp, иначе — по токену/редирект
-(async function init() {
+document.addEventListener('DOMContentLoaded', async function() {
   const saved = sessionStorage.getItem(TOKEN_KEY);
   if (saved) { showBookingsView('', saved); return; }
 
@@ -521,6 +522,7 @@ async function confirmCancel() {
   const initData = tg?.initData;
   if (initData) {
     try {
+      tg.ready();
       const res  = await fetch('/api/profile/tg-login', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -532,7 +534,6 @@ async function confirmCancel() {
         showBookingsView(data.name || '', data.token);
         return;
       }
-      // not_found — пользователь ещё не бронировал, показываем форму входа
       if (data.error !== 'not_found') {
         console.warn('tg-login error:', data.error);
       }
@@ -540,7 +541,7 @@ async function confirmCancel() {
   }
 
   window.location.href = '/login';
-})();
+});
 
 let rescheduleTarget = null;
 function showRescheduleModal(id, currentDate) {

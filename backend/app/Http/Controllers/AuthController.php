@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActionLog;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -127,6 +128,10 @@ class AuthController extends Controller
 
         ActionLog::write('auth.login', $user->id, $role, null, null,
             ['name' => $user->name], $request);
+
+        if (!$isStaff && $user->telegram_chat_id) {
+            (new NotificationService())->refreshAvatar($user);
+        }
 
         return response()->json([
             'ok'          => true,
