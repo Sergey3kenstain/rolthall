@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Api as TelegramApi;
 
@@ -144,6 +145,35 @@ class NotificationService
                 'chat_id' => $chatId,
                 'error'   => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * Обновляем аватар пользователя через Telegram Bot API
+     */
+    public function refreshAvatar(User $user): void
+    {
+        $chatId = $user->telegram_chat_id;
+        if (!$chatId) return;
+
+        try {
+            $photos = $this->telegram->getUserProfilePhotos([
+                'user_id' => $chatId,
+                'limit'   => 1,
+            ])->toArray();
+
+            $sizes  = $photos['photos'][0] ?? [];
+            $photo  = $sizes[1] ?? $sizes[0] ?? null;
+            $fileId = $photo['file_id'] ?? null;
+            if (!$fileId) return;
+
+            $filePath = $this->telegram->getFile(['file_id' => $fileId])->file_path ?? null;
+            if (!$filePath) return;
+
+            $token = config('services.telegram.bot_token');
+            $user->update(['telegram_avatar_url' => "https://api.telegram.org/file/bot{$token}/{$filePath}"]);
+        } catch (\Throwable $e) {
+            Log::error('TG avatar refresh error', ['chat_id' => $chatId, 'error' => $e->getMessage()]);
         }
     }
 }

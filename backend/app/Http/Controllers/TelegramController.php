@@ -11,11 +11,13 @@ use Telegram\Bot\Api as TelegramApi;
 
 class TelegramController extends Controller
 {
-    private TelegramApi $telegram;
+    private TelegramApi        $telegram;
+    private NotificationService $notifications;
 
     public function __construct()
     {
-        $this->telegram = new TelegramApi(config('services.telegram.bot_token'));
+        $this->telegram      = new TelegramApi(config('services.telegram.bot_token'));
+        $this->notifications = new NotificationService();
     }
 
     /**
@@ -60,10 +62,7 @@ class TelegramController extends Controller
             if ($username) $updates['telegram_username'] = $username;
             $user->update($updates);
 
-            // Подтягиваем аватар если ещё нет
-            if (!$user->telegram_avatar_url) {
-                $this->fetchAndSaveAvatar($user, $chatId);
-            }
+            $this->notifications->refreshAvatar($user);
         }
 
         match (true) {
@@ -160,35 +159,6 @@ class TelegramController extends Controller
             }
         } catch (\Throwable $e) {
             Log::error('Telegram sendStart error', ['error' => $e->getMessage()]);
-        }
-    }
-
-    /**
-     * Получаем аватар пользователя через API и сохраняем URL
-     */
-    private function fetchAndSaveAvatar(User $user, int|string $chatId): void
-    {
-        try {
-            $photos = $this->telegram->getUserProfilePhotos([
-                'user_id' => $chatId,
-                'limit'   => 1,
-            ])->toArray();
-
-            // Берём фото среднего размера (320px), если нет — первое доступное
-            $sizes  = $photos['photos'][0] ?? [];
-            $photo  = $sizes[1] ?? $sizes[0] ?? null;
-            $fileId = $photo['file_id'] ?? null;
-            if (!$fileId) return;
-
-            $filePath = $this->telegram->getFile(['file_id' => $fileId])->file_path ?? null;
-            if (!$filePath) return;
-
-            $token = config('services.telegram.bot_token');
-            $url   = "https://api.telegram.org/file/bot{$token}/{$filePath}";
-
-            $user->update(['telegram_avatar_url' => $url]);
-        } catch (\Throwable $e) {
-            Log::error('TG avatar fetch error', ['chat_id' => $chatId, 'error' => $e->getMessage()]);
         }
     }
 

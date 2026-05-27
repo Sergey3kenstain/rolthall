@@ -70,6 +70,11 @@ class BookingController extends Controller
                 'total' => $booking->total_amount,
             ], $request);
 
+            if (!empty($data['tg_user_id'])) {
+                $tgUser = \App\Models\User::where('telegram_chat_id', $data['tg_user_id'])->first();
+                if ($tgUser) $this->notify->refreshAvatar($tgUser);
+            }
+
             return response()->json([
                 'ok'          => true,
                 'booking_id'  => $booking->id,

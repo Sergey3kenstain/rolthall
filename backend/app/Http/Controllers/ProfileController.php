@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Client;
 use App\Models\User;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -107,6 +108,8 @@ class ProfileController extends Controller
         }
 
         $token = hash('sha256', $user->id . $user->phone . $user->email . config('app.key'));
+
+        (new NotificationService())->refreshAvatar($user);
 
         return response()->json([
             'ok'    => true,
