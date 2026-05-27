@@ -848,27 +848,48 @@ function initBookingPage() {
     BOOKING_DATA = { format: 'event', hallId, dates, pkg, total, prepay };
 
   } else if (format === 'allday') {
-    const dates   = (p.get('dates') || '').split(',').filter(Boolean);
-    const pkg     = parseInt(p.get('pkg_price') || '100000');
-    const pkgName = pkg === 100000 ? 'Базовый день' : 'Со светом и звуком';
+    const dates       = (p.get('dates') || '').split(',').filter(Boolean);
+    const pkg         = parseInt(p.get('pkg_price') || '0');
+    const inquiryMode = pkg === 0 && total === 0;
+    const pkgName     = inquiryMode ? 'Весь день — по запросу' : (pkg <= 100000 ? 'Базовый день' : 'Со светом и звуком');
 
     setEl('sumDate',    dates.map(fmtDate).join(', '));
     setEl('sumTariff',  `${pkgName} · ${dates.length} ${dates.length===1?'день':dates.length<5?'дня':'дней'}`);
-    setEl('sumPrepay',  fmtMoney(prepay));
-    setEl('sumTotal',   `Полная стоимость: ${fmtMoney(total)}`);
-    setEl('sumPayLabel','Предоплата 50%');
-    setEl('mobPrepay',  fmtMoney(prepay));
-    setEl('mobTotal',   `Полная стоимость: ${fmtMoney(total)}`);
 
     const timeRow = document.getElementById('sumTimeRow');
     if (timeRow) timeRow.style.display = 'none';
 
-    document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
-      b.textContent = `Оплатить ${fmtMoney(prepay)}`;
-    });
+    if (inquiryMode) {
+      setEl('sumPayLabel', 'Стоимость');
+      setEl('sumPrepay',   'По договорённости');
+      setEl('sumTotal',    '');
+      setEl('mobPrepay',   'По договорённости');
+      setEl('mobTotal',    '');
+      document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
+        b.textContent = 'Отправить заявку';
+      });
+      // Скрываем правовой дисклеймер
+      const legal = document.querySelector('.summary-legal');
+      if (legal) legal.style.display = 'none';
+    } else {
+      setEl('sumPrepay',   fmtMoney(prepay));
+      setEl('sumTotal',    `Полная стоимость: ${fmtMoney(total)}`);
+      setEl('sumPayLabel', 'Предоплата 50%');
+      setEl('mobPrepay',   fmtMoney(prepay));
+      setEl('mobTotal',    `Полная стоимость: ${fmtMoney(total)}`);
+      document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
+        b.textContent = `Оплатить ${fmtMoney(prepay)}`;
+      });
+    }
 
-    BOOKING_DATA = { format: 'allday', hallId, dates, pkg_price: pkg, total, prepay };
+    BOOKING_DATA = { format: 'allday', hallId, dates, pkg_price: pkg, total, prepay, inquiryMode };
   }
+
+  // Обновляем моб-summary-bar (msb-price / msb-prepay — не имеют ID, обновлялись только CSS-классами)
+  const msbPrice  = document.querySelector('.msb-price');
+  const msbPrepay = document.querySelector('.msb-prepay');
+  if (msbPrice)  msbPrice.textContent  = fmtMoney(total);
+  if (msbPrepay) msbPrepay.textContent = 'предоплата ' + fmtMoney(prepay);
 }
 
 /* ══ SUBMIT BOOKING ══ */
@@ -948,6 +969,35 @@ async function submitBooking() {
       }
       sessionStorage.removeItem(FORM_STORAGE_KEY);
       window.location.href = data.payment_url;
+
+    } else if (BOOKING_DATA.format === 'allday' && BOOKING_DATA.inquiryMode) {
+      // Inquiry: отправляем заявку в Telegram без оплаты
+      const dates = BOOKING_DATA.dates || [];
+      const res = await fetch('/api/landing/booking', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name,
+          phone,
+          type:     'Весь день / По запросу',
+          date:     dates[0] || '',
+          time:     'Весь день',
+          duration: dates.length > 1 ? `${dates.length} дн.` : undefined,
+          comment:  dates.length > 1 ? 'Даты: ' + dates.map(d => { const x = new Date(d+'T00:00:00'); return `${x.getDate()}.${String(x.getMonth()+1).padStart(2,'0')}.${x.getFullYear()}`; }).join(', ') : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        const msg = data?.error || data?.message || `Ошибка сервера (${res.status})`;
+        alert('Ошибка: ' + msg);
+        allBtns.forEach(b => { b.disabled = false; b.textContent = 'Отправить заявку'; });
+        return;
+      }
+      sessionStorage.removeItem(FORM_STORAGE_KEY);
+      // Показываем success modal
+      const modal = document.getElementById('successModal');
+      if (modal) modal.style.display = 'flex';
+      else alert('Заявка отправлена! Мы свяжемся с вами для обсуждения условий.');
     }
   } catch(e) {
     alert('Ошибка соединения: ' + e.message);

@@ -2495,6 +2495,10 @@ function cmsRenderEvents(items) {
       </div>
       <div class="form-group"><label class="form-lbl">Заголовок</label><input class="inp" value="${c.title||''}" placeholder="День мероприятия"></div>
       <div class="form-group"><label class="form-lbl">Описание</label><textarea class="inp" style="min-height:48px;">${c.desc||''}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Текст кнопки</label><input class="inp" value="${c.btn_text||''}" placeholder="Хочу обсудить"></div>
+        <div class="form-group"><label class="form-lbl">Ссылка кнопки</label><input class="inp" value="${c.btn_url||''}" placeholder="https://…"></div>
+      </div>
       <div class="form-group"><label class="form-lbl" style="display:flex;align-items:center;gap:8px;"><input type="checkbox"${c.featured?' checked':''}> Featured (выделенная карточка)</label></div>
     </div>`).join('');
 }
@@ -2510,13 +2514,17 @@ function cmsAddEventCard() {
     </div>
     <div class="form-group"><label class="form-lbl">Заголовок</label><input class="inp" placeholder="День мероприятия"></div>
     <div class="form-group"><label class="form-lbl">Описание</label><textarea class="inp" style="min-height:48px;"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-lbl">Текст кнопки</label><input class="inp" placeholder="Хочу обсудить"></div>
+      <div class="form-group"><label class="form-lbl">Ссылка кнопки</label><input class="inp" placeholder="https://…"></div>
+    </div>
     <div class="form-group"><label class="form-lbl" style="display:flex;align-items:center;gap:8px;"><input type="checkbox"> Featured</label></div>`;
   list.appendChild(div);
 }
 function cmsGetEvents() {
   return [...document.querySelectorAll('#cms-events-list .cms-list-item')].map(el => {
     const inps = el.querySelectorAll('input, textarea');
-    return { label: inps[0].value, price: +inps[1].value||0, title: inps[2].value, desc: inps[3].value, featured: inps[4].checked };
+    return { label: inps[0].value, price: +inps[1].value||0, title: inps[2].value, desc: inps[3].value, btn_text: inps[4].value, btn_url: inps[5].value, featured: inps[6].checked };
   });
 }
 

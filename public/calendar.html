@@ -1373,9 +1373,12 @@ function renderPricing() {
   if (!pricingEl) return;
 
   if (currentFormat === 'allday') {
-    const wdDay = apiPricing.wdDay || 100000;
-    const weDay = apiPricing.weDay || 150000;
-    pricingEl.innerHTML = `
+    const wdDay = apiPricing.wdDay ?? 0;
+    const weDay = apiPricing.weDay ?? 0;
+    if (wdDay === 0 && weDay === 0) {
+      pricingEl.innerHTML = `<div class="pricing-row"><div class="pricing-range" style="color:rgba(217,217,217,.5);">Стоимость — по запросу</div></div>`;
+    } else {
+      pricingEl.innerHTML = `
 <div class="pricing-row">
   <div><div class="pricing-range">Будни (Пн–Пт)</div></div>
   <div class="pricing-val">${wdDay.toLocaleString('ru')} ₽/день</div>
@@ -1388,6 +1391,7 @@ function renderPricing() {
   <div><div class="pricing-range">Предоплата</div></div>
   <div class="pricing-val">${apiPricing.prepayPct ?? 50}%</div>
 </div>`;
+    }
     return;
   }
 
@@ -1418,8 +1422,24 @@ function renderPricing() {
 function renderAlldayInfo() {
   const el = document.getElementById('eventPackages');
   if (!el) return;
-  const pkg1      = apiPricing.wdDay || 100000;
-  const pkg2      = apiPricing.weDay || 150000;
+  const pkg1      = apiPricing.wdDay ?? 0;
+  const pkg2      = apiPricing.weDay ?? 0;
+  const inquiryMode = pkg1 === 0 && pkg2 === 0;
+
+  // Показываем/скрываем side-section Тарифы
+  const pricingSec = document.querySelector('.side-section:not(.side-date-picker)');
+  if (pricingSec) pricingSec.style.display = inquiryMode ? 'none' : '';
+
+  if (inquiryMode) {
+    selectedPkg = 0;
+    el.innerHTML = `
+<div style="padding:20px;font-size:11px;font-weight:400;color:rgba(217,217,217,.6);line-height:1.7;">
+  Выберите даты, и мы свяжемся с вами для обсуждения условий.
+</div>
+<div style="padding:0 20px 16px;font-size:9px;color:rgba(217,217,217,.35);letter-spacing:.08em;text-transform:uppercase;">Отметьте даты</div>`;
+    return;
+  }
+
   const prepayPct = apiPricing.prepayPct ?? 50;
   const s1 = selectedPkg === pkg1;
   const s2 = selectedPkg === pkg2;
@@ -1484,13 +1504,14 @@ function updateAlldaySheet(emptyId, selId, listId, totalId, prepayId) {
   const full  = document.getElementById(selId);
   if (!empty || !full) return;
 
-  if (!selectedPkg || eventDays.size === 0) {
+  const inquiryMode = selectedPkg === 0;
+
+  if ((selectedPkg == null || (selectedPkg === 0 && !inquiryMode)) && eventDays.size === 0) {
     empty.style.display = 'block'; full.style.display = 'none'; return;
   }
-
-  const pkgName   = selectedPkg === (apiPricing.wdDay || 100000) ? 'Базовый' : 'Со светом и звуком';
-  const totalAmt  = selectedPkg * eventDays.size;
-  const prepay    = Math.round(totalAmt * (apiPricing.prepayPct ?? 50) / 100);
+  if (eventDays.size === 0) {
+    empty.style.display = 'block'; full.style.display = 'none'; return;
+  }
 
   empty.style.display = 'none';
   full.style.display  = 'block';
@@ -1503,17 +1524,29 @@ function updateAlldaySheet(emptyId, selId, listId, totalId, prepayId) {
     return `<div class="sel-day-item">
   <div style="flex:1;">
     <div class="sel-day-label">${label}</div>
-    <div class="sel-day-time">${pkgName} · весь день</div>
+    <div class="sel-day-time">Весь день</div>
   </div>
-  <div class="sel-day-price">${selectedPkg.toLocaleString('ru')} ₽</div>
+  ${inquiryMode ? '' : `<div class="sel-day-price">${selectedPkg.toLocaleString('ru')} ₽</div>`}
   <button class="sel-day-remove" onclick="removeEventDay('${key}')">✕</button>
 </div>`;
   }).join('');
 
-  const tEl = document.getElementById(totalId);
-  const pEl = document.getElementById(prepayId);
-  if (tEl) tEl.textContent = `${totalAmt.toLocaleString('ru')} ₽`;
-  if (pEl) pEl.textContent = `${prepay.toLocaleString('ru')} ₽`;
+  // Блок итого: скрываем в inquiry mode
+  const totalBlock = document.querySelector(`#${selId} > div[style*="border-top"]`);
+  if (totalBlock) totalBlock.style.display = inquiryMode ? 'none' : '';
+
+  if (!inquiryMode) {
+    const totalAmt = selectedPkg * eventDays.size;
+    const prepay   = Math.round(totalAmt * (apiPricing.prepayPct ?? 50) / 100);
+    const tEl = document.getElementById(totalId);
+    const pEl = document.getElementById(prepayId);
+    if (tEl) tEl.textContent = `${totalAmt.toLocaleString('ru')} ₽`;
+    if (pEl) pEl.textContent = `${prepay.toLocaleString('ru')} ₽`;
+  }
+
+  // Текст кнопки "Далее"
+  const nextBtn = full.querySelector('button[onclick="goToBooking()"]');
+  if (nextBtn) nextBtn.textContent = inquiryMode ? 'Оставить заявку →' : 'Далее →';
 }
 function updateSheetEl(emptyId, startId, selId, startLblId, listId, totalId, prepayId) {
   const empty    = document.getElementById(emptyId);
@@ -1787,13 +1820,13 @@ function goToBooking() {
 
   if (currentFormat === 'allday') {
     const sortedDays = [...eventDays].sort();
-    if (!selectedPkg || !sortedDays.length) return;
+    if (selectedPkg == null || !sortedDays.length) return;
     const grandTotal = selectedPkg * sortedDays.length;
     p.set('format',    'allday');
     p.set('dates',     sortedDays.join(','));
     p.set('pkg_price', selectedPkg);
     p.set('total',     grandTotal);
-    p.set('prepay', Math.round(grandTotal * (apiPricing.prepayPct ?? 50) / 100));
+    p.set('prepay', selectedPkg === 0 ? 0 : Math.round(grandTotal * (apiPricing.prepayPct ?? 50) / 100));
 
   } else {
     // hourly or event — time-based selection

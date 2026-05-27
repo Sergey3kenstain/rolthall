@@ -340,6 +340,10 @@ section { padding: 120px 48px; }
 .event-card-currency { font-size:22px; font-weight:300; vertical-align:super; }
 .event-card-title { font-size:13px; font-weight:600; color:var(--light); margin-top:16px; margin-bottom:8px; }
 .event-card-desc { font-size:10px; font-weight:300; line-height:1.8; color:rgba(217,217,217,.5); }
+.event-card-btn { display:inline-block; margin-top:24px; padding:10px 20px; border:1px solid currentColor; font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; color:var(--accent); transition:background .2s,color .2s; }
+.event-card-btn:hover { background:var(--accent); color:var(--charcoal); }
+.event-card.featured .event-card-btn { color:var(--charcoal); border-color:var(--charcoal); }
+.event-card.featured .event-card-btn:hover { background:var(--charcoal); color:var(--accent); }
 .conditions-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--accent-border); margin-top:48px;}
 .condition-item { background:var(--charcoal-deep); padding:28px 24px; }
 .condition-icon { width:32px; height:32px; margin-bottom:16px; opacity:.5; }
@@ -704,12 +708,14 @@ footer { background:var(--charcoal-deep); border-top:1px solid var(--accent-bord
         <div class="event-card-price"><span class="event-card-currency">₽</span>100 000</div>
         <div class="event-card-title">День мероприятия</div>
         <div class="event-card-desc">Аренда зала на весь день без дополнительного оборудования. Предоплата 50% при бронировании.</div>
+        <a class="event-card-btn" href="#">Хочу обсудить</a>
       </div>
       <div class="event-card featured reveal reveal-delay-1">
         <span class="event-card-label">Весь день — полный</span>
         <div class="event-card-price"><span class="event-card-currency">₽</span>150 000</div>
         <div class="event-card-title">День со светом и звуком</div>
         <div class="event-card-desc">Профессиональный свет, звуковое оборудование, полная поддержка на весь день вашего мероприятия.</div>
+        <a class="event-card-btn" href="#">Хочу обсудить</a>
       </div>
     </div>
   </div>
@@ -1000,8 +1006,23 @@ function applyCms() {
       if(tbody) tbody.innerHTML=sorted.map(r=>`<tr><td>${dtLbl[r.day_type]||r.day_type}</td><td>${r.description||''}</td><td>${Number(r.price).toLocaleString('ru-RU')} ₽</td></tr>`).join('');
     }
     if (p.events?.length) {
-      const wrap=document.querySelector('.event-cards');
-      if(wrap) wrap.innerHTML=p.events.map((e,i)=>`<div class="event-card${e.featured?' featured':''} reveal${i?' reveal-delay-'+i:''}"><span class="event-card-label">${e.label||e.subtitle||''}</span><div class="event-card-price"><span class="event-card-currency">₽</span>${Number(e.price).toLocaleString('ru-RU')}</div><div class="event-card-title">${e.title||''}</div><div class="event-card-desc">${e.desc||e.description||''}</div></div>`).join('');
+      const visibleEvents = p.events.filter(e => e.price > 0);
+      const wrap = document.querySelector('.event-cards');
+      const tabEvent = document.getElementById('tab-event');
+      if (wrap) {
+        if (visibleEvents.length === 0) {
+          // Все карточки с ценой 0 — скрываем таб Мероприятия
+          if (tabEvent) tabEvent.style.display = 'none';
+          document.querySelectorAll('.tab-btn').forEach(b => {
+            if (b.getAttribute('onclick')?.includes("'event'")) b.style.display = 'none';
+          });
+        } else {
+          wrap.innerHTML = visibleEvents.map((e, i) => {
+            const btn = e.btn_text ? `<a class="event-card-btn" href="${e.btn_url||'#'}">${e.btn_text}</a>` : '';
+            return `<div class="event-card${e.featured?' featured':''} reveal${i?' reveal-delay-'+i:''}"><span class="event-card-label">${e.label||e.subtitle||''}</span><div class="event-card-price"><span class="event-card-currency">₽</span>${Number(e.price).toLocaleString('ru-RU')}</div><div class="event-card-title">${e.title||''}</div><div class="event-card-desc">${e.desc||e.description||''}</div>${btn}</div>`;
+          }).join('');
+        }
+      }
     }
   }
   // Rules
