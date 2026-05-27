@@ -132,6 +132,8 @@ async function doLogin() {
 
   errEl.style.display = 'none';
   if (!rawPhone || !email) { showErr('Заполните оба поля'); return; }
+  if (digits.length < 10) { showErr('Введите корректный номер телефона'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Введите корректный email'); return; }
 
   btn.disabled = true; btn.textContent = 'Проверяем…';
 
