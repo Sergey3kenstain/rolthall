@@ -17,16 +17,15 @@ class MaxBotService
         $this->token = $settings['token'] ?? config('services.max.bot_token', '');
     }
 
-    public function sendMessage(int|string $chatId, string $text): bool
+    public function sendMessage(int|string $userId, string $text): bool
     {
         if (!$this->token) return false;
 
         try {
             $response = Http::withHeaders(['Authorization' => $this->token])
-                ->post("{$this->baseUrl}/messages", [
-                    'chat_id' => (string) $chatId,
-                    'text'    => $text,
-                    'format'  => 'html',
+                ->post("{$this->baseUrl}/messages?user_id={$userId}", [
+                    'text'   => $text,
+                    'format' => 'html',
                 ]);
 
             if (!$response->successful()) {

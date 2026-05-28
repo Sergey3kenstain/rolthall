@@ -25,7 +25,7 @@ class MaxController extends Controller
         $update = $request->all();
         $type   = $update['update_type'] ?? null;
 
-        Log::info('Max webhook FULL', $update);
+        Log::warning('Max webhook', ['type' => $type, 'user' => $update['message']['sender']['user_id'] ?? null]);
 
         if ($type === 'message_created') {
             $this->handleMessage($update);
@@ -38,25 +38,26 @@ class MaxController extends Controller
     {
         $message  = $update['message'] ?? [];
         $sender   = $message['sender'] ?? [];
-        $chatId   = (string) ($sender['user_id'] ?? null);
+
+        // user_id используется как адрес для отправки через ?user_id=
+        $userId   = (string) ($sender['user_id'] ?? null);
         $username = $sender['username'] ?? null;
-        $name     = $sender['name'] ?? null;
+        $name     = $sender['name'] ?? $sender['first_name'] ?? null;
         $text     = $message['body']['text'] ?? '';
 
-        if (!$chatId) return;
+        if (!$userId) return;
 
-        // Ищем пользователя по max_chat_id или username
-        $user = User::where('max_chat_id', $chatId)->first()
+        $user = User::where('max_chat_id', $userId)->first()
             ?? ($username ? User::where('max_username', $username)->first() : null);
 
         if ($user) {
-            $updates = ['max_chat_id' => $chatId];
-            if ($username) $updates['max_username'] = $username;
-            $user->update($updates);
+            $upd = ['max_chat_id' => $userId];
+            if ($username) $upd['max_username'] = $username;
+            $user->update($upd);
         }
 
         if (str_starts_with($text, '/start')) {
-            $this->sendStart($chatId, $name, $user);
+            $this->sendStart($userId, $name, $user);
         }
     }
 
