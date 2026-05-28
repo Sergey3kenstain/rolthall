@@ -223,7 +223,8 @@ class NotificationService
             $this->logNotif('tg', 'inquiry', $this->maskId((string)$tgChatId), $ok);
         }
         if ($maxChatId) {
-            $ok = $this->max->sendMessage($maxChatId, $text);
+            $lkButton = [[['type' => 'link', 'text' => '👤 Личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max']]];
+            $ok = $this->max->sendMessage($maxChatId, $text, $lkButton);
             $this->logNotif('max', 'inquiry', $this->maskId($maxChatId), $ok);
         }
     }

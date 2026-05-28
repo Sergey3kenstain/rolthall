@@ -7,9 +7,7 @@ use App\Services\MaxBotService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class MaxController extends Controller
 {
@@ -95,9 +93,11 @@ class MaxController extends Controller
         $namePart = $name ? ", {$name}" : '';
         $text = "👤 Привет{$namePart}!\n\nВаш личный кабинет — история броней и данные профиля.";
 
-        // Генерируем одноразовый magic token (10 мин)
-        $token = Str::random(40);
-        Cache::put("max_ml_{$token}", $chatId, now()->addMinutes(10));
+        // HMAC-signed token: chatId:expires — без Cache, верифицируется подписью
+        $expires = now()->addMinutes(10)->timestamp;
+        $payload = $chatId . ':' . $expires;
+        $sig     = hash_hmac('sha256', $payload, config('app.key'));
+        $token   = rtrim(base64_encode($payload . ':' . $sig), '=');
 
         $this->max->sendMessage($chatId, $text, [
             [

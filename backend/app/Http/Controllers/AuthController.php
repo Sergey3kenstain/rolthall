@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
@@ -324,11 +323,22 @@ class AuthController extends Controller
             return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
         }
 
-        $chatId = Cache::get("max_ml_{$token}");
-        if (!$chatId) {
+        // Декодируем HMAC-signed payload: chatId:expires:sig
+        $raw = base64_decode(str_pad($token, strlen($token) + (4 - strlen($token) % 4) % 4, '='));
+        $parts = explode(':', $raw, 3);
+        if (count($parts) !== 3) {
+            return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
+        }
+        [$chatId, $expires, $sig] = $parts;
+
+        if (time() > (int) $expires) {
             return response()->json(['ok' => false, 'error' => 'token_expired'], 401);
         }
-        Cache::forget("max_ml_{$token}");
+
+        $expected = hash_hmac('sha256', $chatId . ':' . $expires, config('app.key'));
+        if (!hash_equals($expected, $sig)) {
+            return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
+        }
 
         $user = User::where('max_chat_id', (string) $chatId)->first();
         if (!$user) {
