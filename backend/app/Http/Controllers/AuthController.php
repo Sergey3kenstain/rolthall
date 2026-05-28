@@ -326,7 +326,6 @@ class AuthController extends Controller
         // Декодируем URL-safe base64 (- → +, _ → /)
         $padding = str_repeat('=', (4 - strlen($token) % 4) % 4);
         $raw     = base64_decode(strtr($token . $padding, '-_', '+/'));
-        Log::info('max_magic_login', ['token_len' => strlen($token), 'raw_len' => strlen($raw ?? ''), 'raw' => substr($raw ?? '', 0, 80)]);
         $parts = explode(':', $raw, 3);
         if (count($parts) !== 3) {
             return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);

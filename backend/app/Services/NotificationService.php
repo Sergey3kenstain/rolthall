@@ -343,6 +343,36 @@ class NotificationService
         }
     }
 
+    /**
+     * Отправляем логин+пароль пользователю через Max с кнопкой на ЛК.
+     */
+    public function sendCredentialsMax(User $user): bool
+    {
+        $chatId = $user->max_chat_id;
+        if (!$chatId) return false;
+
+        $password = $this->generatePassword();
+        $phone    = $user->phone ?? '—';
+
+        $text = "🔐 <b>Ваши данные для входа</b>\n\n"
+            . "📱 <b>Телефон (логин):</b>\n<code>{$phone}</code>\n\n"
+            . "🔑 <b>Пароль:</b>\n<code>{$password}</code>";
+
+        $ok = $this->max->sendMessage($chatId, $text, [[
+            ['type' => 'link', 'text' => '🚪 Войти в личный кабинет', 'url' => 'https://hall.roltworld.com/login'],
+        ]]);
+
+        if ($ok) {
+            $user->update(['client_password' => $password]);
+            if ($client = $user->client) {
+                $client->update(['client_password' => $password]);
+            }
+        }
+
+        $this->logNotif('max', 'credentials', $this->maskId($chatId), $ok);
+        return $ok;
+    }
+
     private function generatePassword(): string
     {
         $lower   = 'abcdefghjkmnpqrstuvwxyz';

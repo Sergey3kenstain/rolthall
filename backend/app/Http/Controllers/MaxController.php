@@ -90,23 +90,25 @@ class MaxController extends Controller
 
     private function sendLk(string $chatId, ?string $name): void
     {
-        $namePart = $name ? ", {$name}" : '';
-        $text = "👤 Привет{$namePart}!\n\nВаш личный кабинет — история броней и данные профиля.";
+        $user = User::where('max_chat_id', $chatId)->first();
 
-        // HMAC-signed token (URL-safe base64: + → -, / → _)
-        $expires = now()->addMinutes(10)->timestamp;
-        $payload = $chatId . ':' . $expires;
-        $sig     = hash_hmac('sha256', $payload, config('app.key'));
-        $token   = rtrim(strtr(base64_encode($payload . ':' . $sig), '+/', '-_'), '=');
+        if (!$user) {
+            $namePart = $name ? ", {$name}" : '';
+            $this->max->sendMessage($chatId,
+                "👤 Привет{$namePart}!\n\n"
+                . "Аккаунт ещё не привязан к Max.\n"
+                . "Оформите первую бронь через бот — после этого /lk откроет ваш кабинет.",
+                [[['type' => 'link', 'text' => '📅 Забронировать зал', 'url' => "https://hall.roltworld.com/calendar?via=max&max_id={$chatId}"]]]
+            );
+            return;
+        }
 
-        $this->max->sendMessage($chatId, $text, [
-            [
-                ['type' => 'link', 'text' => '🚪 Войти в личный кабинет', 'url' => "https://hall.roltworld.com/profile?ml={$token}"],
-            ],
-            [
-                ['type' => 'link', 'text' => '📅 Забронировать зал', 'url' => "https://hall.roltworld.com/calendar?via=max&max_id={$chatId}"],
-            ],
-        ]);
+        // Отправляем свежий пароль + кнопку на логин
+        $sent = $this->notify->sendCredentialsMax($user);
+
+        if (!$sent) {
+            $this->max->sendMessage($chatId, "⚠️ Не удалось отправить данные для входа. Попробуйте позже.");
+        }
     }
 
     /**
