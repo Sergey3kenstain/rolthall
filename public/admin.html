@@ -1209,8 +1209,11 @@ select.inp option{background:var(--bg-card);}
         <div id="max-technical-settings">
           <div style="display:flex;flex-direction:column;gap:10px;">
             <div class="form-group"><label class="form-lbl">Bot Token</label><input type="text" class="inp" id="max-token" placeholder="f9LHod…"></div>
-            <div class="form-group"><label class="form-lbl">Admin Chat ID</label><input type="text" class="inp" id="max-chat" placeholder="123456789">
+            <div class="form-group"><label class="form-lbl">Admin User ID (личные уведомления)</label><input type="text" class="inp" id="max-chat" placeholder="7262014">
               <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Числовой user_id в Max — напиши /start боту чтобы узнать свой ID</div>
+            </div>
+            <div class="form-group"><label class="form-lbl">Admin Chat ID (групповой чат)</label><input type="text" class="inp" id="max-group-chat" placeholder="123456789">
+              <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">chat_id группового чата в Max — уведомления будут дублироваться в чат</div>
             </div>
             <div class="form-group">
               <label class="form-lbl">Для тестирования клиентских уведомлений</label>
@@ -3295,9 +3298,10 @@ async function loadMaxTab() {
   const data = await api('/admin/max/settings');
   if (!data) return;
   if (_me?.role === 'developer') {
-    document.getElementById('max-token').value       = data.token              || '';
-    document.getElementById('max-chat').value        = data.admin_chat_id      || '';
-    document.getElementById('max-test-client').value = data.test_client_max_id || '';
+    document.getElementById('max-token').value       = data.token               || '';
+    document.getElementById('max-chat').value        = data.admin_chat_id       || '';
+    document.getElementById('max-group-chat').value  = data.admin_group_chat_id || '';
+    document.getElementById('max-test-client').value = data.test_client_max_id  || '';
   } else {
     document.getElementById('max-technical-settings').style.display = 'none';
   }
@@ -3326,9 +3330,10 @@ async function loadMaxTab() {
 
 async function saveMax() {
   const payload = _me?.role === 'developer' ? {
-    token:              document.getElementById('max-token').value.trim(),
-    admin_chat_id:      document.getElementById('max-chat').value.trim(),
-    test_client_max_id: document.getElementById('max-test-client').value.trim(),
+    token:               document.getElementById('max-token').value.trim(),
+    admin_chat_id:       document.getElementById('max-chat').value.trim(),
+    admin_group_chat_id: document.getElementById('max-group-chat').value.trim(),
+    test_client_max_id:  document.getElementById('max-test-client').value.trim(),
   } : {};
   const res = await api('/admin/max/settings', {method:'POST', body:JSON.stringify(payload)});
   if (res?.ok) {

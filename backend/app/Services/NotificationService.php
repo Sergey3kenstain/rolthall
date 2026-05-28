@@ -14,6 +14,7 @@ class NotificationService
     private string|int   $adminChatId;
     private ?int         $adminThreadId;
     private ?string      $maxAdminChatId;
+    private ?string      $maxAdminGroupChatId;
 
     public function __construct()
     {
@@ -23,7 +24,8 @@ class NotificationService
         $this->max            = new MaxBotService();
         $this->adminChatId    = config('services.telegram.admin_chat_id');
         $this->adminThreadId  = config('services.telegram.admin_thread_id') ?: null;
-        $this->maxAdminChatId = $maxSettings['admin_chat_id'] ?? config('services.max.admin_chat_id') ?: null;
+        $this->maxAdminChatId      = $maxSettings['admin_chat_id']       ?? config('services.max.admin_chat_id') ?: null;
+        $this->maxAdminGroupChatId = $maxSettings['admin_group_chat_id'] ?? null;
     }
 
     /**
@@ -59,7 +61,7 @@ class NotificationService
         $this->send($this->adminChatId, $text, $this->adminThreadId);
 
         // Max — с поддержкой шаблона
-        if ($this->maxAdminChatId) {
+        if ($this->maxAdminChatId || $this->maxAdminGroupChatId) {
             $vars = [
                 'name'     => $data['client_name'],
                 'phone'    => $data['phone'],
@@ -73,7 +75,9 @@ class NotificationService
                 'txn_id'   => $data['transaction_id'] ?? '—',
                 'guests'   => (!empty($data['guest_count']) && $data['guest_count'] > 0) ? $data['guest_count'] : '—',
             ];
-            $this->max->sendMessage($this->maxAdminChatId, $this->renderMaxTemplate('new_booking', $vars, $text));
+            $maxText = $this->renderMaxTemplate('new_booking', $vars, $text);
+            if ($this->maxAdminChatId)      $this->max->sendMessage($this->maxAdminChatId, $maxText);
+            if ($this->maxAdminGroupChatId) $this->max->sendToChat($this->maxAdminGroupChatId, $maxText);
         }
     }
 
@@ -332,9 +336,8 @@ class NotificationService
     {
         $this->send($this->adminChatId, $text, $this->adminThreadId);
 
-        if ($this->maxAdminChatId) {
-            $this->max->sendMessage($this->maxAdminChatId, $text);
-        }
+        if ($this->maxAdminChatId)      $this->max->sendMessage($this->maxAdminChatId, $text);
+        if ($this->maxAdminGroupChatId) $this->max->sendToChat($this->maxAdminGroupChatId, $text);
     }
 
     private function send(int|string $chatId, string $text, ?int $threadId = null): void

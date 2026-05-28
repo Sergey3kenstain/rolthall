@@ -293,9 +293,10 @@ class AdminController extends Controller
             'templates' => $saved['templates'] ?? null,
         ];
         if ($isDev) {
-            $result['token']              = $saved['token']              ?? config('services.max.bot_token');
-            $result['admin_chat_id']      = $saved['admin_chat_id']      ?? config('services.max.admin_chat_id');
-            $result['test_client_max_id'] = $saved['test_client_max_id'] ?? null;
+            $result['token']               = $saved['token']               ?? config('services.max.bot_token');
+            $result['admin_chat_id']       = $saved['admin_chat_id']       ?? config('services.max.admin_chat_id');
+            $result['admin_group_chat_id'] = $saved['admin_group_chat_id'] ?? null;
+            $result['test_client_max_id']  = $saved['test_client_max_id']  ?? null;
         }
 
         return response()->json($result);
@@ -309,9 +310,10 @@ class AdminController extends Controller
 
         $rules = [];
         if ($isDev) {
-            if ($request->has('token'))              $rules['token']              = 'required|string';
-            if ($request->has('admin_chat_id'))      $rules['admin_chat_id']      = 'required|string';
-            if ($request->has('test_client_max_id')) $rules['test_client_max_id'] = 'nullable|string';
+            if ($request->has('token'))               $rules['token']               = 'required|string';
+            if ($request->has('admin_chat_id'))       $rules['admin_chat_id']       = 'nullable|string';
+            if ($request->has('admin_group_chat_id')) $rules['admin_group_chat_id'] = 'nullable|string';
+            if ($request->has('test_client_max_id'))  $rules['test_client_max_id']  = 'nullable|string';
         }
         if ($request->has('templates')) $rules['templates'] = 'nullable|array';
 
@@ -331,37 +333,42 @@ class AdminController extends Controller
         $file     = storage_path('app/max_settings.json');
         $settings = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
 
-        $adminChatId    = $settings['admin_chat_id']      ?? config('services.max.admin_chat_id');
-        $testClientId   = $settings['test_client_max_id'] ?? null;
-        $adminKeys      = ['new_booking'];
-        $isAdmin        = in_array($data['key'], $adminKeys);
-        $targetId       = $isAdmin ? $adminChatId : $testClientId;
+        $adminUserId    = $settings['admin_chat_id']       ?? config('services.max.admin_chat_id');
+        $adminGroupId   = $settings['admin_group_chat_id'] ?? null;
+        $testClientId   = $settings['test_client_max_id']  ?? null;
+        $isAdmin        = $data['key'] === 'new_booking';
 
-        if (!$targetId) {
-            $msg = $isAdmin
-                ? 'Не задан Admin Chat ID в настройках Max.'
-                : 'Не задан тестовый Max ID клиента.';
-            return response()->json(['ok' => false, 'error' => $msg], 422, [], JSON_UNESCAPED_UNICODE);
+        if ($isAdmin && !$adminUserId && !$adminGroupId) {
+            return response()->json(['ok' => false, 'error' => 'Не задан Admin User ID / Chat ID в настройках Max.'], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+        if (!$isAdmin && !$testClientId) {
+            return response()->json(['ok' => false, 'error' => 'Не задан тестовый Max ID клиента.'], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
         $dummies = [
-            '{name}'    => 'Иван Иванов',
-            '{phone}'   => '+79086850838',
-            '{email}'   => 'ivan@example.com',
+            '{name}'     => 'Иван Иванов',
+            '{phone}'    => '+79086850838',
+            '{email}'    => 'ivan@example.com',
             '{telegram}' => 'test_user',
-            '{date}'    => '28.05.2026',
-            '{time}'    => '15:00–16:00',
-            '{hall}'    => 'RoltHall',
-            '{format}'  => 'Почасовая',
-            '{amount}'  => '1 500',
-            '{txn_id}'  => '8541823676',
-            '{guests}'  => '5',
+            '{date}'     => '28.05.2026',
+            '{time}'     => '15:00–16:00',
+            '{hall}'     => 'RoltHall',
+            '{format}'   => 'Почасовая',
+            '{amount}'   => '1 500',
+            '{txn_id}'   => '8541823676',
+            '{guests}'   => '5',
         ];
 
         $text = '[ТЕСТ] ' . str_replace(array_keys($dummies), array_values($dummies), $data['text']);
+        $max  = new \App\Services\MaxBotService();
 
-        $max = new \App\Services\MaxBotService();
-        $ok  = $max->sendMessage($targetId, $text);
+        if ($isAdmin) {
+            $ok = true;
+            if ($adminUserId) $ok = $max->sendMessage($adminUserId, $text) && $ok;
+            if ($adminGroupId) $ok = $max->sendToChat($adminGroupId, $text) && $ok;
+        } else {
+            $ok = $max->sendMessage($testClientId, $text);
+        }
 
         return response()->json($ok
             ? ['ok' => true]

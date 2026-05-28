@@ -17,6 +17,33 @@ class MaxBotService
         $this->token = $settings['token'] ?? config('services.max.bot_token', '');
     }
 
+    public function sendToChat(int|string $chatId, string $text): bool
+    {
+        if (!$this->token) return false;
+
+        try {
+            $response = Http::withHeaders(['Authorization' => $this->token])
+                ->post("{$this->baseUrl}/messages?chat_id={$chatId}", [
+                    'text'   => $text,
+                    'format' => 'html',
+                ]);
+
+            if (!$response->successful()) {
+                Log::error('Max sendToChat error', [
+                    'chat_id' => $chatId,
+                    'status'  => $response->status(),
+                    'body'    => $response->body(),
+                ]);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Max sendToChat exception', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
     public function sendMessage(int|string $userId, string $text): bool
     {
         if (!$this->token) return false;
@@ -30,7 +57,7 @@ class MaxBotService
 
             if (!$response->successful()) {
                 Log::error('Max sendMessage error', [
-                    'chat_id' => $chatId,
+                    'user_id' => $userId,
                     'status'  => $response->status(),
                     'body'    => $response->body(),
                 ]);
