@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/max/settings',             [AdminController::class, 'maxSettings']);
     Route::post('/max/settings',            [AdminController::class, 'saveMaxSettings']);
     Route::get('/max/test-send',            [AdminController::class, 'testMaxSend']);
+    Route::post('/max/test-template',       [AdminController::class, 'testMaxTemplate']);
 });
 
 // ── Halls ─────────────────────────────────────────────────────────────

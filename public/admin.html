@@ -1212,6 +1212,11 @@ select.inp option{background:var(--bg-card);}
             <div class="form-group"><label class="form-lbl">Admin Chat ID</label><input type="text" class="inp" id="max-chat" placeholder="123456789">
               <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Числовой user_id в Max — напиши /start боту чтобы узнать свой ID</div>
             </div>
+            <div class="form-group">
+              <label class="form-lbl">Для тестирования клиентских уведомлений</label>
+              <input type="text" class="inp" id="max-test-client" placeholder="123456789 (Max user_id)">
+              <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">user_id в Max — куда слать тестовые клиентские шаблоны</div>
+            </div>
             <div style="font-size:.62rem;color:var(--text-d);line-height:1.7;">Webhook: <code>https://hall.roltworld.com/api/max/webhook</code></div>
             <div style="display:flex;gap:8px;">
               <button class="btn btn-w btn-md" style="flex:1;" onclick="saveMax()">Сохранить</button>
@@ -1222,6 +1227,60 @@ select.inp option{background:var(--bg-card);}
         </div>
       </div>
     </div>
+
+    <div style="font-size:.78rem;font-weight:700;margin:28px 0 12px;">Шаблоны уведомлений</div>
+    <div style="font-size:.68rem;color:var(--text-d);margin-bottom:14px;line-height:1.7;">Текст сообщений в Max. Переменные в фигурных скобках подставляются автоматически. Поддерживается HTML-разметка.</div>
+    <div class="card" style="overflow:hidden;max-width:540px;">
+      <!-- max: new_booking -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Новая бронь</div><div class="qa-sub">→ администратору</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="max-tpl-new_booking" rows="9" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{name} {phone} {email} {telegram} {date} {time} {format} {hall} {amount} {txn_id} {guests}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testMaxTpl('new_booking')">✈ Тест</button></div>
+        </div>
+      </div>
+      <!-- max: booking_confirmed -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Бронь подтверждена</div><div class="qa-sub">→ клиенту</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="max-tpl-booking_confirmed" rows="6" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{hall} {date} {time} {amount} {guests}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testMaxTpl('booking_confirmed')">✈ Тест</button></div>
+        </div>
+      </div>
+      <!-- max: reminder_3h -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Напоминание за 3 ч</div><div class="qa-sub">→ клиенту (почасовая / событие)</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="max-tpl-reminder_3h" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{hall} {date} {time}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testMaxTpl('reminder_3h')">✈ Тест</button></div>
+        </div>
+      </div>
+      <!-- max: reminder_allday -->
+      <div class="tpl-row" style="border-bottom:none;">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Напоминание накануне</div><div class="qa-sub">→ клиенту (весь день, 20:00)</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="max-tpl-reminder_allday" rows="5" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{hall} {date}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testMaxTpl('reminder_allday')">✈ Тест</button></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveMaxTemplates()">Сохранить шаблоны</button>
   </div>
 
   <!-- УВЕДОМЛЕНИЯ -->
@@ -3225,15 +3284,30 @@ async function testTpl(key) {
 }
 
 /* ══ MAX TAB ══ */
+const MAX_TPL_DEFAULTS = {
+  new_booking: `🏠 <b>Новая бронь — RoltHall</b>\n\n👤 <b>Клиент:</b> {name}\n📞 <b>Телефон:</b> {phone}\n✉️ <b>Email:</b> {email}\n💬 <b>Телеграм:</b> @{telegram}\n\n📋 <b>Формат:</b> {format}\n📅 <b>Дата:</b> {date}\n🕐 <b>Время:</b> {time}\n🏛 <b>Зал:</b> {hall}\n\n💰 <b>Предоплата:</b> {amount} ₽\n🔑 <b>Транзакция:</b> <code>{txn_id}</code>`,
+  booking_confirmed: `✅ <b>Бронь подтверждена!</b>\n\n🏛 <b>Зал:</b> {hall}\n📅 <b>Дата:</b> {date}\n🕐 <b>Время:</b> {time}\n💰 <b>Предоплата:</b> {amount} ₽\n\nЖдём вас! По вопросам — свяжитесь с нами.`,
+  reminder_3h: `⏰ <b>Напоминание</b>\n\nЧерез 3 часа ваша бронь в RoltHall!\n🏛 {hall} · {date}, {time}\n\nОтмена возможна не позднее чем за 3 часа до начала.`,
+  reminder_allday: `⏰ <b>Напоминание</b>\n\nЗавтра у вас бронь в RoltHall!\n🏛 {hall} · {date}, весь день (09:00–22:00)\n\nЖдём вас!`,
+};
+
 async function loadMaxTab() {
   const data = await api('/admin/max/settings');
   if (!data) return;
   if (_me?.role === 'developer') {
-    document.getElementById('max-token').value = data.token         || '';
-    document.getElementById('max-chat').value  = data.admin_chat_id || '';
+    document.getElementById('max-token').value       = data.token              || '';
+    document.getElementById('max-chat').value        = data.admin_chat_id      || '';
+    document.getElementById('max-test-client').value = data.test_client_max_id || '';
   } else {
     document.getElementById('max-technical-settings').style.display = 'none';
   }
+
+  // Заполняем шаблоны
+  const tpls = data.templates || {};
+  ['new_booking','booking_confirmed','reminder_3h','reminder_allday'].forEach(key => {
+    const el = document.getElementById('max-tpl-' + key);
+    if (el) el.value = tpls[key] || MAX_TPL_DEFAULTS[key] || '';
+  });
 
   // Проверяем /me бота
   try {
@@ -3252,8 +3326,9 @@ async function loadMaxTab() {
 
 async function saveMax() {
   const payload = _me?.role === 'developer' ? {
-    token:         document.getElementById('max-token').value.trim(),
-    admin_chat_id: document.getElementById('max-chat').value.trim(),
+    token:              document.getElementById('max-token').value.trim(),
+    admin_chat_id:      document.getElementById('max-chat').value.trim(),
+    test_client_max_id: document.getElementById('max-test-client').value.trim(),
   } : {};
   const res = await api('/admin/max/settings', {method:'POST', body:JSON.stringify(payload)});
   if (res?.ok) {
@@ -3261,6 +3336,27 @@ async function saveMax() {
     msg.style.display = 'inline';
     setTimeout(() => msg.style.display = 'none', 2500);
   }
+}
+
+async function saveMaxTemplates() {
+  const templates = {};
+  ['new_booking','booking_confirmed','reminder_3h','reminder_allday'].forEach(key => {
+    const el = document.getElementById('max-tpl-' + key);
+    if (el) templates[key] = el.value;
+  });
+  const res = await api('/admin/max/settings', {method:'POST', body:JSON.stringify({templates})});
+  if (res?.ok) {
+    const b = document.querySelector('#tab-max .btn-w[onclick="saveMaxTemplates()"]');
+    if (b) { b.textContent = '✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить шаблоны',2000); }
+  }
+}
+
+async function testMaxTpl(key) {
+  const el = document.getElementById('max-tpl-' + key);
+  if (!el) return;
+  const res = await api('/admin/max/test-template', {method:'POST', body:JSON.stringify({key, text: el.value})});
+  if (res?.ok) alert('✅ Тестовое сообщение отправлено в Max');
+  else alert('❌ Ошибка: ' + (res?.error || 'не задан Chat ID или токен'));
 }
 
 async function testMaxSend() {

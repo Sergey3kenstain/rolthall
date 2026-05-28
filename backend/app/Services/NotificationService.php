@@ -55,7 +55,26 @@ class NotificationService
             . "💰 <b>Предоплата:</b> {$data['prepayment']} ₽\n"
             . "🔑 <b>Транзакция:</b> <code>{$data['transaction_id']}</code>";
 
-        $this->sendToAdmin($text);
+        // TG — через общий канал
+        $this->send($this->adminChatId, $text, $this->adminThreadId);
+
+        // Max — с поддержкой шаблона
+        if ($this->maxAdminChatId) {
+            $vars = [
+                'name'     => $data['client_name'],
+                'phone'    => $data['phone'],
+                'email'    => $data['email'] ?? '—',
+                'telegram' => $data['telegram'] ?? '—',
+                'date'     => $data['date'],
+                'time'     => ($data['time_start'] ?? '') . '–' . ($data['time_end'] ?? ''),
+                'hall'     => $data['hall_name'],
+                'format'   => $formatLabel,
+                'amount'   => $data['prepayment'] ?? 0,
+                'txn_id'   => $data['transaction_id'] ?? '—',
+                'guests'   => (!empty($data['guest_count']) && $data['guest_count'] > 0) ? $data['guest_count'] : '—',
+            ];
+            $this->max->sendMessage($this->maxAdminChatId, $this->renderMaxTemplate('new_booking', $vars, $text));
+        }
     }
 
     /**
@@ -73,13 +92,21 @@ class NotificationService
             ? "👥 <b>Гостей:</b> {$data['guest_count']} чел.\n"
             : '';
 
-        $text = "✅ <b>Бронь подтверждена!</b>\n\n"
+        $default = "✅ <b>Бронь подтверждена!</b>\n\n"
             . "🏛 <b>Зал:</b> {$data['hall_name']}\n"
             . "📅 <b>Дата:</b> {$data['date']}\n"
             . "🕐 <b>Время:</b> {$data['time_start']}–{$data['time_end']}\n"
             . $guestsLine
             . "💰 <b>Предоплата:</b> {$data['prepayment']} ₽\n\n"
             . "Ждём вас! По вопросам — свяжитесь с нами.";
+
+        $text = $this->renderMaxTemplate('booking_confirmed', [
+            'hall'   => $data['hall_name'],
+            'date'   => $data['date'],
+            'time'   => $data['time_start'] . '–' . $data['time_end'],
+            'amount' => $data['prepayment'] ?? 0,
+            'guests' => (!empty($data['guest_count']) && $data['guest_count'] > 0) ? $data['guest_count'] : '—',
+        ], $default);
 
         $this->max->sendMessage($maxChatId, $text);
     }
@@ -116,15 +143,24 @@ class NotificationService
     private function notifyClientReminder3hMax(string $maxChatId, array $data): void
     {
         if (!empty($data['allday'])) {
-            $text = "⏰ <b>Напоминание</b>\n\n"
+            $default = "⏰ <b>Напоминание</b>\n\n"
                 . "Завтра у вас бронь в RoltHall!\n"
                 . "🏛 {$data['hall_name']} · {$data['date']}, весь день (09:00–22:00)\n\n"
                 . "Ждём вас!";
+            $text = $this->renderMaxTemplate('reminder_allday', [
+                'hall' => $data['hall_name'],
+                'date' => $data['date'],
+            ], $default);
         } else {
-            $text = "⏰ <b>Напоминание</b>\n\n"
+            $default = "⏰ <b>Напоминание</b>\n\n"
                 . "Через 3 часа ваша бронь в RoltHall!\n"
                 . "🏛 {$data['hall_name']} · {$data['date']}, {$data['time_start']}–{$data['time_end']}\n\n"
                 . "Отмена возможна не позднее чем за 3 часа до начала.";
+            $text = $this->renderMaxTemplate('reminder_3h', [
+                'hall' => $data['hall_name'],
+                'date' => $data['date'],
+                'time' => $data['time_start'] . '–' . $data['time_end'],
+            ], $default);
         }
 
         $this->max->sendMessage($maxChatId, $text);
@@ -276,6 +312,18 @@ class NotificationService
     public function sendTestMessage(): void
     {
         $this->sendToAdmin("🤖 <b>RoltHall Bot</b> подключён и готов к работе!\n\nЧат: <code>{$this->adminChatId}</code>");
+    }
+
+    // ─── Max template helper ──────────────────────────────────────────────────
+
+    private function renderMaxTemplate(string $key, array $vars, string $default): string
+    {
+        $file     = storage_path('app/max_settings.json');
+        $settings = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+        $tpl      = $settings['templates'][$key] ?? null;
+        if (!$tpl) return $default;
+        $search  = array_map(fn($k) => "{{$k}}", array_keys($vars));
+        return str_replace($search, array_values($vars), $tpl);
     }
 
     // ─── Private helpers ─────────────────────────────────────────────────────
