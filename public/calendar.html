@@ -1810,6 +1810,10 @@ function goToBooking() {
   const p = new URLSearchParams();
   p.set('hall_id', '1');
   p.set('guest_count', guestCount);
+  // Пробрасываем источник трафика и Max ID если пришли из бота
+  const cur = new URLSearchParams(window.location.search);
+  if (cur.get('via'))    p.set('via',    cur.get('via'));
+  if (cur.get('max_id')) p.set('max_id', cur.get('max_id'));
 
   if (currentFormat === 'allday') {
     const sortedDays = [...eventDays].sort();

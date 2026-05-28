@@ -178,9 +178,14 @@ class BookingService
             ]);
         }
 
-        // Сохраняем telegram_chat_id если пришёл из WebApp
+        // Сохраняем telegram_chat_id если пришёл из TG WebApp
         if (!empty($data['tg_user_id']) && empty($user->telegram_chat_id)) {
             $user->update(['telegram_chat_id' => (string) $data['tg_user_id']]);
+        }
+
+        // Сохраняем max_chat_id если пришёл из Max
+        if (!empty($data['max_user_id']) && empty($user->max_chat_id)) {
+            $user->update(['max_chat_id' => (string) $data['max_user_id']]);
         }
 
         return Client::firstOrCreate(

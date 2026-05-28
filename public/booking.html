@@ -602,13 +602,14 @@ function _initTg() {
 
           <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
             <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
+            <input type="text" id="f-max-id">
           </div>
 
-          <div class="notice">
+          <div class="notice" id="messenger-notice">
             <div class="notice-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="16" height="16"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
             </div>
-            <div class="notice-text">Уведомление с деталями придёт в <a href="https://t.me/rolthall_bot" target="_blank" style="color:var(--light);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);">@rolthall_bot</a> сразу после оплаты</div>
+            <div class="notice-text" id="messenger-notice-text">Уведомление с деталями придёт в <a href="https://t.me/rolthall_bot" target="_blank" style="color:var(--light);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);">@rolthall_bot</a> сразу после оплаты</div>
           </div>
 
         </div>
@@ -917,6 +918,7 @@ async function submitBooking() {
       const tgStored2 = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
       const tgChatId  = String(window.Telegram?.WebApp?.initDataUnsafe?.user?.id || tgStored2?.id || '') || null;
 
+      const _maxIdVal = document.getElementById('f-max-id')?.value || null;
       const res  = await fetch('/api/bookings/hold', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -928,6 +930,7 @@ async function submitBooking() {
           name, phone, email,
           telegram:        telegram || null,
           tg_user_id:      tgChatId,
+          max_user_id:     _maxIdVal,
           notes,
           _hp:             document.getElementById('hp-website')?.value || '',
           consent_offer:   true,
@@ -956,6 +959,7 @@ async function submitBooking() {
           pkg_price:       BOOKING_DATA.pkg,
           name, phone, email,
           telegram:        telegram || null,
+          max_user_id:     document.getElementById('f-max-id')?.value || null,
           notes,
           _hp:             document.getElementById('hp-website')?.value || '',
           consent_offer:   true,
@@ -1046,6 +1050,27 @@ function restoreFormData() {
 document.addEventListener('DOMContentLoaded', function() {
   initBookingPage();
   restoreFormData();
+
+  // Определяем источник (Max или TG)
+  const _urlP  = new URLSearchParams(window.location.search);
+  const _via   = _urlP.get('via');
+  const _maxId = _urlP.get('max_id') || '';
+
+  if (_via === 'max' && _maxId) {
+    const maxIdEl = document.getElementById('f-max-id');
+    if (maxIdEl) maxIdEl.value = _maxId;
+    // Обновляем notice: показываем Max, убираем TG
+    const noticeText = document.getElementById('messenger-notice-text');
+    if (noticeText) {
+      noticeText.innerHTML = 'Уведомления придут в <strong>Max</strong> сразу после оплаты'
+        + ' <span style="opacity:.5;font-size:.85em;">(ваш ID: ' + _maxId + ')</span>';
+    }
+    // Убираем обязательность telegram поля, обновляем hint
+    const tgHint = document.querySelector('span.form-hint');
+    if (tgHint && tgHint.textContent.includes('rolthall_bot')) {
+      tgHint.textContent = 'Необязательно при подключённом Max';
+    }
+  }
 
   // TG данные: из sessionStorage (сохранено при _initTg()) или напрямую
   const tgDirect = window.Telegram?.WebApp?.initDataUnsafe?.user;
