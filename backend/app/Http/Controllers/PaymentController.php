@@ -94,7 +94,7 @@ class PaymentController extends Controller
                     'hall_name'      => $booking->hall->name,
                     'phone'          => $booking->client->phone,
                     'email'          => $booking->client->email ?? '—',
-                    'telegram'       => $booking->client->telegram_username ?? '—',
+                    'telegram'       => $booking->client->user->telegram_username ?? $booking->client->telegram_username ?? '—',
                     'prepayment'     => $booking->prepayment_amount,
                     'transaction_id' => $paymentId,
                     'guest_count'    => $booking->guest_count,
