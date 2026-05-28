@@ -1070,6 +1070,7 @@ select.inp option{background:var(--bg-card);}
               <input type="text" class="inp" id="tg-test-client" placeholder="123456789 (Telegram Platform ID)">
               <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Числовой TG ID пользователя — куда слать тестовые клиентские шаблоны</div>
             </div>
+            <div class="form-group"><label class="form-lbl">Ссылка на бота (для уведомлений на сайте)</label><input type="url" class="inp" id="tg-bot-link" placeholder="https://t.me/rolthall_bot"></div>
             <div style="font-size:.62rem;color:var(--text-d);line-height:1.7;">Webhook проксируется через Cloudflare Worker.<br>Изменение токена требует перерегистрации webhook.</div>
             <button class="btn btn-w btn-md btn-full" onclick="saveTelegram()">Сохранить</button>
           </div>
@@ -1220,6 +1221,7 @@ select.inp option{background:var(--bg-card);}
               <input type="text" class="inp" id="max-test-client" placeholder="123456789 (Max user_id)">
               <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">user_id в Max — куда слать тестовые клиентские шаблоны</div>
             </div>
+            <div class="form-group"><label class="form-lbl">Ссылка на бота (для уведомлений на сайте)</label><input type="url" class="inp" id="max-bot-link" placeholder="https://max.ru/rolthall"></div>
             <div style="font-size:.62rem;color:var(--text-d);line-height:1.7;">Webhook: <code>https://hall.roltworld.com/api/max/webhook</code></div>
             <div style="display:flex;gap:8px;">
               <button class="btn btn-w btn-md" style="flex:1;" onclick="saveMax()">Сохранить</button>
@@ -3252,10 +3254,11 @@ function toggleTpl(head) {
 async function loadTelegramTab() {
   const data = await api('/admin/telegram/settings');
   if (!data) return;
-  document.getElementById('tg-token').value       = data.token           || '';
-  document.getElementById('tg-chat').value        = data.chat_id         || '';
-  document.getElementById('tg-thread').value      = data.thread_id       || '';
-  document.getElementById('tg-test-client').value = data.test_client_tg_id || '';
+  document.getElementById('tg-token').value       = data.token              || '';
+  document.getElementById('tg-chat').value        = data.chat_id            || '';
+  document.getElementById('tg-thread').value      = data.thread_id          || '';
+  document.getElementById('tg-test-client').value = data.test_client_tg_id  || '';
+  document.getElementById('tg-bot-link').value    = data.bot_link           || '';
   const tpls = data.templates || {};
   Object.keys(TPL_DEFAULTS).forEach(k => {
     const el = document.getElementById('tpl-' + k);
@@ -3274,7 +3277,8 @@ async function saveTelegram() {
     chat_id:           document.getElementById('tg-chat').value.trim(),
     thread_id:         document.getElementById('tg-thread').value.trim(),
     test_client_tg_id: document.getElementById('tg-test-client').value.trim(),
-  } : {};
+    bot_link:          document.getElementById('tg-bot-link').value.trim() || undefined,
+  } : { bot_link: document.getElementById('tg-bot-link').value.trim() || undefined };
   const res = await api('/admin/telegram/settings', {method:'POST', body:JSON.stringify(payload)});
   if (res?.ok) { const b=document.querySelector('#tg-technical-settings .btn-w'); if(b){b.textContent='✓ Сохранено'; setTimeout(()=>b.textContent='Сохранить',2000);} }
 }
@@ -3324,6 +3328,7 @@ const MAX_TPL_DEFAULTS = {
 async function loadMaxTab() {
   const data = await api('/admin/max/settings');
   if (!data) return;
+  document.getElementById('max-bot-link').value = data.bot_link || '';
   if (_me?.role === 'developer') {
     document.getElementById('max-token').value       = data.token               || '';
     document.getElementById('max-chat').value        = data.admin_chat_id       || '';
@@ -3356,12 +3361,14 @@ async function loadMaxTab() {
 }
 
 async function saveMax() {
+  const _maxBotLink = document.getElementById('max-bot-link').value.trim() || undefined;
   const payload = _me?.role === 'developer' ? {
     token:               document.getElementById('max-token').value.trim(),
     admin_chat_id:       document.getElementById('max-chat').value.trim(),
     admin_group_chat_id: document.getElementById('max-group-chat').value.trim(),
     test_client_max_id:  document.getElementById('max-test-client').value.trim(),
-  } : {};
+    bot_link:            _maxBotLink,
+  } : { bot_link: _maxBotLink };
   const res = await api('/admin/max/settings', {method:'POST', body:JSON.stringify(payload)});
   if (res?.ok) {
     const msg = document.getElementById('max-save-msg');
