@@ -228,6 +228,7 @@ class ProfileController extends Controller
                 'time_start'  => substr($b->time_start, 0, 5),
                 'time_end'    => substr($b->time_end, 0, 5),
                 'format'      => $b->format,
+                'pkg_label'   => $b->pkg_label,
                 'status'      => $b->status,
                 'total'       => $b->total_amount,
                 'prepayment'  => $b->prepayment_amount,

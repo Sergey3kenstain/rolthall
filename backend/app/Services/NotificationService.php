@@ -25,11 +25,12 @@ class NotificationService
      */
     public function notifyAdminNewBooking(array $data): void
     {
-        $formatLabel = match ($data['format'] ?? 'hourly') {
+        $baseLabel = match ($data['format'] ?? 'hourly') {
             'event'  => 'Событие',
             'allday' => 'Весь день',
             default  => 'Почасовая',
         };
+        $formatLabel = !empty($data['pkg_label']) ? $data['pkg_label'] : $baseLabel;
 
         $guestLine = !empty($data['guest_count']) && $data['guest_count'] > 0
             ? "👥 <b>Гостей:</b> {$data['guest_count']} чел.\n"

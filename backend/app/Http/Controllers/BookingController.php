@@ -207,6 +207,8 @@ class BookingController extends Controller
         $client   = $this->bookings->resolveClient($data);
         $bookings = [];
 
+        $pkgLabel = ($data['pkg_idx'] ?? 0) === 1 ? 'Весь день + свет/звук' : 'Весь день';
+
         foreach ($data['dates'] as $date) {
             $bookings[] = Booking::create([
                 'client_id'         => $client->id,
@@ -216,6 +218,7 @@ class BookingController extends Controller
                 'time_end'          => '22:00:00',
                 'duration_hours'    => 13,
                 'format'            => 'allday',
+                'pkg_label'         => $pkgLabel,
                 'status'            => Booking::STATUS_DRAFT,
                 'total_amount'      => 0,
                 'prepayment_amount' => 0,
@@ -226,8 +229,7 @@ class BookingController extends Controller
             ]);
         }
 
-        $dateList   = implode(', ', array_map(fn($d) => date('d.m.Y', strtotime($d)), $data['dates']));
-        $pkgLabel   = ($data['pkg_idx'] ?? 0) === 1 ? 'Весь день + свет/звук' : 'Весь день';
+        $dateList = implode(', ', array_map(fn($d) => date('d.m.Y', strtotime($d)), $data['dates']));
         $bookingIds = count($bookings) === 1
             ? "🔖 <b>Бронь #</b>{$bookings[0]->id}"
             : "🔖 <b>Брони #</b>" . implode(', #', array_column(array_map(fn($b) => ['id' => $b->id], $bookings), 'id'));
