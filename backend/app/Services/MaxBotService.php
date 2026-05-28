@@ -12,7 +12,9 @@ class MaxBotService
 
     public function __construct()
     {
-        $this->token = config('services.max.bot_token', '');
+        $file        = storage_path('app/max_settings.json');
+        $settings    = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+        $this->token = $settings['token'] ?? config('services.max.bot_token', '');
     }
 
     public function sendMessage(int|string $chatId, string $text): bool

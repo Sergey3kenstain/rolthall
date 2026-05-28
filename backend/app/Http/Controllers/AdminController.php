@@ -280,6 +280,56 @@ class AdminController extends Controller
         }
     }
 
+    // ── Max settings ─────────────────────────────────────────────────────
+
+    public function maxSettings(Request $request): JsonResponse
+    {
+        $file  = storage_path('app/max_settings.json');
+        $saved = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
+        $isDev = $request->user()->hasRole('developer');
+
+        $result = ['ok' => true];
+        if ($isDev) {
+            $result['token']         = $saved['token']         ?? config('services.max.bot_token');
+            $result['admin_chat_id'] = $saved['admin_chat_id'] ?? config('services.max.admin_chat_id');
+        }
+
+        return response()->json($result);
+    }
+
+    public function saveMaxSettings(Request $request): JsonResponse
+    {
+        $file     = storage_path('app/max_settings.json');
+        $existing = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+        $isDev    = $request->user()->hasRole('developer');
+
+        $rules = [];
+        if ($isDev) {
+            if ($request->has('token'))         $rules['token']         = 'required|string';
+            if ($request->has('admin_chat_id')) $rules['admin_chat_id'] = 'required|string';
+        }
+
+        $data   = $request->validate($rules);
+        $merged = array_merge($existing, $data);
+        file_put_contents($file, json_encode($merged, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        return response()->json(['ok' => true]);
+    }
+
+    public function testMaxSend(Request $request): JsonResponse
+    {
+        $file     = storage_path('app/max_settings.json');
+        $settings = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+
+        $adminChatId = $settings['admin_chat_id'] ?? config('services.max.admin_chat_id');
+        if (!$adminChatId) {
+            return response()->json(['ok' => false, 'error' => 'Admin Chat ID не задан'], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $max = new \App\Services\MaxBotService();
+        $ok  = $max->sendMessage($adminChatId, '🤖 <b>RoltHall Max Bot</b> подключён и готов к работе!');
+        return response()->json(['ok' => $ok]);
+    }
+
     // ── File upload ───────────────────────────────────────────────────────
 
     public function upload(Request $request): JsonResponse

@@ -17,11 +17,13 @@ class NotificationService
 
     public function __construct()
     {
+        $maxFile              = storage_path('app/max_settings.json');
+        $maxSettings          = file_exists($maxFile) ? (json_decode(file_get_contents($maxFile), true) ?? []) : [];
         $this->telegram       = new TelegramApi(config('services.telegram.bot_token'));
         $this->max            = new MaxBotService();
         $this->adminChatId    = config('services.telegram.admin_chat_id');
         $this->adminThreadId  = config('services.telegram.admin_thread_id') ?: null;
-        $this->maxAdminChatId = config('services.max.admin_chat_id') ?: null;
+        $this->maxAdminChatId = $maxSettings['admin_chat_id'] ?? config('services.max.admin_chat_id') ?: null;
     }
 
     /**
