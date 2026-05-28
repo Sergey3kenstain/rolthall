@@ -11,6 +11,9 @@ Artisan::command('inspire', function () {
 // Снимаем hold каждую минуту
 Schedule::command('bookings:release-holds')->everyMinute()->withoutOverlapping();
 
+// Напоминания клиентам: за 3ч (почасовая/событие) и накануне в 20:00 (весь день)
+Schedule::command('bookings:send-reminders')->everyMinute()->withoutOverlapping();
+
 // Переводим оплаченные брони в completed после окончания
 Schedule::call(function () {
     \App\Models\Booking::whereIn('status', [

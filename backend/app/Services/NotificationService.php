@@ -73,25 +73,21 @@ class NotificationService
     }
 
     /**
-     * Напоминание клиенту за 24 часа
+     * Напоминание клиенту — за 3ч (почасовая) или накануне в 20:00 (весь день)
      */
-    public function notifyClientReminder24h(int|string $chatId, array $data): void
+    public function notifyClientReminder3h(int|string $chatId, array $data): void
     {
-        $text = "⏰ <b>Напоминание</b>\n\n"
-            . "Завтра у вас бронь в RoltHall!\n"
-            . "🏛 {$data['hall_name']} · {$data['date']}, {$data['time_start']}–{$data['time_end']}\n\n"
-            . "Отмена возможна не позднее чем за 6 часов до начала.";
-
-        $this->send($chatId, $text);
-    }
-
-    /**
-     * Напоминание за 2 часа
-     */
-    public function notifyClientReminder2h(int|string $chatId, array $data): void
-    {
-        $text = "⏰ Через 2 часа ваша бронь!\n"
-            . "🏛 {$data['hall_name']} · {$data['time_start']}–{$data['time_end']}";
+        if (!empty($data['allday'])) {
+            $text = "⏰ <b>Напоминание</b>\n\n"
+                . "Завтра у вас бронь в RoltHall!\n"
+                . "🏛 {$data['hall_name']} · {$data['date']}, весь день (09:00–22:00)\n\n"
+                . "Ждём вас!";
+        } else {
+            $text = "⏰ <b>Напоминание</b>\n\n"
+                . "Через 3 часа ваша бронь в RoltHall!\n"
+                . "🏛 {$data['hall_name']} · {$data['date']}, {$data['time_start']}–{$data['time_end']}\n\n"
+                . "Отмена возможна не позднее чем за 3 часа до начала.";
+        }
 
         $this->send($chatId, $text);
     }
