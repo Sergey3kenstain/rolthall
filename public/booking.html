@@ -1093,6 +1093,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Обновляем notice для браузера (не TG WebApp, не Max): показываем оба бота
+  if (!window.Telegram?.WebApp?.initData && _via !== 'max') {
+    fetch('/api/config/bots', { headers: { Accept: 'application/json' } })
+      .then(r => r.json()).then(function(cfg) {
+        const noticeEl = document.getElementById('messenger-notice-text');
+        if (!noticeEl) return;
+        const tgLink  = cfg?.tg?.link  || 'https://t.me/rolthall_bot';
+        const maxLink = cfg?.max?.link || null;
+        const tgPart  = '<a href="' + tgLink + '" target="_blank" style="color:var(--light);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);">Telegram</a>';
+        const maxPart = maxLink
+          ? ' или <a href="' + maxLink + '" target="_blank" style="color:var(--light);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);">Max</a>'
+          : '';
+        noticeEl.innerHTML = 'Уведомление с деталями придёт в ' + tgPart + maxPart + ' сразу после оплаты';
+      }).catch(function() {});
+  }
+
   // Max данные: подтягиваем name/phone/email по max_id если пришли из бота
   if (_via === 'max' && _maxId) {
     fetch('/api/auth/max-profile?max_id=' + encodeURIComponent(_maxId), {

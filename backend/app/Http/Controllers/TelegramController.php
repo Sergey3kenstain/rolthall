@@ -25,13 +25,18 @@ class TelegramController extends Controller
      */
     public function webhook(Request $request): JsonResponse
     {
-        $update = $request->all();
+        $this->processUpdate($request->all());
+        return response()->json(['ok' => true]);
+    }
 
+    /**
+     * Обрабатываем одно обновление — вызывается из webhook и из polling-команды
+     */
+    public function processUpdate(array $update): void
+    {
         if (isset($update['message'])) {
             $this->handleMessage($update['message']);
         }
-
-        return response()->json(['ok' => true]);
     }
 
     /**

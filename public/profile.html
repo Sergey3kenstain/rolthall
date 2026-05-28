@@ -645,7 +645,8 @@ async function doResetPassword() {
     if (res.status === 429) { showProfileMsg('Слишком много попыток. Подождите минуту.', 'err'); return; }
     const data = await res.json();
     if (data.ok) {
-      showProfileMsg('Новый пароль отправлен в Telegram и закреплён.');
+      const ch = Array.isArray(data.channels) && data.channels.length ? data.channels.join(' и ') : 'мессенджер';
+      showProfileMsg('Новый пароль отправлен в ' + ch + '.');
     } else {
       showProfileMsg(data.error || 'Ошибка', 'err');
     }

@@ -89,6 +89,21 @@ Route::get('/profile/bookings',             [ProfileController::class, 'bookings
 Route::post('/profile/reschedule-request',  [ProfileController::class, 'rescheduleRequest']);
 Route::post('/profile/reset-password',      [ProfileController::class, 'resetPassword'])->middleware('throttle:5,1');
 
+// ── Public config ─────────────────────────────────────────────────────
+Route::get('/config/bots', function () {
+    $tg  = file_exists(storage_path('app/telegram_settings.json'))
+        ? (json_decode(file_get_contents(storage_path('app/telegram_settings.json')), true) ?? [])
+        : [];
+    $max = file_exists(storage_path('app/max_settings.json'))
+        ? (json_decode(file_get_contents(storage_path('app/max_settings.json')), true) ?? [])
+        : [];
+    return response()->json([
+        'ok'  => true,
+        'tg'  => ['link' => $tg['bot_link']  ?? 'https://t.me/rolthall_bot'],
+        'max' => ['link' => $max['bot_link'] ?? null],
+    ]);
+})->middleware('throttle:60,1');
+
 // ── Landing ───────────────────────────────────────────────────────────
 Route::post('/landing/booking', [LandingController::class, 'booking'])->middleware('throttle:10,1');
 

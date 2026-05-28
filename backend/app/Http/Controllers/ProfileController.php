@@ -107,24 +107,30 @@ class ProfileController extends Controller
             return response()->json(['ok' => false, 'error' => 'Сессия истекла'], 401);
         }
 
-        if (!$user->telegram_chat_id) {
+        $hasTg  = (bool) $user->telegram_chat_id;
+        $hasMax = (bool) $user->max_chat_id;
+
+        if (!$hasTg && !$hasMax) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'Telegram не привязан. Напишите боту /start чтобы получить новый пароль.',
+                'error' => 'Ни Telegram, ни Max не привязаны. Напишите /start боту чтобы получить пароль.',
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $notify = new NotificationService();
-        $sent   = $notify->sendCredentials($user);
+        $notify   = new NotificationService();
+        $channels = [];
 
-        if (!$sent) {
+        if ($hasTg  && $notify->sendCredentials($user))    $channels[] = 'Telegram';
+        if ($hasMax && $notify->sendCredentialsMax($user)) $channels[] = 'Max';
+
+        if (empty($channels)) {
             return response()->json([
                 'ok'    => false,
-                'error' => 'Не удалось отправить сообщение в Telegram. Убедитесь, что вы написали боту /start.',
+                'error' => 'Не удалось отправить сообщение. Проверьте что написали боту /start.',
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        return response()->json(['ok' => true], 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(['ok' => true, 'channels' => $channels], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**

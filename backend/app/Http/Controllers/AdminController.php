@@ -181,6 +181,7 @@ class AdminController extends Controller
 
         $result = [
             'ok'            => true,
+            'bot_link'      => $saved['bot_link']      ?? 'https://t.me/rolthall_bot',
             'templates'     => $saved['templates']     ?? null,
             'cmd_templates' => $saved['cmd_templates'] ?? null,
         ];
@@ -208,6 +209,7 @@ class AdminController extends Controller
             if ($request->has('thread_id'))         $rules['thread_id']         = 'nullable|string';
             if ($request->has('test_client_tg_id')) $rules['test_client_tg_id'] = 'nullable|string';
         }
+        if ($request->has('bot_link'))      $rules['bot_link']      = 'nullable|url|max:255';
         if ($request->has('templates'))    $rules['templates']    = 'nullable|array';
         if ($request->has('cmd_templates')) $rules['cmd_templates'] = 'nullable|array';
 
@@ -302,6 +304,7 @@ class AdminController extends Controller
 
         $result = [
             'ok'        => true,
+            'bot_link'  => $saved['bot_link'] ?? null,
             'templates' => $saved['templates'] ?? null,
         ];
         if ($isDev) {
@@ -327,6 +330,7 @@ class AdminController extends Controller
             if ($request->has('admin_group_chat_id')) $rules['admin_group_chat_id'] = 'nullable|string';
             if ($request->has('test_client_max_id'))  $rules['test_client_max_id']  = 'nullable|string';
         }
+        if ($request->has('bot_link'))  $rules['bot_link']  = 'nullable|url|max:255';
         if ($request->has('templates')) $rules['templates'] = 'nullable|array';
 
         $data   = $request->validate($rules);
