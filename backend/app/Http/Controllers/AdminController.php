@@ -559,6 +559,7 @@ class AdminController extends Controller
                 'total_paid'      => $c->total_paid,
                 'last_booking'    => $lastBooking,
                 'is_blacklisted'  => $c->is_blacklisted,
+                'admin_note'      => $c->admin_note ?: null,
                 'created_at'      => $c->created_at->format('Y-m-d'),
                 'role'            => $c->user?->getRoleNames()->first(),
             ];
