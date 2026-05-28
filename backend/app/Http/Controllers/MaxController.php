@@ -25,7 +25,7 @@ class MaxController extends Controller
         $update = $request->all();
         $type   = $update['update_type'] ?? null;
 
-        Log::info('Max webhook', ['type' => $type]);
+        Log::info('Max webhook FULL', $update);
 
         if ($type === 'message_created') {
             $this->handleMessage($update);
