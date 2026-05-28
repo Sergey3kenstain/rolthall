@@ -1225,6 +1225,7 @@ select.inp option{background:var(--bg-card);}
               <button class="btn btn-w btn-md" style="flex:1;" onclick="saveMax()">Сохранить</button>
               <button class="btn btn-ghost btn-md" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="testMaxSend()">✈ Тест</button>
             </div>
+            <button class="btn btn-ghost btn-md btn-full" style="margin-top:4px;" onclick="setMaxCommands()">⚙ Обновить команды бота</button>
             <span id="max-save-msg" style="font-size:.68rem;color:var(--green);display:none;">✓ Сохранено</span>
           </div>
         </div>
@@ -3394,6 +3395,12 @@ async function testMaxSend() {
   const res = await api('/admin/max/test-send');
   if (res?.ok) alert('✅ Тестовое сообщение отправлено в Max');
   else alert('❌ Ошибка: ' + (res?.error || 'не задан Admin Chat ID'));
+}
+
+async function setMaxCommands() {
+  const res = await api('/admin/max/set-commands', {method:'POST'});
+  if (res?.ok) alert('✅ Команды бота обновлены');
+  else alert('❌ Ошибка: ' + (res?.result?.error || JSON.stringify(res?.result) || 'неизвестная ошибка'));
 }
 
 /* ══ NOTIFICATIONS TAB ══ */

@@ -401,6 +401,19 @@ class AdminController extends Controller
             : ['ok' => false, 'error' => 'Не удалось отправить'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function setMaxCommands(): JsonResponse
+    {
+        $max    = new \App\Services\MaxBotService();
+        $result = $max->setCommands([
+            ['name' => 'start',   'description' => 'Запустить бота'],
+            ['name' => 'booking', 'description' => 'Забронировать зал'],
+            ['name' => 'lk',      'description' => 'Личный кабинет'],
+        ]);
+
+        $ok = !isset($result['error']);
+        return response()->json(['ok' => $ok, 'result' => $result]);
+    }
+
     public function testMaxSend(Request $request): JsonResponse
     {
         $file     = storage_path('app/max_settings.json');

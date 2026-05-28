@@ -44,16 +44,18 @@ class MaxBotService
         }
     }
 
-    public function sendMessage(int|string $userId, string $text): bool
+    public function sendMessage(int|string $userId, string $text, array $buttons = []): bool
     {
         if (!$this->token) return false;
 
         try {
+            $body = ['text' => $text, 'format' => 'html'];
+            if (!empty($buttons)) {
+                $body['attachments'] = $this->buildKeyboard($buttons);
+            }
+
             $response = Http::withHeaders(['Authorization' => $this->token])
-                ->post("{$this->baseUrl}/messages?user_id={$userId}", [
-                    'text'   => $text,
-                    'format' => 'html',
-                ]);
+                ->post("{$this->baseUrl}/messages?user_id={$userId}", $body);
 
             if (!$response->successful()) {
                 Log::error('Max sendMessage error', [
@@ -69,6 +71,26 @@ class MaxBotService
             Log::error('Max sendMessage exception', ['error' => $e->getMessage()]);
             return false;
         }
+    }
+
+    public function setCommands(array $commands): array
+    {
+        try {
+            $response = Http::withHeaders(['Authorization' => $this->token])
+                ->patch("{$this->baseUrl}/me", ['commands' => $commands]);
+
+            return $response->json() ?? ['error' => 'empty response'];
+        } catch (\Throwable $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    private function buildKeyboard(array $rows): array
+    {
+        return [[
+            'type'    => 'inline_keyboard',
+            'payload' => ['buttons' => $rows],
+        ]];
     }
 
     public function setWebhook(string $url): array

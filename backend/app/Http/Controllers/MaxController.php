@@ -58,6 +58,10 @@ class MaxController extends Controller
 
         if (str_starts_with($text, '/start')) {
             $this->sendStart($userId, $name, $user);
+        } elseif (str_starts_with($text, '/booking')) {
+            $this->sendBooking($userId);
+        } elseif (str_starts_with($text, '/lk')) {
+            $this->sendLk($userId, $name);
         }
     }
 
@@ -65,12 +69,32 @@ class MaxController extends Controller
     {
         $namePart = $name ? ", {$name}" : '';
         $text = "👋 Привет{$namePart}! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\n"
-            . "Для бронирования перейдите на сайт:\n"
-            . "<a href=\"https://hall.roltworld.com/calendar\">hall.roltworld.com/calendar</a>\n\n"
             . "После оплаты уведомления о бронях будут приходить сюда.\n\n"
             . "🪪 Ваш ID: <code>{$chatId}</code>";
 
-        $this->max->sendMessage($chatId, $text);
+        $this->max->sendMessage($chatId, $text, [[
+            ['type' => 'link', 'text' => '📅 Забронировать зал',  'url' => "https://hall.roltworld.com/calendar?via=max&max_id={$chatId}"],
+            ['type' => 'link', 'text' => '👤 Личный кабинет',     'url' => "https://hall.roltworld.com/profile?via=max"],
+        ]]);
+    }
+
+    private function sendBooking(string $chatId): void
+    {
+        $text = "📅 <b>Бронирование зала RoltHall</b>\n\nВыберите дату и время:";
+
+        $this->max->sendMessage($chatId, $text, [[
+            ['type' => 'link', 'text' => '📅 Открыть календарь', 'url' => "https://hall.roltworld.com/calendar?via=max&max_id={$chatId}"],
+        ]]);
+    }
+
+    private function sendLk(string $chatId, ?string $name): void
+    {
+        $namePart = $name ? ", {$name}" : '';
+        $text = "👤 Привет{$namePart}!\n\nВаш личный кабинет — история броней и данные профиля.";
+
+        $this->max->sendMessage($chatId, $text, [[
+            ['type' => 'link', 'text' => '🚪 Войти в личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max'],
+        ]]);
     }
 
     /**
