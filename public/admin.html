@@ -1287,6 +1287,17 @@ select.inp option{background:var(--bg-card);}
           <input type="checkbox" id="cd-ban-cb" onchange="toggleClientBan(this.checked)"> Заблокирован
         </label>
       </div>
+      <!-- Редактирование контактов (owner/developer only) -->
+      <div id="cd-edit-contacts" style="display:none;padding:10px 16px;border-bottom:1px solid var(--border);">
+        <label class="form-lbl" style="padding-top:4px;display:block;margin-bottom:8px;">Редактировать контакты</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <input type="text"  class="inp" id="cd-edit-name"  placeholder="Имя и фамилия">
+          <input type="tel"   class="inp" id="cd-edit-phone" placeholder="+7 (___) ___-__-__">
+          <input type="email" class="inp" id="cd-edit-email" placeholder="email@example.com">
+        </div>
+        <button class="btn btn-w btn-sm" style="margin-top:10px;" onclick="saveClientContacts()">Сохранить</button>
+        <span id="cd-edit-msg" style="font-size:.7rem;margin-left:10px;"></span>
+      </div>
       <!-- Заметка -->
       <div class="cd-note-area">
         <label class="form-lbl" style="padding-top:12px;display:block;">Заметка</label>
@@ -2830,6 +2841,17 @@ async function openClientModal(id) {
   const em    = c.email   ? `<div class="cd-contact-row"><span class="cd-contact-label">Email</span><a class="cd-contact-val" href="mailto:${c.email}">${c.email}</a></div>` : '';
   const tgid  = (_me?.role==='developer'&&c.telegram_id) ? `<div class="cd-contact-row"><span class="cd-contact-label">TG ID</span><span class="cd-contact-val" style="font-family:monospace;font-size:.7rem;">${c.telegram_id}</span></div>` : '';
   document.getElementById('cd-contacts').innerHTML = phone + tg + em + tgid;
+  // Edit contacts block (owner/developer only)
+  const editBlock = document.getElementById('cd-edit-contacts');
+  if (_me?.role === 'owner' || _me?.role === 'developer') {
+    editBlock.style.display = '';
+    document.getElementById('cd-edit-name').value  = c.name  || '';
+    document.getElementById('cd-edit-phone').value = c.phone || '';
+    document.getElementById('cd-edit-email').value = c.email || '';
+    document.getElementById('cd-edit-msg').textContent = '';
+  } else {
+    editBlock.style.display = 'none';
+  }
   // Stats
   const firstBk = bk.length ? bk[bk.length-1].date : '—';
   const lastBk  = bk.length ? bk[0].date : '—';
@@ -2901,6 +2923,23 @@ async function setClientRole(role) {
   );
   await api(`/admin/clients/${_openClientId}`,{method:'PUT',body:JSON.stringify({role})});
 }
+async function saveClientContacts() {
+  if (!_openClientId) return;
+  const name  = document.getElementById('cd-edit-name').value.trim();
+  const phone = document.getElementById('cd-edit-phone').value.trim();
+  const email = document.getElementById('cd-edit-email').value.trim();
+  const msg   = document.getElementById('cd-edit-msg');
+  if (!name || !phone) { msg.style.color='var(--red)'; msg.textContent='Имя и телефон обязательны'; return; }
+  const res = await api(`/admin/clients/${_openClientId}`, {method:'PUT', body:JSON.stringify({name, phone, email})});
+  if (res?.ok) {
+    msg.style.color = 'var(--green)'; msg.textContent = 'Сохранено';
+    document.getElementById('cd-name').textContent = name;
+    loadClientsTab();
+  } else {
+    msg.style.color = 'var(--red)'; msg.textContent = res?.error || 'Ошибка';
+  }
+}
+
 async function toggleClientBan(val) {
   if (!_openClientId) return;
   await api(`/admin/clients/${_openClientId}`,{method:'PUT',body:JSON.stringify({is_blacklisted:val})});

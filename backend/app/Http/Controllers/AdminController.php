@@ -630,7 +630,7 @@ class AdminController extends Controller
             $c->user->syncRoles([$newRole]);
         }
 
-        $c->fill($request->only(['name', 'phone', 'email', 'telegram_username', 'is_blacklisted', 'blacklist_reason']));
+        $c->fill($request->only(['name', 'phone', 'email', 'is_blacklisted', 'blacklist_reason']));
         $c->save();
 
         return response()->json(['ok' => true]);
