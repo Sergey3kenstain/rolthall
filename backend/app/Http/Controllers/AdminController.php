@@ -1158,13 +1158,15 @@ class AdminController extends Controller
     public function users(Request $request): JsonResponse
     {
         $users = User::with('roles')->orderBy('name')->get()->map(fn($u) => [
-            'id'             => $u->id,
-            'name'           => $u->name,
-            'email'          => $u->email,
-            'phone'          => $u->phone,
-            'role'           => $u->getRoleNames()->first(),
-            'is_blacklisted' => (bool) optional($u->client)->is_blacklisted,
-            'is_active'      => (bool) ($u->is_active ?? true),
+            'id'              => $u->id,
+            'name'            => $u->name,
+            'email'           => $u->email,
+            'phone'           => $u->phone,
+            'role'            => $u->getRoleNames()->first(),
+            'is_blacklisted'  => (bool) optional($u->client)->is_blacklisted,
+            'is_active'       => (bool) ($u->is_active ?? true),
+            'telegram_chat_id'=> $u->telegram_chat_id,
+            'max_chat_id'     => $u->max_chat_id,
         ]);
 
         return response()->json(['ok' => true, 'data' => $users], 200, [], JSON_UNESCAPED_UNICODE);
