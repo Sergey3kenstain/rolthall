@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
@@ -309,6 +310,38 @@ class AuthController extends Controller
             'phone'    => $user->phone ?? '',
             'email'    => $user->email ?? '',
             'username' => $user->telegram_username ?? '',
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Автологин через одноразовый magic link из Max бота
+     * GET /api/auth/max-login?token=XXX
+     */
+    public function maxMagicLogin(Request $request): JsonResponse
+    {
+        $token = (string) ($request->query('token') ?? '');
+        if (strlen($token) < 8) {
+            return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
+        }
+
+        $chatId = Cache::get("max_ml_{$token}");
+        if (!$chatId) {
+            return response()->json(['ok' => false, 'error' => 'token_expired'], 401);
+        }
+        Cache::forget("max_ml_{$token}");
+
+        $user = User::where('max_chat_id', (string) $chatId)->first();
+        if (!$user) {
+            return response()->json(['ok' => false, 'error' => 'not_found'], 404);
+        }
+
+        $apiToken = $user->createToken('max-profile')->plainTextToken;
+
+        return response()->json([
+            'ok'    => true,
+            'token' => $apiToken,
+            'name'  => $user->name ?? '',
+            'role'  => $user->role ?? 'client',
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

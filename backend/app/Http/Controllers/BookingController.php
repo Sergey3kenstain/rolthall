@@ -198,14 +198,17 @@ class BookingController extends Controller
         }
 
         $data = $request->validate([
-            'hall_id' => 'required|integer|exists:halls,id',
-            'name'    => 'required|string|max:191',
-            'phone'   => 'required|string|max:30',
-            'email'   => 'nullable|email|max:191',
-            'dates'   => 'required|array|min:1',
-            'dates.*' => 'required|date|after_or_equal:today',
-            'pkg_idx' => 'nullable|integer|in:0,1',
-            'notes'   => 'nullable|string|max:1000',
+            'hall_id'     => 'required|integer|exists:halls,id',
+            'name'        => 'required|string|max:191',
+            'phone'       => 'required|string|max:30',
+            'email'       => 'nullable|email|max:191',
+            'telegram'    => 'nullable|string|max:100',
+            'tg_user_id'  => 'nullable|string|max:50',
+            'max_user_id' => 'nullable|string|max:50',
+            'dates'       => 'required|array|min:1',
+            'dates.*'     => 'required|date|after_or_equal:today',
+            'pkg_idx'     => 'nullable|integer|in:0,1',
+            'notes'       => 'nullable|string|max:1000',
         ]);
 
         $client   = $this->bookings->resolveClient($data);
@@ -247,6 +250,10 @@ class BookingController extends Controller
             "🏷 <b>Статус:</b> Ожидает подтверждения\n" .
             $bookingIds
         );
+
+        $clientTgId  = $client->user->telegram_chat_id ?? null;
+        $clientMaxId = $client->user->max_chat_id ?? null;
+        $this->notify->notifyClientInquiryDual($clientTgId, $clientMaxId, $dateList);
 
         return response()->json(['ok' => true]);
     }

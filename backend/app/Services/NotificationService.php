@@ -207,6 +207,28 @@ class NotificationService
     }
 
     /**
+     * Уведомление клиенту — заявка на весь день принята (ожидает подтверждения)
+     */
+    public function notifyClientInquiryDual(?string $tgChatId, ?string $maxChatId, string $dateList): void
+    {
+        if (!$tgChatId && !$maxChatId) return;
+
+        $text = "📋 <b>Заявка принята!</b>\n\n"
+            . "Мы получили вашу заявку на аренду зала.\n"
+            . "📅 <b>Даты:</b> {$dateList}\n\n"
+            . "Свяжемся с вами в ближайшее время.";
+
+        if ($tgChatId) {
+            $ok = $this->send($tgChatId, $text);
+            $this->logNotif('tg', 'inquiry', $this->maskId((string)$tgChatId), $ok);
+        }
+        if ($maxChatId) {
+            $ok = $this->max->sendMessage($maxChatId, $text);
+            $this->logNotif('max', 'inquiry', $this->maskId($maxChatId), $ok);
+        }
+    }
+
+    /**
      * Уведомление об отмене клиенту — dual TG + Max
      */
     public function notifyClientCancelledDual(?string $chatId, ?string $maxChatId, bool $refunded): void

@@ -20,6 +20,7 @@ Route::middleware('throttle:10,1')->group(function () {
 });
 Route::post('/auth/tg-sync',    [AuthController::class, 'tgSync'])->middleware('throttle:30,1');
 Route::get('/auth/tg-profile',  [AuthController::class, 'tgProfile'])->middleware('throttle:30,1');
+Route::get('/auth/max-login',   [AuthController::class, 'maxMagicLogin'])->middleware('throttle:10,1');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout',         [AuthController::class, 'logout']);
     Route::get('/auth/me',              [AuthController::class, 'me']);

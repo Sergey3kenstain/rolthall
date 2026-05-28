@@ -7,7 +7,9 @@ use App\Services\MaxBotService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class MaxController extends Controller
 {
@@ -93,9 +95,13 @@ class MaxController extends Controller
         $namePart = $name ? ", {$name}" : '';
         $text = "👤 Привет{$namePart}!\n\nВаш личный кабинет — история броней и данные профиля.";
 
+        // Генерируем одноразовый magic token (10 мин)
+        $token = Str::random(40);
+        Cache::put("max_ml_{$token}", $chatId, now()->addMinutes(10));
+
         $this->max->sendMessage($chatId, $text, [
             [
-                ['type' => 'link', 'text' => '🚪 Войти в личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max'],
+                ['type' => 'link', 'text' => '🚪 Войти в личный кабинет', 'url' => "https://hall.roltworld.com/profile?ml={$token}"],
             ],
             [
                 ['type' => 'link', 'text' => '📅 Забронировать зал', 'url' => "https://hall.roltworld.com/calendar?via=max&max_id={$chatId}"],
