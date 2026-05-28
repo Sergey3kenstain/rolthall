@@ -87,6 +87,7 @@ class PaymentController extends Controller
                 // Уведомление администратору
                 $this->notify->notifyAdminNewBooking([
                     'format'         => $booking->format,
+                    'pkg_label'      => $booking->pkg_label,
                     'client_name'    => $booking->client->name,
                     'date'           => $booking->getDateFormatted(),
                     'time_start'     => substr($booking->time_start, 0, 5),
