@@ -15,7 +15,7 @@ class SendBookingReminders extends Command
 {
     public function handle(NotificationService $notify): void
     {
-        $now = Carbon::now();
+        $now = Carbon::now('Europe/Moscow');
 
         // Почасовые и события: напоминание за 3 часа до начала (окно ±1 мин)
         $targetTime     = $now->copy()->addHours(3);
