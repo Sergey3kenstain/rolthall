@@ -120,7 +120,8 @@ class NotificationService
             'guests' => (!empty($data['guest_count']) && $data['guest_count'] > 0) ? $data['guest_count'] : '—',
         ], $default);
 
-        $ok = $this->max->sendMessage($maxChatId, $text);
+        $lkButton = [[['type' => 'link', 'text' => '👤 Личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max']]];
+        $ok = $this->max->sendMessage($maxChatId, $text, $lkButton);
         $this->logNotif('max', 'booking_confirmed', $this->maskId($maxChatId), $ok);
     }
 
@@ -178,7 +179,8 @@ class NotificationService
         }
 
         $event = !empty($data['allday'] ?? false) ? 'reminder_allday' : 'reminder_3h';
-        $ok = $this->max->sendMessage($maxChatId, $text);
+        $lkButton = [[['type' => 'link', 'text' => '👤 Личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max']]];
+        $ok = $this->max->sendMessage($maxChatId, $text, $lkButton);
         $this->logNotif('max', $event, $this->maskId($maxChatId), $ok);
     }
 
@@ -239,7 +241,8 @@ class NotificationService
             'refund_info' => $refundLine,
         ], $default);
 
-        $ok = $this->max->sendMessage($maxChatId, $text);
+        $lkButton = [[['type' => 'link', 'text' => '👤 Личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max']]];
+        $ok = $this->max->sendMessage($maxChatId, $text, $lkButton);
         $this->logNotif('max', 'booking_cancelled', $this->maskId($maxChatId), $ok);
     }
 

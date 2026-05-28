@@ -70,7 +70,8 @@ class MaxController extends Controller
         $namePart = $name ? ", {$name}" : '';
         $text = "👋 Привет{$namePart}! Это бот <b>RoltHall</b> — танцевальный зал в Краснодаре.\n\n"
             . "После оплаты уведомления о бронях будут приходить сюда.\n\n"
-            . "🪪 Ваш ID: <code>{$chatId}</code>";
+            . "🪪 Ваш ID: <code>{$chatId}</code>\n\n"
+            . "<i>Для вызова меню напишите /lk</i>";
 
         $this->max->sendMessage($chatId, $text, [[
             ['type' => 'link', 'text' => '📅 Забронировать зал',  'url' => "https://hall.roltworld.com/calendar?via=max&max_id={$chatId}"],
@@ -92,9 +93,14 @@ class MaxController extends Controller
         $namePart = $name ? ", {$name}" : '';
         $text = "👤 Привет{$namePart}!\n\nВаш личный кабинет — история броней и данные профиля.";
 
-        $this->max->sendMessage($chatId, $text, [[
-            ['type' => 'link', 'text' => '🚪 Войти в личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max'],
-        ]]);
+        $this->max->sendMessage($chatId, $text, [
+            [
+                ['type' => 'link', 'text' => '🚪 Войти в личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max'],
+            ],
+            [
+                ['type' => 'link', 'text' => '📅 Забронировать зал', 'url' => "https://hall.roltworld.com/calendar?via=max&max_id={$chatId}"],
+            ],
+        ]);
     }
 
     /**
