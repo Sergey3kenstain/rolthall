@@ -1093,6 +1093,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Max данные: подтягиваем name/phone/email по max_id если пришли из бота
+  if (_via === 'max' && _maxId) {
+    fetch('/api/auth/max-profile?max_id=' + encodeURIComponent(_maxId), {
+      headers: { 'Accept': 'application/json' },
+    }).then(r => r.json()).then(function(d) {
+      if (!d.ok || !d.found) return;
+      const nameEl  = document.getElementById('f-name');
+      const phoneEl = document.getElementById('f-phone');
+      const emailEl = document.getElementById('f-email');
+      if (nameEl  && !nameEl.value  && d.name)  nameEl.value  = d.name;
+      if (phoneEl && !phoneEl.value && d.phone) phoneEl.value = d.phone;
+      if (emailEl && !emailEl.value && d.email) emailEl.value = d.email;
+      saveFormData();
+    }).catch(function() {});
+  }
+
   // TG данные: из sessionStorage (сохранено при _initTg()) или напрямую
   const tgDirect = window.Telegram?.WebApp?.initDataUnsafe?.user;
   const tgStored = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();

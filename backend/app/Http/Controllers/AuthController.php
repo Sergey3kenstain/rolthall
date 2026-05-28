@@ -313,6 +313,31 @@ class AuthController extends Controller
     }
 
     /**
+     * Профиль пользователя по max_chat_id — предзаполнение формы бронирования
+     * GET /api/auth/max-profile?max_id=7262014
+     */
+    public function maxProfile(Request $request): JsonResponse
+    {
+        $maxId = $request->query('max_id');
+        if (!$maxId) {
+            return response()->json(['ok' => false], 400);
+        }
+
+        $user = User::where('max_chat_id', (string) $maxId)->first();
+        if (!$user) {
+            return response()->json(['ok' => false, 'found' => false]);
+        }
+
+        return response()->json([
+            'ok'    => true,
+            'found' => true,
+            'name'  => $user->name  ?? '',
+            'phone' => $user->phone ?? '',
+            'email' => $user->email ?? '',
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * Автологин через одноразовый magic link из Max бота
      * GET /api/auth/max-login?token=XXX
      */
