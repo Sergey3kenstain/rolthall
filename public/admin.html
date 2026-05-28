@@ -1270,6 +1270,18 @@ select.inp option{background:var(--bg-card);}
           <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testMaxTpl('booking_cancelled')">✈ Тест</button></div>
         </div>
       </div>
+      <!-- max: reschedule_request -->
+      <div class="tpl-row">
+        <div class="tpl-head" onclick="toggleTpl(this)">
+          <div><div class="qa-label">Запрос переноса</div><div class="qa-sub">→ в чат администраторов</div></div>
+          <svg class="tpl-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="tpl-body" style="display:none;">
+          <textarea class="inp" id="max-tpl-reschedule_request" rows="9" style="font-size:.72rem;font-family:monospace;resize:vertical;"></textarea>
+          <div class="tpl-vars">{booking_id} {name} {phone} {telegram} {hall} {old_date} {old_time} {new_date} {new_time} {comment}</div>
+          <div style="text-align:right;margin-top:8px;"><button class="btn btn-ghost btn-sm" style="width:auto;" onclick="testMaxTpl('reschedule_request')">✈ Тест</button></div>
+        </div>
+      </div>
       <!-- max: reminder_3h -->
       <div class="tpl-row">
         <div class="tpl-head" onclick="toggleTpl(this)">
@@ -3303,6 +3315,7 @@ const MAX_TPL_DEFAULTS = {
   new_booking: `🏠 <b>Новая бронь — RoltHall</b>\n\n👤 <b>Клиент:</b> {name}\n📞 <b>Телефон:</b> {phone}\n✉️ <b>Email:</b> {email}\n💬 <b>Телеграм:</b> @{telegram}\n\n📋 <b>Формат:</b> {format}\n📅 <b>Дата:</b> {date}\n🕐 <b>Время:</b> {time}\n🏛 <b>Зал:</b> {hall}\n\n💰 <b>Предоплата:</b> {amount} ₽\n🔑 <b>Транзакция:</b> <code>{txn_id}</code>`,
   booking_confirmed: `✅ <b>Бронь подтверждена!</b>\n\n🏛 <b>Зал:</b> {hall}\n📅 <b>Дата:</b> {date}\n🕐 <b>Время:</b> {time}\n💰 <b>Предоплата:</b> {amount} ₽\n\nЖдём вас! По вопросам — свяжитесь с нами.`,
   booking_cancelled: `❌ <b>Бронь отменена</b>\n\n{refund_info}`,
+  reschedule_request: `📅 <b>Запрос переноса брони #{booking_id}</b>\n\n👤 <b>Клиент:</b> {name}\n📞 <b>Телефон:</b> {phone}\n💬 <b>Телеграм:</b> {telegram}\n🏛 <b>Зал:</b> {hall}\n\n📌 <b>Текущая дата:</b> {old_date}, {old_time}\n🆕 <b>Желаемая дата:</b> {new_date}\n🕐 <b>Желаемое время:</b> {new_time}\n\n💬 <b>Комментарий:</b> {comment}`,
   reminder_3h: `⏰ <b>Напоминание</b>\n\nЧерез 3 часа ваша бронь в RoltHall!\n🏛 {hall} · {date}, {time}\n\nОтмена возможна не позднее чем за 3 часа до начала.`,
   reminder_allday: `⏰ <b>Напоминание</b>\n\nЗавтра у вас бронь в RoltHall!\n🏛 {hall} · {date}, весь день (09:00–22:00)\n\nЖдём вас!`,
 };
@@ -3321,7 +3334,7 @@ async function loadMaxTab() {
 
   // Заполняем шаблоны
   const tpls = data.templates || {};
-  ['new_booking','booking_confirmed','booking_cancelled','reminder_3h','reminder_allday'].forEach(key => {
+  ['new_booking','booking_confirmed','booking_cancelled','reschedule_request','reminder_3h','reminder_allday'].forEach(key => {
     const el = document.getElementById('max-tpl-' + key);
     if (el) el.value = tpls[key] || MAX_TPL_DEFAULTS[key] || '';
   });
@@ -3358,7 +3371,7 @@ async function saveMax() {
 
 async function saveMaxTemplates() {
   const templates = {};
-  ['new_booking','booking_confirmed','booking_cancelled','reminder_3h','reminder_allday'].forEach(key => {
+  ['new_booking','booking_confirmed','booking_cancelled','reschedule_request','reminder_3h','reminder_allday'].forEach(key => {
     const el = document.getElementById('max-tpl-' + key);
     if (el) templates[key] = el.value;
   });

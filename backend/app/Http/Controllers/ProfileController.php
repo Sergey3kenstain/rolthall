@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActionLog;
 use App\Models\Booking;
 use App\Models\Client;
 use App\Models\User;
+use App\Services\MaxBotService;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -303,13 +305,40 @@ class ProfileController extends Controller
 
         $text = str_replace(array_keys($vars), array_values($vars), $tpl);
 
+        // TG
+        $tgOk = false;
         try {
             $telegram = new \Telegram\Bot\Api($token);
             $params   = ['chat_id' => $chatId, 'text' => $text, 'parse_mode' => 'HTML'];
             if ($threadId) $params['message_thread_id'] = $threadId;
             $telegram->sendMessage($params);
+            $tgOk = true;
         } catch (\Throwable $e) {
             Log::warning('Reschedule TG notification failed', ['error' => $e->getMessage()]);
+        }
+        ActionLog::write('notification.sent', null, 'system', null, null, [
+            'channel' => 'tg', 'event' => 'reschedule_request', 'to' => 'admin', 'ok' => $tgOk,
+        ]);
+
+        // Max
+        try {
+            $maxFile     = storage_path('app/max_settings.json');
+            $maxSettings = file_exists($maxFile) ? (json_decode(file_get_contents($maxFile), true) ?? []) : [];
+            $maxTpl      = $maxSettings['templates']['reschedule_request'] ?? $tplDefault;
+            $maxText     = str_replace(array_keys($vars), array_values($vars), $maxTpl);
+
+            $max          = new MaxBotService();
+            $adminUserId  = $maxSettings['admin_chat_id']       ?? config('services.max.admin_chat_id') ?: null;
+            $adminGroupId = $maxSettings['admin_group_chat_id'] ?? null;
+            $maxOk        = true;
+            if ($adminUserId)  $maxOk = $max->sendMessage($adminUserId, $maxText) && $maxOk;
+            if ($adminGroupId) $maxOk = $max->sendToChat($adminGroupId, $maxText) && $maxOk;
+
+            ActionLog::write('notification.sent', null, 'system', null, null, [
+                'channel' => 'max', 'event' => 'reschedule_request', 'to' => 'admin', 'ok' => $maxOk,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Reschedule Max notification failed', ['error' => $e->getMessage()]);
         }
 
         return response()->json(['ok' => true], 200, [], JSON_UNESCAPED_UNICODE);

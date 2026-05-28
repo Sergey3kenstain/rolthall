@@ -338,7 +338,7 @@ class AdminController extends Controller
     public function testMaxTemplate(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'key'  => 'required|string|in:new_booking,booking_confirmed,booking_cancelled,reminder_3h,reminder_allday',
+            'key'  => 'required|string|in:new_booking,booking_confirmed,booking_cancelled,reschedule_request,reminder_3h,reminder_allday',
             'text' => 'required|string|max:4096',
         ]);
 
@@ -348,7 +348,7 @@ class AdminController extends Controller
         $adminUserId    = $settings['admin_chat_id']       ?? config('services.max.admin_chat_id');
         $adminGroupId   = $settings['admin_group_chat_id'] ?? null;
         $testClientId   = $settings['test_client_max_id']  ?? null;
-        $isAdmin        = in_array($data['key'], ['new_booking']);
+        $isAdmin        = in_array($data['key'], ['new_booking', 'reschedule_request']);
 
         if ($isAdmin && !$adminUserId && !$adminGroupId) {
             return response()->json(['ok' => false, 'error' => 'Не задан Admin User ID / Chat ID в настройках Max.'], 422, [], JSON_UNESCAPED_UNICODE);
@@ -361,7 +361,7 @@ class AdminController extends Controller
             '{name}'        => 'Иван Иванов',
             '{phone}'       => '+79086850838',
             '{email}'       => 'ivan@example.com',
-            '{telegram}'    => 'test_user',
+            '{telegram}'    => '@test_user',
             '{date}'        => '28.05.2026',
             '{time}'        => '15:00–16:00',
             '{hall}'        => 'RoltHall',
@@ -370,6 +370,12 @@ class AdminController extends Controller
             '{txn_id}'      => '8541823676',
             '{guests}'      => '5',
             '{refund_info}' => 'Предоплата будет возвращена в течение 3–5 рабочих дней.',
+            '{booking_id}'  => '42',
+            '{old_date}'    => '25.05.2026',
+            '{old_time}'    => '10:00–12:00',
+            '{new_date}'    => '02.06.2026',
+            '{new_time}'    => '14:00–16:00',
+            '{comment}'     => 'Изменились планы, прошу перенести',
         ];
 
         $text = '[ТЕСТ] ' . str_replace(array_keys($dummies), array_values($dummies), $data['text']);
