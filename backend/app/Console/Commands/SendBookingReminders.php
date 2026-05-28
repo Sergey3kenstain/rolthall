@@ -30,10 +30,11 @@ class SendBookingReminders extends Command
             ->get();
 
         foreach ($hourly as $booking) {
-            $chatId = $booking->client->user->telegram_chat_id ?? null;
-            if (!$chatId) continue;
+            $chatId    = $booking->client->user->telegram_chat_id ?? null;
+            $maxChatId = $booking->client->user->max_chat_id ?? null;
+            if (!$chatId && !$maxChatId) continue;
 
-            $notify->notifyClientReminder3h($chatId, [
+            $notify->notifyClientReminder3hDual($chatId, $maxChatId, [
                 'hall_name'  => $booking->hall->name,
                 'date'       => $booking->getDateFormatted(),
                 'time_start' => substr($booking->time_start, 0, 5),
@@ -52,10 +53,11 @@ class SendBookingReminders extends Command
                 ->get();
 
             foreach ($allday as $booking) {
-                $chatId = $booking->client->user->telegram_chat_id ?? null;
-                if (!$chatId) continue;
+                $chatId    = $booking->client->user->telegram_chat_id ?? null;
+                $maxChatId = $booking->client->user->max_chat_id ?? null;
+                if (!$chatId && !$maxChatId) continue;
 
-                $notify->notifyClientReminder3h($chatId, [
+                $notify->notifyClientReminder3hDual($chatId, $maxChatId, [
                     'hall_name'  => $booking->hall->name,
                     'date'       => $booking->getDateFormatted(),
                     'time_start' => '09:00',

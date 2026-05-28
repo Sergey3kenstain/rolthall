@@ -100,11 +100,12 @@ class PaymentController extends Controller
                     'guest_count'    => $booking->guest_count,
                 ]);
 
-                // Уведомление клиенту в личку (если он написал боту /start)
+                // Уведомление клиенту в личку (TG + Max)
                 $client       = $booking->client;
                 $clientChatId = $client->user->telegram_chat_id ?? null;
-                if ($clientChatId) {
-                    $this->notify->notifyClientConfirmed($clientChatId, [
+                $maxChatId    = $client->user->max_chat_id ?? null;
+                if ($clientChatId || $maxChatId) {
+                    $this->notify->notifyClientConfirmedDual($clientChatId, $maxChatId, [
                         'hall_name'   => $booking->hall->name,
                         'date'        => $booking->getDateFormatted(),
                         'time_start'  => substr($booking->time_start, 0, 5),

@@ -9,15 +9,19 @@ use Telegram\Bot\Api as TelegramApi;
 
 class NotificationService
 {
-    private TelegramApi $telegram;
-    private string|int  $adminChatId;
-    private ?int        $adminThreadId;
+    private TelegramApi  $telegram;
+    private MaxBotService $max;
+    private string|int   $adminChatId;
+    private ?int         $adminThreadId;
+    private ?string      $maxAdminChatId;
 
     public function __construct()
     {
-        $this->telegram      = new TelegramApi(config('services.telegram.bot_token'));
-        $this->adminChatId   = config('services.telegram.admin_chat_id');
-        $this->adminThreadId = config('services.telegram.admin_thread_id') ?: null;
+        $this->telegram       = new TelegramApi(config('services.telegram.bot_token'));
+        $this->max            = new MaxBotService();
+        $this->adminChatId    = config('services.telegram.admin_chat_id');
+        $this->adminThreadId  = config('services.telegram.admin_thread_id') ?: null;
+        $this->maxAdminChatId = config('services.max.admin_chat_id') ?: null;
     }
 
     /**
@@ -53,6 +57,32 @@ class NotificationService
     }
 
     /**
+     * Уведомление клиенту о подтверждении брони (TG + Max)
+     */
+    public function notifyClientConfirmedDual(?string $chatId, ?string $maxChatId, array $data): void
+    {
+        if ($chatId) $this->notifyClientConfirmed($chatId, $data);
+        if ($maxChatId) $this->notifyClientConfirmedMax($maxChatId, $data);
+    }
+
+    private function notifyClientConfirmedMax(string $maxChatId, array $data): void
+    {
+        $guestsLine = !empty($data['guest_count']) && $data['guest_count'] > 0
+            ? "👥 <b>Гостей:</b> {$data['guest_count']} чел.\n"
+            : '';
+
+        $text = "✅ <b>Бронь подтверждена!</b>\n\n"
+            . "🏛 <b>Зал:</b> {$data['hall_name']}\n"
+            . "📅 <b>Дата:</b> {$data['date']}\n"
+            . "🕐 <b>Время:</b> {$data['time_start']}–{$data['time_end']}\n"
+            . $guestsLine
+            . "💰 <b>Предоплата:</b> {$data['prepayment']} ₽\n\n"
+            . "Ждём вас! По вопросам — свяжитесь с нами.";
+
+        $this->max->sendMessage($maxChatId, $text);
+    }
+
+    /**
      * Уведомление клиенту о подтверждении брони
      */
     public function notifyClientConfirmed(int|string $chatId, array $data): void
@@ -70,6 +100,32 @@ class NotificationService
             . "Ждём вас! По вопросам — свяжитесь с нами.";
 
         $this->send($chatId, $text);
+    }
+
+    /**
+     * Напоминание клиенту — dual TG + Max
+     */
+    public function notifyClientReminder3hDual(?string $chatId, ?string $maxChatId, array $data): void
+    {
+        if ($chatId) $this->notifyClientReminder3h($chatId, $data);
+        if ($maxChatId) $this->notifyClientReminder3hMax($maxChatId, $data);
+    }
+
+    private function notifyClientReminder3hMax(string $maxChatId, array $data): void
+    {
+        if (!empty($data['allday'])) {
+            $text = "⏰ <b>Напоминание</b>\n\n"
+                . "Завтра у вас бронь в RoltHall!\n"
+                . "🏛 {$data['hall_name']} · {$data['date']}, весь день (09:00–22:00)\n\n"
+                . "Ждём вас!";
+        } else {
+            $text = "⏰ <b>Напоминание</b>\n\n"
+                . "Через 3 часа ваша бронь в RoltHall!\n"
+                . "🏛 {$data['hall_name']} · {$data['date']}, {$data['time_start']}–{$data['time_end']}\n\n"
+                . "Отмена возможна не позднее чем за 3 часа до начала.";
+        }
+
+        $this->max->sendMessage($maxChatId, $text);
     }
 
     /**
@@ -225,6 +281,10 @@ class NotificationService
     private function sendToAdmin(string $text): void
     {
         $this->send($this->adminChatId, $text, $this->adminThreadId);
+
+        if ($this->maxAdminChatId) {
+            $this->max->sendMessage($this->maxAdminChatId, $text);
+        }
     }
 
     private function send(int|string $chatId, string $text, ?int $threadId = null): void

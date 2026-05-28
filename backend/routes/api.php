@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HallController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\MaxController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TelegramController;
@@ -105,3 +106,10 @@ Route::post('/telegram/webhook',      [TelegramController::class, 'webhook']);
 Route::get('/telegram/set-webhook',   [TelegramController::class, 'setWebhook']);
 Route::get('/telegram/webhook-info',  [TelegramController::class, 'webhookInfo']);
 Route::get('/telegram/test',          [TelegramController::class, 'test']);
+
+// ── Max Bot ───────────────────────────────────────────────────────────
+Route::post('/max/webhook',           [MaxController::class, 'webhook']);
+Route::get('/max/set-webhook',        [MaxController::class, 'setWebhook']);
+Route::get('/max/webhook-info',       [MaxController::class, 'webhookInfo']);
+Route::get('/max/test',               [MaxController::class, 'test']);
+Route::get('/max/me',                 [MaxController::class, 'me']);
