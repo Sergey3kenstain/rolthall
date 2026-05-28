@@ -903,7 +903,8 @@ async function submitBooking() {
   const name     = document.getElementById('f-name')?.value.trim();
   const phone    = document.getElementById('f-phone')?.value.trim();
   const email    = document.getElementById('f-email')?.value.trim();
-  const telegram = (document.getElementById('f-telegram')?.value.trim() || '').replace('@','');
+  const _tgEl    = document.getElementById('f-telegram');
+  const telegram = (_tgEl?.readOnly ? '' : (_tgEl?.value.trim() || '')).replace('@','');
   const notes    = '';
 
   if (!name)  { alert('Введите ФИО'); return; }
@@ -1072,9 +1073,9 @@ document.addEventListener('DOMContentLoaded', function() {
       // Иконка: меняем на иконку Max (облако-чат)
       const icon = fg?.querySelector('.input-icon-el');
       if (icon) icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
-      // Placeholder и значение
-      tgInput.placeholder = 'ID ' + _maxId;
-      tgInput.value = '';
+      // Значение: показываем max_id; readOnly → в API не попадёт как telegram
+      tgInput.placeholder = '';
+      tgInput.value = _maxId;
       tgInput.readOnly = true;
       tgInput.style.opacity = '.6';
       // Hint
