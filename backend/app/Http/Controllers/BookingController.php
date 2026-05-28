@@ -180,6 +180,10 @@ class BookingController extends Controller
             ($refund ? "💸 Возврат предоплаты" : "⚠️ Без возврата (менее 6 ч)")
         );
 
+        $clientChatId = $booking->client->user->telegram_chat_id ?? null;
+        $maxChatId    = $booking->client->user->max_chat_id       ?? null;
+        $this->notify->notifyClientCancelledDual($clientChatId, $maxChatId, $refund);
+
         return response()->json(['ok' => true, 'refund' => $refund]);
     }
 

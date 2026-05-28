@@ -191,6 +191,15 @@ class NotificationService
     }
 
     /**
+     * Уведомление об отмене клиенту — dual TG + Max
+     */
+    public function notifyClientCancelledDual(?string $chatId, ?string $maxChatId, bool $refunded): void
+    {
+        if ($chatId)    $this->notifyClientCancelled($chatId, $refunded);
+        if ($maxChatId) $this->notifyClientCancelledMax($maxChatId, $refunded);
+    }
+
+    /**
      * Уведомление об отмене
      */
     public function notifyClientCancelled(int|string $chatId, bool $refunded): void
@@ -201,6 +210,21 @@ class NotificationService
                 : "⚠️ Предоплата не возвращается (отмена менее чем за 6 часов).");
 
         $this->send($chatId, $text);
+    }
+
+    private function notifyClientCancelledMax(string $maxChatId, bool $refunded): void
+    {
+        $refundLine = $refunded
+            ? 'Предоплата будет возвращена в течение 3–5 рабочих дней.'
+            : 'Предоплата не возвращается (отмена менее чем за 6 часов).';
+
+        $default = "❌ <b>Бронь отменена</b>\n\n{$refundLine}";
+
+        $text = $this->renderMaxTemplate('booking_cancelled', [
+            'refund_info' => $refundLine,
+        ], $default);
+
+        $this->max->sendMessage($maxChatId, $text);
     }
 
     /**

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 #[Signature('bookings:send-reminders')]
 #[Description('Отправляет напоминания клиентам — за 3ч (почасовая/событие) и накануне в 20:00 (весь день)')]
@@ -30,9 +31,14 @@ class SendBookingReminders extends Command
             ->get();
 
         foreach ($hourly as $booking) {
+            $cacheKey = "reminder_3h_{$booking->id}";
+            if (Cache::has($cacheKey)) continue;
+
             $chatId    = $booking->client->user->telegram_chat_id ?? null;
             $maxChatId = $booking->client->user->max_chat_id ?? null;
             if (!$chatId && !$maxChatId) continue;
+
+            Cache::put($cacheKey, 1, now()->addHours(2));
 
             $notify->notifyClientReminder3hDual($chatId, $maxChatId, [
                 'hall_name'  => $booking->hall->name,
@@ -53,9 +59,14 @@ class SendBookingReminders extends Command
                 ->get();
 
             foreach ($allday as $booking) {
+                $cacheKey = "reminder_allday_{$booking->id}";
+                if (Cache::has($cacheKey)) continue;
+
                 $chatId    = $booking->client->user->telegram_chat_id ?? null;
                 $maxChatId = $booking->client->user->max_chat_id ?? null;
                 if (!$chatId && !$maxChatId) continue;
+
+                Cache::put($cacheKey, 1, now()->addHours(12));
 
                 $notify->notifyClientReminder3hDual($chatId, $maxChatId, [
                     'hall_name'  => $booking->hall->name,

@@ -326,7 +326,7 @@ class AdminController extends Controller
     public function testMaxTemplate(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'key'  => 'required|string|in:new_booking,booking_confirmed,reminder_3h,reminder_allday',
+            'key'  => 'required|string|in:new_booking,booking_confirmed,booking_cancelled,reminder_3h,reminder_allday',
             'text' => 'required|string|max:4096',
         ]);
 
@@ -336,7 +336,7 @@ class AdminController extends Controller
         $adminUserId    = $settings['admin_chat_id']       ?? config('services.max.admin_chat_id');
         $adminGroupId   = $settings['admin_group_chat_id'] ?? null;
         $testClientId   = $settings['test_client_max_id']  ?? null;
-        $isAdmin        = $data['key'] === 'new_booking';
+        $isAdmin        = in_array($data['key'], ['new_booking']);
 
         if ($isAdmin && !$adminUserId && !$adminGroupId) {
             return response()->json(['ok' => false, 'error' => 'Не задан Admin User ID / Chat ID в настройках Max.'], 422, [], JSON_UNESCAPED_UNICODE);
@@ -346,17 +346,18 @@ class AdminController extends Controller
         }
 
         $dummies = [
-            '{name}'     => 'Иван Иванов',
-            '{phone}'    => '+79086850838',
-            '{email}'    => 'ivan@example.com',
-            '{telegram}' => 'test_user',
-            '{date}'     => '28.05.2026',
-            '{time}'     => '15:00–16:00',
-            '{hall}'     => 'RoltHall',
-            '{format}'   => 'Почасовая',
-            '{amount}'   => '1 500',
-            '{txn_id}'   => '8541823676',
-            '{guests}'   => '5',
+            '{name}'        => 'Иван Иванов',
+            '{phone}'       => '+79086850838',
+            '{email}'       => 'ivan@example.com',
+            '{telegram}'    => 'test_user',
+            '{date}'        => '28.05.2026',
+            '{time}'        => '15:00–16:00',
+            '{hall}'        => 'RoltHall',
+            '{format}'      => 'Почасовая',
+            '{amount}'      => '1 500',
+            '{txn_id}'      => '8541823676',
+            '{guests}'      => '5',
+            '{refund_info}' => 'Предоплата будет возвращена в течение 3–5 рабочих дней.',
         ];
 
         $text = '[ТЕСТ] ' . str_replace(array_keys($dummies), array_values($dummies), $data['text']);
@@ -380,14 +381,22 @@ class AdminController extends Controller
         $file     = storage_path('app/max_settings.json');
         $settings = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
 
-        $adminChatId = $settings['admin_chat_id'] ?? config('services.max.admin_chat_id');
-        if (!$adminChatId) {
-            return response()->json(['ok' => false, 'error' => 'Admin Chat ID не задан'], 422, [], JSON_UNESCAPED_UNICODE);
+        $adminUserId  = $settings['admin_chat_id']       ?? config('services.max.admin_chat_id') ?: null;
+        $adminGroupId = $settings['admin_group_chat_id'] ?? null;
+
+        if (!$adminUserId && !$adminGroupId) {
+            return response()->json(['ok' => false, 'error' => 'Admin User ID / Chat ID не задан'], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $max = new \App\Services\MaxBotService();
-        $ok  = $max->sendMessage($adminChatId, '🤖 <b>RoltHall Max Bot</b> подключён и готов к работе!');
-        return response()->json(['ok' => $ok]);
+        $max  = new \App\Services\MaxBotService();
+        $text = '🤖 <b>RoltHall Max Bot</b> подключён и готов к работе!';
+        $ok   = true;
+        if ($adminUserId)  $ok = $max->sendMessage($adminUserId, $text) && $ok;
+        if ($adminGroupId) $ok = $max->sendToChat($adminGroupId, $text) && $ok;
+
+        return response()->json($ok
+            ? ['ok' => true]
+            : ['ok' => false, 'error' => 'Не удалось отправить — проверьте что бот добавлен в чат'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     // ── File upload ───────────────────────────────────────────────────────
@@ -596,8 +605,13 @@ class AdminController extends Controller
 
     public function cancelBooking(Request $request, int $id): JsonResponse
     {
-        $booking = Booking::findOrFail($id);
-        $this->bookings->cancel($booking);
+        $booking  = Booking::with(['client.user'])->findOrFail($id);
+        $refund   = $this->bookings->cancel($booking);
+
+        $chatId    = $booking->client->user->telegram_chat_id ?? null;
+        $maxChatId = $booking->client->user->max_chat_id       ?? null;
+        $this->notify->notifyClientCancelledDual($chatId, $maxChatId, $refund);
+
         return response()->json(['ok' => true]);
     }
 
