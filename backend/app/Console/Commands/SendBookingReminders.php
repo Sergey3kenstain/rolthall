@@ -41,8 +41,8 @@ class SendBookingReminders extends Command
             ]);
         }
 
-        // Весь день: напоминание накануне в 20:00 (окно 20:00–20:01)
-        if ($now->format('H:i') >= '20:00' && $now->format('H:i') <= '20:01') {
+        // Весь день: напоминание накануне ровно в 20:00
+        if ($now->format('H:i') === '20:00') {
             $tomorrow = $now->copy()->addDay()->toDateString();
 
             $allday = Booking::whereIn('status', [Booking::STATUS_PAID, Booking::STATUS_CONFIRMED])
