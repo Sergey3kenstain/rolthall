@@ -987,13 +987,16 @@ async function submitBooking() {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
-          hall_id: BOOKING_DATA.hallId,
+          hall_id:     BOOKING_DATA.hallId,
           name,
           phone,
-          email:   document.getElementById('f-email')?.value.trim() || undefined,
+          email:       document.getElementById('f-email')?.value.trim() || undefined,
+          telegram:    _tgEl?.readOnly ? undefined : (_tgEl?.value.trim().replace('@','') || undefined),
+          tg_user_id:  window.Telegram?.WebApp?.initDataUnsafe?.user?.id || undefined,
+          max_user_id: document.getElementById('f-max-id')?.value || undefined,
           dates,
-          pkg_idx: BOOKING_DATA.pkgIdx ?? 0,
-          _hp:     document.getElementById('hp-website')?.value || '',
+          pkg_idx:     BOOKING_DATA.pkgIdx ?? 0,
+          _hp:         document.getElementById('hp-website')?.value || '',
         }),
       });
       const data = await res.json();

@@ -541,11 +541,15 @@ document.addEventListener('DOMContentLoaded', async function() {
           return;
         }
         sessionStorage.setItem(TOKEN_KEY, data.token);
-        // Убираем ml из URL без перезагрузки
         const clean = new URL(window.location.href);
         clean.searchParams.delete('ml');
         window.history.replaceState({}, '', clean);
         showBookingsView(data.name || '', data.token);
+        return;
+      }
+      // Аккаунт не найден — редирект на логин, сохраняем источник
+      if (data.error === 'not_found') {
+        window.location.href = '/login?hint=max_not_linked';
         return;
       }
     } catch (e) { /* продолжаем */ }
