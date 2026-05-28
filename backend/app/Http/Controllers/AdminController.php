@@ -274,8 +274,20 @@ class AdminController extends Controller
                 $params['message_thread_id'] = $threadId;
             }
             $telegram->sendMessage($params);
+            ActionLog::write('notification.test', $request->user()->id, $request->user()->role ?? 'admin', null, null, [
+                'channel' => 'tg',
+                'event'   => $data['key'],
+                'to'      => $isAdmin ? 'admin' : 'test_client',
+                'ok'      => true,
+            ]);
             return response()->json(['ok' => true]);
         } catch (\Throwable $e) {
+            ActionLog::write('notification.test', $request->user()->id, $request->user()->role ?? 'admin', null, null, [
+                'channel' => 'tg',
+                'event'   => $data['key'],
+                'to'      => $isAdmin ? 'admin' : 'test_client',
+                'ok'      => false,
+            ]);
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 422, [], JSON_UNESCAPED_UNICODE);
         }
     }
@@ -365,11 +377,18 @@ class AdminController extends Controller
 
         if ($isAdmin) {
             $ok = true;
-            if ($adminUserId) $ok = $max->sendMessage($adminUserId, $text) && $ok;
-            if ($adminGroupId) $ok = $max->sendToChat($adminGroupId, $text) && $ok;
+            if ($adminUserId)  { $r = $max->sendMessage($adminUserId, $text); $ok = $r && $ok; }
+            if ($adminGroupId) { $r = $max->sendToChat($adminGroupId, $text); $ok = $r && $ok; }
         } else {
             $ok = $max->sendMessage($testClientId, $text);
         }
+
+        ActionLog::write('notification.test', $request->user()->id, $request->user()->role ?? 'admin', null, null, [
+            'channel' => 'max',
+            'event'   => $data['key'],
+            'to'      => $isAdmin ? 'admin' : 'test_client',
+            'ok'      => $ok,
+        ]);
 
         return response()->json($ok
             ? ['ok' => true]
@@ -393,6 +412,13 @@ class AdminController extends Controller
         $ok   = true;
         if ($adminUserId)  $ok = $max->sendMessage($adminUserId, $text) && $ok;
         if ($adminGroupId) $ok = $max->sendToChat($adminGroupId, $text) && $ok;
+
+        ActionLog::write('notification.test', $request->user()->id, $request->user()->role ?? 'admin', null, null, [
+            'channel' => 'max',
+            'event'   => 'test_send',
+            'to'      => 'admin',
+            'ok'      => $ok,
+        ]);
 
         return response()->json($ok
             ? ['ok' => true]

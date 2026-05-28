@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ActionLog;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -58,7 +59,8 @@ class NotificationService
             . "🔑 <b>Транзакция:</b> <code>{$data['transaction_id']}</code>";
 
         // TG — через общий канал
-        $this->send($this->adminChatId, $text, $this->adminThreadId);
+        $tgOk = $this->send($this->adminChatId, $text, $this->adminThreadId);
+        $this->logNotif('tg', 'new_booking', 'admin', $tgOk);
 
         // Max — с поддержкой шаблона
         if ($this->maxAdminChatId || $this->maxAdminGroupChatId) {
@@ -76,8 +78,14 @@ class NotificationService
                 'guests'   => (!empty($data['guest_count']) && $data['guest_count'] > 0) ? $data['guest_count'] : '—',
             ];
             $maxText = $this->renderMaxTemplate('new_booking', $vars, $text);
-            if ($this->maxAdminChatId)      $this->max->sendMessage($this->maxAdminChatId, $maxText);
-            if ($this->maxAdminGroupChatId) $this->max->sendToChat($this->maxAdminGroupChatId, $maxText);
+            if ($this->maxAdminChatId) {
+                $ok = $this->max->sendMessage($this->maxAdminChatId, $maxText);
+                $this->logNotif('max', 'new_booking', 'admin', $ok);
+            }
+            if ($this->maxAdminGroupChatId) {
+                $ok = $this->max->sendToChat($this->maxAdminGroupChatId, $maxText);
+                $this->logNotif('max', 'new_booking', 'admin_group', $ok);
+            }
         }
     }
 
@@ -112,7 +120,8 @@ class NotificationService
             'guests' => (!empty($data['guest_count']) && $data['guest_count'] > 0) ? $data['guest_count'] : '—',
         ], $default);
 
-        $this->max->sendMessage($maxChatId, $text);
+        $ok = $this->max->sendMessage($maxChatId, $text);
+        $this->logNotif('max', 'booking_confirmed', $this->maskId($maxChatId), $ok);
     }
 
     /**
@@ -132,7 +141,8 @@ class NotificationService
             . "💰 <b>Предоплата:</b> {$data['prepayment']} ₽\n\n"
             . "Ждём вас! По вопросам — свяжитесь с нами.";
 
-        $this->send($chatId, $text);
+        $ok = $this->send($chatId, $text);
+        $this->logNotif('tg', 'booking_confirmed', $this->maskId((string)$chatId), $ok);
     }
 
     /**
@@ -167,7 +177,9 @@ class NotificationService
             ], $default);
         }
 
-        $this->max->sendMessage($maxChatId, $text);
+        $event = !empty($data['allday'] ?? false) ? 'reminder_allday' : 'reminder_3h';
+        $ok = $this->max->sendMessage($maxChatId, $text);
+        $this->logNotif('max', $event, $this->maskId($maxChatId), $ok);
     }
 
     /**
@@ -187,7 +199,9 @@ class NotificationService
                 . "Отмена возможна не позднее чем за 3 часа до начала.";
         }
 
-        $this->send($chatId, $text);
+        $event = !empty($data['allday']) ? 'reminder_allday' : 'reminder_3h';
+        $ok = $this->send($chatId, $text);
+        $this->logNotif('tg', $event, $this->maskId((string)$chatId), $ok);
     }
 
     /**
@@ -209,7 +223,8 @@ class NotificationService
                 ? "💸 Предоплата будет возвращена в течение 3–5 рабочих дней."
                 : "⚠️ Предоплата не возвращается (отмена менее чем за 6 часов).");
 
-        $this->send($chatId, $text);
+        $ok = $this->send($chatId, $text);
+        $this->logNotif('tg', 'booking_cancelled', $this->maskId((string)$chatId), $ok);
     }
 
     private function notifyClientCancelledMax(string $maxChatId, bool $refunded): void
@@ -224,7 +239,8 @@ class NotificationService
             'refund_info' => $refundLine,
         ], $default);
 
-        $this->max->sendMessage($maxChatId, $text);
+        $ok = $this->max->sendMessage($maxChatId, $text);
+        $this->logNotif('max', 'booking_cancelled', $this->maskId($maxChatId), $ok);
     }
 
     /**
@@ -358,13 +374,20 @@ class NotificationService
 
     private function sendToAdmin(string $text): void
     {
-        $this->send($this->adminChatId, $text, $this->adminThreadId);
+        $tgOk = $this->send($this->adminChatId, $text, $this->adminThreadId);
+        $this->logNotif('tg', 'raw', 'admin', $tgOk);
 
-        if ($this->maxAdminChatId)      $this->max->sendMessage($this->maxAdminChatId, $text);
-        if ($this->maxAdminGroupChatId) $this->max->sendToChat($this->maxAdminGroupChatId, $text);
+        if ($this->maxAdminChatId) {
+            $ok = $this->max->sendMessage($this->maxAdminChatId, $text);
+            $this->logNotif('max', 'raw', 'admin', $ok);
+        }
+        if ($this->maxAdminGroupChatId) {
+            $ok = $this->max->sendToChat($this->maxAdminGroupChatId, $text);
+            $this->logNotif('max', 'raw', 'admin_group', $ok);
+        }
     }
 
-    private function send(int|string $chatId, string $text, ?int $threadId = null): void
+    private function send(int|string $chatId, string $text, ?int $threadId = null): bool
     {
         try {
             $params = [
@@ -378,12 +401,33 @@ class NotificationService
             }
 
             $this->telegram->sendMessage($params);
+            return true;
         } catch (\Throwable $e) {
             Log::error('Telegram notification error', [
                 'chat_id' => $chatId,
                 'error'   => $e->getMessage(),
             ]);
+            return false;
         }
+    }
+
+    private function logNotif(string $channel, string $event, string $recipient, bool $ok): void
+    {
+        ActionLog::write(
+            'notification.sent',
+            null,
+            'system',
+            null,
+            null,
+            ['channel' => $channel, 'event' => $event, 'to' => $recipient, 'ok' => $ok]
+        );
+    }
+
+    private function maskId(string $id): string
+    {
+        $len = strlen($id);
+        if ($len <= 4) return $id;
+        return str_repeat('*', $len - 4) . substr($id, -4);
     }
 
     /**
