@@ -1064,8 +1064,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обновляем notice: показываем Max, убираем TG
     const noticeText = document.getElementById('messenger-notice-text');
     if (noticeText) {
-      noticeText.innerHTML = 'Уведомления придут в <strong>Max</strong> сразу после оплаты'
-        + ' <span style="opacity:.5;font-size:.85em;">(ваш ID: ' + _maxId + ')</span>';
+      noticeText.innerHTML = 'Уведомления придут в <strong>Max</strong> сразу после оплаты';
     }
     // Убираем обязательность telegram поля, обновляем hint
     const tgHint = document.querySelector('span.form-hint');
