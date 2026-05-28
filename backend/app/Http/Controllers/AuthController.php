@@ -158,6 +158,25 @@ class AuthController extends Controller
     }
 
     /**
+     * Обновление профиля текущего пользователя
+     * PUT /api/auth/profile
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'name'  => 'required|string|max:191',
+            'phone' => 'required|string|max:30|unique:users,phone,' . $user->id,
+            'email' => 'required|email|max:191|unique:users,email,' . $user->id,
+        ]);
+
+        $user->update($data);
+
+        return response()->json(['ok' => true, 'name' => $user->name], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * Текущий пользователь
      * GET /api/auth/me
      */

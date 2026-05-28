@@ -22,6 +22,7 @@ Route::get('/auth/tg-profile',  [AuthController::class, 'tgProfile'])->middlewar
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout',         [AuthController::class, 'logout']);
     Route::get('/auth/me',              [AuthController::class, 'me']);
+    Route::put('/auth/profile',         [AuthController::class, 'updateProfile']);
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 });
 
