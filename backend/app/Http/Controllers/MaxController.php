@@ -93,11 +93,11 @@ class MaxController extends Controller
         $namePart = $name ? ", {$name}" : '';
         $text = "👤 Привет{$namePart}!\n\nВаш личный кабинет — история броней и данные профиля.";
 
-        // HMAC-signed token: chatId:expires — без Cache, верифицируется подписью
+        // HMAC-signed token (URL-safe base64: + → -, / → _)
         $expires = now()->addMinutes(10)->timestamp;
         $payload = $chatId . ':' . $expires;
         $sig     = hash_hmac('sha256', $payload, config('app.key'));
-        $token   = rtrim(base64_encode($payload . ':' . $sig), '=');
+        $token   = rtrim(strtr(base64_encode($payload . ':' . $sig), '+/', '-_'), '=');
 
         $this->max->sendMessage($chatId, $text, [
             [

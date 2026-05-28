@@ -547,12 +547,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         showBookingsView(data.name || '', data.token);
         return;
       }
-      // Аккаунт не найден — редирект на логин, сохраняем источник
-      if (data.error === 'not_found') {
-        window.location.href = '/login?hint=max_not_linked';
-        return;
-      }
-    } catch (e) { /* продолжаем */ }
+      // Показываем ошибку видимо, не редиректим сразу
+      const errMsg = data.error === 'not_found'
+        ? 'Аккаунт Max не привязан. Сначала оформите бронь через бот.'
+        : 'Ссылка недействительна или истекла (error: ' + data.error + '). Нажмите /lk в боте снова.';
+      document.body.innerHTML = '<div style="font-family:sans-serif;padding:40px;color:#fff;background:#1a1a1a;min-height:100vh;">'
+        + '<h2 style="color:#e55;">Ошибка входа</h2><p>' + errMsg + '</p>'
+        + '<p style="opacity:.5;font-size:12px;">token len: ' + _ml.length + '</p></div>';
+      return;
+    } catch (e) {
+      document.body.innerHTML = '<div style="font-family:sans-serif;padding:40px;color:#fff;background:#1a1a1a;min-height:100vh;">'
+        + '<h2 style="color:#e55;">Ошибка входа</h2><p>Сетевая ошибка: ' + e.message + '</p></div>';
+      return;
+    }
   }
 
   // Если открыто через Telegram WebApp — пробуем автовход по initData
