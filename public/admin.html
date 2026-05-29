@@ -265,6 +265,7 @@ button{font-family:var(--font);}
 
 /* ── FORMS ── */
 .form-lbl{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-d);display:block;margin-bottom:6px;min-height:2.5em;}
+.label{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-d);display:block;margin:.5em 0 .5em 0;}
 .inp{width:100%;font-family:var(--font);font-size:.8rem;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;outline:none;transition:border-color .2s;appearance:none;}
 .inp:focus{border-color:rgba(255,255,255,.3);}
 .inp::placeholder{color:var(--text-d);}
@@ -3683,7 +3684,7 @@ let _evSettingsNew = false;
 
 // ── Список событий ────────────────────────────────────────────────────
 async function loadEvents() {
-  const res  = await apiFetch('/api/admin/events');
+  const res  = await api('/api/admin/events');
   const data = await res.json();
   const list = document.getElementById('ev-list');
   const empty = document.getElementById('ev-empty');
@@ -3719,7 +3720,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Детали события ────────────────────────────────────────────────────
 async function evOpenDetail(id) {
   _evCurrentId = id;
-  const res  = await apiFetch(`/api/admin/events/${id}`);
+  const res  = await api(`/api/admin/events/${id}`);
   const data = await res.json();
   if (!data.ok) return;
   const ev = data.event;
@@ -3739,7 +3740,7 @@ async function evOpenDetail(id) {
 
 async function evLoadRegs(q) {
   const url  = `/api/admin/events/${_evCurrentId}/registrations` + (q ? `?q=${encodeURIComponent(q)}` : '');
-  const res  = await apiFetch(url);
+  const res  = await api(url);
   const data = await res.json();
   _evAllRegs = data.registrations || [];
   evRenderRegs(_evAllRegs);
@@ -3780,7 +3781,7 @@ function evRenderRegs(regs) {
 }
 
 async function evOpenParticipant(regId) {
-  const res  = await apiFetch(`/api/admin/events/${_evCurrentId}/registrations/${regId}`);
+  const res  = await api(`/api/admin/events/${_evCurrentId}/registrations/${regId}`);
   const data = await res.json();
   if (!data.ok) return;
   const r = data.registration;
@@ -3822,7 +3823,7 @@ function evBackToDetail() { document.getElementById('ev-participant-view').style
 
 function evCopyLink() {
   if (!_evCurrentId) return;
-  apiFetch(`/api/admin/events/${_evCurrentId}`).then(r=>r.json()).then(d=>{
+  api(`/api/admin/events/${_evCurrentId}`).then(r=>r.json()).then(d=>{
     if (!d.ok) return;
     const url = `${location.origin}/event/${d.event.slug}`;
     navigator.clipboard.writeText(url).then(()=>showToast('Ссылка скопирована'));
@@ -3841,7 +3842,7 @@ function evCreateNew() {
 async function evOpenSettings() {
   if (!_evCurrentId) return;
   _evSettingsNew = false;
-  const res  = await apiFetch(`/api/admin/events/${_evCurrentId}`);
+  const res  = await api(`/api/admin/events/${_evCurrentId}`);
   const data = await res.json();
   if (!data.ok) return;
   evResetSettingsForm(data.event);
@@ -3901,30 +3902,53 @@ function evRenderFieldsForm(fields) {
   evRedrawFields();
 }
 
+const EV_MASK_PRESETS = [
+  { label: 'Телефон (Россия)',         value: '^((\\+7|7|8)+([0-9]){10})$' },
+  { label: 'Телефон (международный)',  value: '^(\\+)?((\\d{2,3}) ?\\d|\\d)(([- ]?\\d)|( ?(\\d{2,3}) ?)){5,12}\\d$' },
+  { label: 'Только цифры',             value: '^[0-9]+[0-9]*$' },
+  { label: 'ФИО / Фамилия Имя',       value: '^[а-яА-ЯёЁa-zA-Z]+ [а-яА-ЯёЁa-zA-Z]+ ?[а-яА-ЯёЁa-zA-Z]+$' },
+  { label: 'Email',                    value: '^[-\\w.]+@([A-z0-9][-A-z0-9]+\\.)+[A-z]{2,4}$' },
+  { label: 'URL (abcd.com)',           value: '(https?):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*' },
+  { label: 'Латиница + цифры',         value: '^[a-zA-Z0-9]+$' },
+  { label: 'Кириллица + латиница + цифры', value: '^[а-яА-ЯёЁa-zA-Z0-9]+$' },
+  { label: 'Имя пользователя',         value: '^[a-zA-Z][a-zA-Z0-9-_.]{1,20}$' },
+  { label: 'Пароль (мин. 8 символов)', value: '(?=^.{8,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$' },
+  { label: 'Дата YYYY-MM-DD',          value: '[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])' },
+];
+
 function evRedrawFields() {
   const el = document.getElementById('evs-fields-list');
+  const presetOpts = EV_MASK_PRESETS.map(p => `<option value="${p.value}">${p.label}</option>`).join('');
   el.innerHTML = _evFields.map((f, i) => `
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;">
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="text" class="inp" placeholder="Название поля" value="${f.label||''}" oninput="_evFields[${i}].label=this.value" style="flex:1;">
-        <select class="inp" style="width:130px;" onchange="_evFields[${i}].field_type=this.value">
+        <select class="inp" style="width:130px;" onchange="_evFields[${i}].field_type=this.value;evRedrawFields()">
           ${['text','phone','email','select','textarea','checkbox'].map(t=>`<option value="${t}" ${f.field_type===t?'selected':''}>${t}</option>`).join('')}
         </select>
         <button class="btn btn-ghost btn-sm" style="color:var(--red);flex-shrink:0;" onclick="_evFields.splice(${i},1);evRedrawFields()">✕</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input type="text" class="inp" placeholder="slug (машинное имя)" value="${f.slug||''}" oninput="_evFields[${i}].slug=this.value" style="flex:1;font-family:monospace;font-size:.72rem;">
-      </div>
+      <input type="text" class="inp" placeholder="slug (машинное имя)" value="${f.slug||''}" oninput="_evFields[${i}].slug=this.value" style="font-family:monospace;font-size:.72rem;">
       ${f.field_type==='select'?`<input type="text" class="inp" placeholder='Варианты через запятую: "Иванов, Петров"' value="${(f.options||[]).join(', ')}" oninput="_evFields[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)" style="font-size:.72rem;">`:''}
-      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
         <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
           <input type="checkbox" ${f.is_required?'checked':''} onchange="_evFields[${i}].is_required=this.checked"> Обязательное
         </label>
+        ${f.field_type!=='checkbox'&&f.field_type!=='select'?`
         <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
-          <input type="checkbox" ${f.has_mask?'checked':''} onchange="_evFields[${i}].has_mask=this.checked;evRedrawFields()"> Маска
+          <input type="checkbox" ${f.has_mask?'checked':''} onchange="_evFields[${i}].has_mask=this.checked;evRedrawFields()"> Маска (regex)
         </label>
-        ${f.has_mask?`<input type="text" class="inp" placeholder="+7 (999) 999-99-99" value="${f.mask_pattern||''}" oninput="_evFields[${i}].mask_pattern=this.value" style="width:160px;font-family:monospace;font-size:.72rem;">`:''}
+        `:''}
       </div>
+      ${f.has_mask&&f.field_type!=='checkbox'&&f.field_type!=='select'?`
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <select class="inp" style="font-size:.72rem;" onchange="if(this.value){_evFields[${i}].mask_pattern=this.value;document.getElementById('mask-inp-${i}').value=this.value;}">
+          <option value="">— Выбрать шаблон —</option>
+          ${presetOpts}
+        </select>
+        <input id="mask-inp-${i}" type="text" class="inp" placeholder="или введите regex вручную" value="${(f.mask_pattern||'').replace(/"/g,'&quot;')}" oninput="_evFields[${i}].mask_pattern=this.value" style="font-family:monospace;font-size:.68rem;">
+      </div>
+      `:''}
     </div>
   `).join('');
 }
@@ -4008,7 +4032,7 @@ async function evSaveSettings() {
   const url    = _evSettingsNew ? '/api/admin/events' : `/api/admin/events/${_evCurrentId}`;
   const method = _evSettingsNew ? 'POST' : 'PUT';
 
-  const res  = await apiFetch(url, { method, body: JSON.stringify(payload) });
+  const res  = await api(url, { method, body: JSON.stringify(payload) });
   const data = await res.json();
   if (!data.ok) { showToast(data.message || 'Ошибка сохранения'); return; }
 
@@ -4017,11 +4041,11 @@ async function evSaveSettings() {
 
   // Сохраняем поля
   if (_evFields.length) {
-    await apiFetch(`/api/admin/events/${evId}/fields`, { method:'POST', body: JSON.stringify({ fields: _evFields }) });
+    await api(`/api/admin/events/${evId}/fields`, { method:'POST', body: JSON.stringify({ fields: _evFields }) });
   }
   // Сохраняем тарифы
   if (payload.payments_enabled && _evTariffs.length) {
-    await apiFetch(`/api/admin/events/${evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: _evTariffs }) });
+    await api(`/api/admin/events/${evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: _evTariffs }) });
   }
 
   evCloseSettings();
