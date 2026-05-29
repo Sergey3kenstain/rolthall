@@ -32,11 +32,12 @@ class EventPublicController extends Controller
 
         // Текущие цены тарифов
         $tariffs = $event->tariffs->map(fn($t) => [
-            'id'           => $t->id,
-            'name'         => $t->name,
-            'has_options'  => $t->has_options,
-            'options'      => $t->options,
-            'current_price'=> $t->currentPrice(),
+            'id'               => $t->id,
+            'name'             => $t->name,
+            'has_options'      => $t->has_options,
+            'options'          => $t->options,
+            'dependent_fields' => $t->dependent_fields ?? [],
+            'current_price'    => $t->currentPrice(),
             'tiers'        => $t->tiers->map(fn($tier) => [
                 'from_date' => $tier->from_date->format('d.m.Y'),
                 'to_date'   => $tier->to_date->format('d.m.Y'),

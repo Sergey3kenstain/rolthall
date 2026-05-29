@@ -145,9 +145,10 @@ class EventAdminController extends Controller
         $tariffs = $request->validate([
             'tariffs'                      => 'required|array',
             'tariffs.*.name'               => 'required|string|max:191',
-            'tariffs.*.has_options'        => 'boolean',
-            'tariffs.*.options'            => 'nullable|array',
-            'tariffs.*.sort_order'         => 'integer',
+            'tariffs.*.has_options'         => 'boolean',
+            'tariffs.*.options'             => 'nullable|array',
+            'tariffs.*.dependent_fields'    => 'nullable|array',
+            'tariffs.*.sort_order'          => 'integer',
             'tariffs.*.tiers'              => 'required|array',
             'tariffs.*.tiers.*.from_date'  => 'required|date',
             'tariffs.*.tiers.*.to_date'    => 'required|date|after_or_equal:tariffs.*.tiers.*.from_date',
@@ -160,11 +161,12 @@ class EventAdminController extends Controller
 
         foreach ($tariffs as $i => $t) {
             $tariff = EventTariff::create([
-                'event_id'    => $event->id,
-                'name'        => $t['name'],
-                'has_options' => $t['has_options'] ?? false,
-                'options'     => $t['options'] ?? null,
-                'sort_order'  => $i,
+                'event_id'         => $event->id,
+                'name'             => $t['name'],
+                'has_options'      => $t['has_options'] ?? false,
+                'options'          => $t['options'] ?? null,
+                'dependent_fields' => $t['dependent_fields'] ?? null,
+                'sort_order'       => $i,
             ]);
 
             foreach ($t['tiers'] as $tier) {
@@ -251,11 +253,12 @@ class EventAdminController extends Controller
             'messenger_settings'           => $event->messenger_settings,
             'fields'                       => $event->fields,
             'tariffs'                      => $event->tariffs->map(fn($t) => [
-                'id'          => $t->id,
-                'name'        => $t->name,
-                'has_options' => $t->has_options,
-                'options'     => $t->options,
-                'sort_order'  => $t->sort_order,
+                'id'               => $t->id,
+                'name'             => $t->name,
+                'has_options'      => $t->has_options,
+                'options'          => $t->options,
+                'dependent_fields' => $t->dependent_fields ?? [],
+                'sort_order'       => $t->sort_order,
                 'tiers'       => $t->tiers->map(fn($tier) => [
                     'id'        => $tier->id,
                     'from_date' => $tier->from_date->format('Y-m-d'),

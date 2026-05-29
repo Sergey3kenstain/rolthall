@@ -3950,14 +3950,6 @@ function evRedrawFields() {
         </select>
         <input id="mask-inp-${i}" type="text" class="inp" placeholder="или введите regex вручную" value="${(f.mask_pattern||'').replace(/"/g,'&quot;')}" oninput="_evFields[${i}].mask_pattern=this.value" style="font-family:monospace;font-size:.68rem;">
       </div>`:''}
-      ${_evTariffs.length?`
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span style="font-size:.72rem;color:var(--text-d);flex-shrink:0;">Показывать при тарифе:</span>
-        <select class="inp" style="flex:1;font-size:.72rem;" onchange="_evFields[${i}].depends_on_tariff=this.value||null">
-          <option value="">Всегда</option>
-          ${_evTariffs.map(t=>`<option value="${(t.name||'').replace(/"/g,'&quot;')}" ${f.depends_on_tariff===t.name?'selected':''}>${t.name||'(без названия)'}</option>`).join('')}
-        </select>
-      </div>`:''}
     </div>
   `).join('');
 }
@@ -3971,7 +3963,7 @@ function evAddField() {
 let _evTariffs = [];
 
 function evRenderTariffsForm(tariffs) {
-  _evTariffs = tariffs.map(t => ({ ...t, tiers: (t.tiers||[]).map(x=>({...x})) }));
+  _evTariffs = tariffs.map(t => ({ ...t, dependent_fields: t.dependent_fields||[], tiers: (t.tiers||[]).map(x=>({...x})) }));
   evRedrawTariffs();
 }
 
@@ -3987,6 +3979,16 @@ function evRedrawTariffs() {
         <input type="checkbox" ${t.has_options?'checked':''} onchange="_evTariffs[${ti}].has_options=this.checked;evRedrawTariffs()"> Добавить список для выбора (танцоры)
       </label>
       ${t.has_options?`<input type="text" class="inp" placeholder='Варианты через запятую: "Иванов, Петров"' value="${(t.options||[]).join(', ')}" oninput="_evTariffs[${ti}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)" style="margin-bottom:8px;font-size:.72rem;">`:''}
+      ${_evFields.filter(f=>f.slug).length?`
+      <div style="margin-bottom:8px;">
+        <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-d);margin-bottom:4px;">Показывать поля при выборе тарифа</div>
+        ${_evFields.filter(f=>f.slug).map(f=>`
+        <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;padding:2px 0;">
+          <input type="checkbox" ${(t.dependent_fields||[]).includes(f.slug)?'checked':''}
+            onchange="var df=(_evTariffs[${ti}].dependent_fields||[]).slice();if(this.checked){df.push('${f.slug}');}else{df=df.filter(s=>s!=='${f.slug}')};_evTariffs[${ti}].dependent_fields=df;">
+          ${f.label||f.slug}
+        </label>`).join('')}
+      </div>`:''}
       <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-d);margin-bottom:6px;">Ценовые периоды</div>
       ${(t.tiers||[]).map((tier, ri) => `
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
@@ -4003,7 +4005,7 @@ function evRedrawTariffs() {
 }
 
 function evAddTariff() {
-  _evTariffs.push({ name:'', has_options:false, options:[], tiers:[] });
+  _evTariffs.push({ name:'', has_options:false, options:[], dependent_fields:[], tiers:[] });
   evRedrawTariffs();
 }
 

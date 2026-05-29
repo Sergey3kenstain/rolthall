@@ -79,10 +79,9 @@ function render() {
     ? `<img src="${ev.poster_url}" class="poster" alt="Афиша">`
     : '';
 
-  const fieldsHtml = ev.fields.map(f => buildField(f)).join('');
-
-  // Поля с зависимостью от тарифа — скрыты до выбора тарифа
-  const hasDependentFields = ev.fields.some(f => f.depends_on_tariff);
+  // Слаги полей, которые зависят хотя бы от одного тарифа
+  const tariffDepSlugs = new Set((ev.tariffs||[]).flatMap(t => t.dependent_fields||[]));
+  const fieldsHtml = ev.fields.map(f => buildField(f, tariffDepSlugs)).join('');
 
   const tariffsHtml = ev.payments_enabled && ev.tariffs?.length ? `
     <div style="margin-bottom:14px;">
@@ -137,11 +136,12 @@ function render() {
   applyMask(document.getElementById('f-phone'), '+7 (999) 999-99-99');
 }
 
-function buildField(f) {
+function buildField(f, depSlugs) {
   const req  = f.is_required ? ' *' : '';
-  const dep  = f.depends_on_tariff ? ` data-tariff-dep="${f.depends_on_tariff}"` : '';
-  const hide = f.depends_on_tariff ? ' style="display:none;"' : '';
-  const wrap = (inner) => `<div class="field-group"${dep}${hide}>${inner}</div>`;
+  const isDep = depSlugs?.has(f.slug);
+  const attr  = isDep ? ' data-tariff-dep' : '';
+  const hide  = isDep ? ' style="display:none;"' : '';
+  const wrap  = (inner, extraStyle='') => `<div class="field-group"${attr}${isDep?` style="display:none;"`:extraStyle?` style="${extraStyle}"`:''}>${inner}</div>`;
   if (f.field_type === 'select') {
     const options = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
     return wrap(`<label>${f.label}${req}</label><select id="f-${f.slug}" class="inp"><option value="">— Выберите —</option>${options}</select><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
@@ -150,7 +150,7 @@ function buildField(f) {
     return wrap(`<label>${f.label}${req}</label><textarea id="f-${f.slug}" class="inp" placeholder="${f.label}"></textarea><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
   }
   if (f.field_type === 'checkbox') {
-    return `<div class="field-group" style="display:${f.depends_on_tariff?'none':'flex'};align-items:center;gap:10px;"${dep}><input type="checkbox" id="f-${f.slug}" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"><label for="f-${f.slug}" style="text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--white);cursor:pointer;">${f.label}${req}</label></div>`;
+    return wrap(`<input type="checkbox" id="f-${f.slug}" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"><label for="f-${f.slug}" style="text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--white);cursor:pointer;">${f.label}${req}</label>`, 'display:flex;align-items:center;gap:10px;');
   }
   const inputType = f.field_type === 'email' ? 'email' : f.field_type === 'phone' ? 'tel' : 'text';
   return wrap(`<label>${f.label}${req}</label><input type="${inputType}" id="f-${f.slug}" class="inp" placeholder="${f.label}"><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
@@ -174,10 +174,11 @@ function selectTariff(id) {
     document.getElementById('tariff-' + id).after(wrap);
   }
 
-  // Показываем/скрываем поля с зависимостью от тарифа
-  const tariffName = _selectedTariff?.name || '';
+  // Показываем поля, привязанные к выбранному тарифу
+  const activeDeps = new Set(_selectedTariff?.dependent_fields || []);
   document.querySelectorAll('[data-tariff-dep]').forEach(el => {
-    el.style.display = (el.dataset.tariffDep === tariffName) ? '' : 'none';
+    const slug = el.querySelector('[id^="f-"]')?.id?.replace('f-', '');
+    el.style.display = (slug && activeDeps.has(slug)) ? '' : 'none';
   });
 }
 
@@ -201,8 +202,8 @@ async function submitForm() {
     const el  = document.getElementById('f-' + f.slug);
     if (!el) continue;
     // Пропускаем скрытые зависимые поля
-    const wrap = el.closest('[data-tariff-dep]');
-    if (wrap && wrap.style.display === 'none') continue;
+    const fieldWrap = el.closest('[data-tariff-dep]');
+    if (fieldWrap && fieldWrap.style.display === 'none') continue;
     const val = f.field_type === 'checkbox' ? (el.checked ? 'Да' : '') : el.value.trim();
     if (f.is_required && !val) {
       const errEl = document.getElementById('err-' + f.slug);
