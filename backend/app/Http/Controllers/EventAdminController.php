@@ -122,8 +122,9 @@ class EventAdminController extends Controller
             'fields.*.has_mask'    => 'boolean',
             'fields.*.mask_pattern'=> 'nullable|string|max:100',
             'fields.*.is_required' => 'boolean',
-            'fields.*.options'     => 'nullable|array',
-            'fields.*.sort_order'  => 'integer',
+            'fields.*.options'            => 'nullable|array',
+            'fields.*.sort_order'         => 'integer',
+            'fields.*.depends_on_tariff'  => 'nullable|string|max:191',
         ])['fields'];
 
         $event->fields()->delete();

@@ -81,6 +81,9 @@ function render() {
 
   const fieldsHtml = ev.fields.map(f => buildField(f)).join('');
 
+  // Поля с зависимостью от тарифа — скрыты до выбора тарифа
+  const hasDependentFields = ev.fields.some(f => f.depends_on_tariff);
+
   const tariffsHtml = ev.payments_enabled && ev.tariffs?.length ? `
     <div style="margin-bottom:14px;">
       <div class="section-title">Выберите тариф</div>
@@ -135,19 +138,22 @@ function render() {
 }
 
 function buildField(f) {
-  const req = f.is_required ? ' *' : '';
+  const req  = f.is_required ? ' *' : '';
+  const dep  = f.depends_on_tariff ? ` data-tariff-dep="${f.depends_on_tariff}"` : '';
+  const hide = f.depends_on_tariff ? ' style="display:none;"' : '';
+  const wrap = (inner) => `<div class="field-group"${dep}${hide}>${inner}</div>`;
   if (f.field_type === 'select') {
     const options = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
-    return `<div class="field-group"><label>${f.label}${req}</label><select id="f-${f.slug}" class="inp"><option value="">— Выберите —</option>${options}</select><div id="err-${f.slug}" class="err-msg" style="display:none;"></div></div>`;
+    return wrap(`<label>${f.label}${req}</label><select id="f-${f.slug}" class="inp"><option value="">— Выберите —</option>${options}</select><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
   }
   if (f.field_type === 'textarea') {
-    return `<div class="field-group"><label>${f.label}${req}</label><textarea id="f-${f.slug}" class="inp" placeholder="${f.label}"></textarea><div id="err-${f.slug}" class="err-msg" style="display:none;"></div></div>`;
+    return wrap(`<label>${f.label}${req}</label><textarea id="f-${f.slug}" class="inp" placeholder="${f.label}"></textarea><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
   }
   if (f.field_type === 'checkbox') {
-    return `<div class="field-group" style="display:flex;align-items:center;gap:10px;"><input type="checkbox" id="f-${f.slug}" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"><label for="f-${f.slug}" style="text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--white);cursor:pointer;">${f.label}${req}</label></div>`;
+    return `<div class="field-group" style="display:${f.depends_on_tariff?'none':'flex'};align-items:center;gap:10px;"${dep}><input type="checkbox" id="f-${f.slug}" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"><label for="f-${f.slug}" style="text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--white);cursor:pointer;">${f.label}${req}</label></div>`;
   }
   const inputType = f.field_type === 'email' ? 'email' : f.field_type === 'phone' ? 'tel' : 'text';
-  return `<div class="field-group"><label>${f.label}${req}</label><input type="${inputType}" id="f-${f.slug}" class="inp" placeholder="${f.label}"><div id="err-${f.slug}" class="err-msg" style="display:none;"></div></div>`;
+  return wrap(`<label>${f.label}${req}</label><input type="${inputType}" id="f-${f.slug}" class="inp" placeholder="${f.label}"><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
 }
 
 function selectTariff(id) {
@@ -167,6 +173,12 @@ function selectTariff(id) {
     wrap.innerHTML = `<label>Выберите вариант *</label><select id="tariff-option" class="inp" style="margin-top:5px;"><option value="">— Выберите —</option>${opts}</select><div id="err-tariff-option" class="err-msg" style="display:none;"></div>`;
     document.getElementById('tariff-' + id).after(wrap);
   }
+
+  // Показываем/скрываем поля с зависимостью от тарифа
+  const tariffName = _selectedTariff?.name || '';
+  document.querySelectorAll('[data-tariff-dep]').forEach(el => {
+    el.style.display = (el.dataset.tariffDep === tariffName) ? '' : 'none';
+  });
 }
 
 async function submitForm() {
@@ -188,6 +200,9 @@ async function submitForm() {
   for (const f of _event.fields) {
     const el  = document.getElementById('f-' + f.slug);
     if (!el) continue;
+    // Пропускаем скрытые зависимые поля
+    const wrap = el.closest('[data-tariff-dep]');
+    if (wrap && wrap.style.display === 'none') continue;
     const val = f.field_type === 'checkbox' ? (el.checked ? 'Да' : '') : el.value.trim();
     if (f.is_required && !val) {
       const errEl = document.getElementById('err-' + f.slug);

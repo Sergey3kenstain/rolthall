@@ -3684,8 +3684,7 @@ let _evSettingsNew = false;
 
 // ── Список событий ────────────────────────────────────────────────────
 async function loadEvents() {
-  const res  = await api('/api/admin/events');
-  const data = await res.json();
+  const data = await api('/admin/events');
   const list = document.getElementById('ev-list');
   const empty = document.getElementById('ev-empty');
   if (!data.ok || !data.events.length) {
@@ -3720,8 +3719,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Детали события ────────────────────────────────────────────────────
 async function evOpenDetail(id) {
   _evCurrentId = id;
-  const res  = await api(`/api/admin/events/${id}`);
-  const data = await res.json();
+  const data = await api(`/admin/events/${id}`);
   if (!data.ok) return;
   const ev = data.event;
 
@@ -3739,9 +3737,8 @@ async function evOpenDetail(id) {
 }
 
 async function evLoadRegs(q) {
-  const url  = `/api/admin/events/${_evCurrentId}/registrations` + (q ? `?q=${encodeURIComponent(q)}` : '');
-  const res  = await api(url);
-  const data = await res.json();
+  const url  = `/admin/events/${_evCurrentId}/registrations` + (q ? `?q=${encodeURIComponent(q)}` : '');
+  const data = await api(url);
   _evAllRegs = data.registrations || [];
   evRenderRegs(_evAllRegs);
 }
@@ -3781,8 +3778,7 @@ function evRenderRegs(regs) {
 }
 
 async function evOpenParticipant(regId) {
-  const res  = await api(`/api/admin/events/${_evCurrentId}/registrations/${regId}`);
-  const data = await res.json();
+  const data = await api(`/admin/events/${_evCurrentId}/registrations/${regId}`);
   if (!data.ok) return;
   const r = data.registration;
 
@@ -3823,7 +3819,7 @@ function evBackToDetail() { document.getElementById('ev-participant-view').style
 
 function evCopyLink() {
   if (!_evCurrentId) return;
-  api(`/api/admin/events/${_evCurrentId}`).then(r=>r.json()).then(d=>{
+  api(`/admin/events/${_evCurrentId}`).then(d=>{
     if (!d.ok) return;
     const url = `${location.origin}/event/${d.event.slug}`;
     navigator.clipboard.writeText(url).then(()=>showToast('Ссылка скопирована'));
@@ -3842,9 +3838,8 @@ function evCreateNew() {
 async function evOpenSettings() {
   if (!_evCurrentId) return;
   _evSettingsNew = false;
-  const res  = await api(`/api/admin/events/${_evCurrentId}`);
-  const data = await res.json();
-  if (!data.ok) return;
+  const data = await api(`/admin/events/${_evCurrentId}`);
+  if (!data?.ok) return;
   evResetSettingsForm(data.event);
   document.getElementById('ev-settings-modal').style.display = '';
 }
@@ -3929,7 +3924,15 @@ function evRedrawFields() {
         <button class="btn btn-ghost btn-sm" style="color:var(--red);flex-shrink:0;" onclick="_evFields.splice(${i},1);evRedrawFields()">✕</button>
       </div>
       <input type="text" class="inp" placeholder="slug (машинное имя)" value="${f.slug||''}" oninput="_evFields[${i}].slug=this.value" style="font-family:monospace;font-size:.72rem;">
-      ${f.field_type==='select'?`<input type="text" class="inp" placeholder='Варианты через запятую: "Иванов, Петров"' value="${(f.options||[]).join(', ')}" oninput="_evFields[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)" style="font-size:.72rem;">`:''}
+      ${f.field_type==='select'?`
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        ${(f.options||[]).map((opt,oi)=>`
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="text" class="inp" value="${opt.replace(/"/g,'&quot;')}" oninput="_evFields[${i}].options[${oi}]=this.value" placeholder="Вариант" style="flex:1;font-size:.72rem;">
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);flex-shrink:0;" onclick="_evFields[${i}].options.splice(${oi},1);evRedrawFields()">✕</button>
+        </div>`).join('')}
+        <button class="btn btn-ghost btn-sm" onclick="_evFields[${i}].options.push('');evRedrawFields()" style="font-size:.68rem;align-self:flex-start;">+ Вариант</button>
+      </div>`:''}
       <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
         <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
           <input type="checkbox" ${f.is_required?'checked':''} onchange="_evFields[${i}].is_required=this.checked"> Обязательное
@@ -3937,8 +3940,7 @@ function evRedrawFields() {
         ${f.field_type!=='checkbox'&&f.field_type!=='select'?`
         <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
           <input type="checkbox" ${f.has_mask?'checked':''} onchange="_evFields[${i}].has_mask=this.checked;evRedrawFields()"> Маска (regex)
-        </label>
-        `:''}
+        </label>`:''}
       </div>
       ${f.has_mask&&f.field_type!=='checkbox'&&f.field_type!=='select'?`
       <div style="display:flex;flex-direction:column;gap:6px;">
@@ -3947,14 +3949,21 @@ function evRedrawFields() {
           ${presetOpts}
         </select>
         <input id="mask-inp-${i}" type="text" class="inp" placeholder="или введите regex вручную" value="${(f.mask_pattern||'').replace(/"/g,'&quot;')}" oninput="_evFields[${i}].mask_pattern=this.value" style="font-family:monospace;font-size:.68rem;">
-      </div>
-      `:''}
+      </div>`:''}
+      ${_evTariffs.length?`
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:.72rem;color:var(--text-d);flex-shrink:0;">Показывать при тарифе:</span>
+        <select class="inp" style="flex:1;font-size:.72rem;" onchange="_evFields[${i}].depends_on_tariff=this.value||null">
+          <option value="">Всегда</option>
+          ${_evTariffs.map(t=>`<option value="${(t.name||'').replace(/"/g,'&quot;')}" ${f.depends_on_tariff===t.name?'selected':''}>${t.name||'(без названия)'}</option>`).join('')}
+        </select>
+      </div>`:''}
     </div>
   `).join('');
 }
 
 function evAddField() {
-  _evFields.push({ label:'', field_type:'text', slug:'', has_mask:false, mask_pattern:'', is_required:true, options:[] });
+  _evFields.push({ label:'', field_type:'text', slug:'', has_mask:false, mask_pattern:'', is_required:true, options:[], depends_on_tariff:null });
   evRedrawFields();
 }
 
@@ -4029,23 +4038,22 @@ async function evSaveSettings() {
   if (!payload.title) return showToast('Введите название события');
   if (!payload.slug)  return showToast('Введите slug');
 
-  const url    = _evSettingsNew ? '/api/admin/events' : `/api/admin/events/${_evCurrentId}`;
+  const url    = _evSettingsNew ? '/admin/events' : `/admin/events/${_evCurrentId}`;
   const method = _evSettingsNew ? 'POST' : 'PUT';
 
-  const res  = await api(url, { method, body: JSON.stringify(payload) });
-  const data = await res.json();
-  if (!data.ok) { showToast(data.message || 'Ошибка сохранения'); return; }
+  const data = await api(url, { method, body: JSON.stringify(payload) });
+  if (!data?.ok) { showToast(data?.message || 'Ошибка сохранения'); return; }
 
   const evId = data.event.id;
   _evCurrentId = evId;
 
   // Сохраняем поля
   if (_evFields.length) {
-    await api(`/api/admin/events/${evId}/fields`, { method:'POST', body: JSON.stringify({ fields: _evFields }) });
+    await api(`/admin/events/${evId}/fields`, { method:'POST', body: JSON.stringify({ fields: _evFields }) });
   }
   // Сохраняем тарифы
   if (payload.payments_enabled && _evTariffs.length) {
-    await api(`/api/admin/events/${evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: _evTariffs }) });
+    await api(`/admin/events/${evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: _evTariffs }) });
   }
 
   evCloseSettings();

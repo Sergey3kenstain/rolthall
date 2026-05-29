@@ -10,6 +10,7 @@ class EventField extends Model
     protected $fillable = [
         'event_id', 'label', 'field_type', 'slug',
         'has_mask', 'mask_pattern', 'is_required', 'options', 'sort_order',
+        'depends_on_tariff',
     ];
 
     protected $casts = [
