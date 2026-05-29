@@ -337,47 +337,4 @@ class AuthController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Автологин через одноразовый magic link из Max бота
-     * GET /api/auth/max-login?token=XXX
-     */
-    public function maxMagicLogin(Request $request): JsonResponse
-    {
-        $token = (string) ($request->query('token') ?? '');
-        if (strlen($token) < 8) {
-            return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
-        }
-
-        // Декодируем URL-safe base64 (- → +, _ → /)
-        $padding = str_repeat('=', (4 - strlen($token) % 4) % 4);
-        $raw     = base64_decode(strtr($token . $padding, '-_', '+/'));
-        $parts = explode(':', $raw, 3);
-        if (count($parts) !== 3) {
-            return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
-        }
-        [$chatId, $expires, $sig] = $parts;
-
-        if (time() > (int) $expires) {
-            return response()->json(['ok' => false, 'error' => 'token_expired'], 401);
-        }
-
-        $expected = hash_hmac('sha256', $chatId . ':' . $expires, config('app.key'));
-        if (!hash_equals($expected, $sig)) {
-            return response()->json(['ok' => false, 'error' => 'invalid_token'], 401);
-        }
-
-        $user = User::where('max_chat_id', (string) $chatId)->first();
-        if (!$user) {
-            return response()->json(['ok' => false, 'error' => 'not_found'], 404);
-        }
-
-        $apiToken = $user->createToken('max-profile')->plainTextToken;
-
-        return response()->json([
-            'ok'    => true,
-            'token' => $apiToken,
-            'name'  => $user->name ?? '',
-            'role'  => $user->role ?? 'client',
-        ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
 }

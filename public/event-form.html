@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>Регистрация на событие</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="icon" href="/favicon.png">
+<style>
+  :root{
+    --bg:#3D3B3F;--bg-card:#2E2C30;--bg-deep:#252328;
+    --accent:#376FFF;--accent2:#5B8FFF;
+    --white:#fff;--text-m:#A0A0A8;--text-d:#6C6C76;
+    --border:rgba(255,255,255,.08);--green:#4CAF82;--red:#E05252;
+    --r:8px;--r-lg:14px;--font:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--white);font-family:var(--font);min-height:100vh;padding-bottom:40px;}
+  .poster{width:100%;max-height:260px;object-fit:cover;display:block;}
+  .container{max-width:520px;margin:0 auto;padding:0 16px;}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-top:20px;}
+  h1{font-size:1.1rem;font-weight:800;line-height:1.3;margin-bottom:4px;}
+  .ev-date{font-size:.72rem;color:var(--text-m);margin-bottom:10px;}
+  .ev-desc{font-size:.78rem;color:var(--text-m);line-height:1.6;}
+  label{display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-d);margin-bottom:5px;}
+  .inp{width:100%;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--r);color:var(--white);padding:11px 13px;font-size:.82rem;font-family:var(--font);outline:none;transition:border-color .15s;}
+  .inp:focus{border-color:var(--accent);}
+  .inp.error{border-color:var(--red);}
+  select.inp{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236C6C76' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+  textarea.inp{resize:vertical;min-height:80px;}
+  .field-group{margin-bottom:14px;}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--r);cursor:pointer;font-family:var(--font);font-weight:700;transition:all .15s;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:14px 24px;font-size:.88rem;width:100%;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .tariff-card{border:1.5px solid var(--border);border-radius:var(--r);padding:14px;cursor:pointer;transition:border-color .15s,background .15s;}
+  .tariff-card.selected{border-color:var(--accent);background:rgba(55,111,255,.08);}
+  .tariff-name{font-size:.82rem;font-weight:700;}
+  .tariff-price{font-size:.78rem;color:var(--accent);margin-top:2px;}
+  .tariff-tiers{font-size:.6rem;color:var(--text-d);margin-top:4px;line-height:1.5;}
+  .section-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:10px;}
+  .err-msg{font-size:.7rem;color:var(--red);margin-top:4px;}
+  .already-reg{text-align:center;padding:32px 0;color:var(--text-m);}
+  .already-reg svg{margin-bottom:10px;opacity:.4;}
+  .spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div style="text-align:center;padding:60px 20px;color:var(--text-d);">
+    <div class="spinner" style="margin:0 auto;"></div>
+  </div>
+</div>
+
+<script>
+const _tg    = window.Telegram?.WebApp;
+const _tgId  = _tg?.initDataUnsafe?.user?.id?.toString() || null;
+const _slug  = location.pathname.replace(/^\/event\//, '').replace(/\/$/, '');
+let   _event = null;
+let   _selectedTariff = null;
+
+if (_tg) { _tg.ready(); _tg.expand(); }
+
+async function loadEvent() {
+  try {
+    const res  = await fetch(`/api/events/${_slug}`, { headers:{ Accept:'application/json' } });
+    if (res.status === 404) { renderError('Событие не найдено или регистрация закрыта'); return; }
+    const data = await res.json();
+    if (!data.ok) { renderError('Ошибка загрузки'); return; }
+    _event = data;
+    render();
+  } catch(e) { renderError('Ошибка соединения'); }
+}
+
+function render() {
+  const ev = _event;
+  const posterHtml = ev.poster_url
+    ? `<img src="${ev.poster_url}" class="poster" alt="Афиша">`
+    : '';
+
+  const fieldsHtml = ev.fields.map(f => buildField(f)).join('');
+
+  const tariffsHtml = ev.payments_enabled && ev.tariffs?.length ? `
+    <div style="margin-bottom:14px;">
+      <div class="section-title">Выберите тариф</div>
+      <div id="tariffs-list" style="display:flex;flex-direction:column;gap:8px;">
+        ${ev.tariffs.map(t => `
+          <div class="tariff-card" id="tariff-${t.id}" onclick="selectTariff(${t.id})">
+            <div class="tariff-name">${t.name}</div>
+            <div class="tariff-price">${t.current_price != null ? t.current_price + ' ₽' : '<span style="color:var(--red)">Недоступен</span>'}</div>
+            <div class="tariff-tiers">${t.tiers.map(ti=>`${ti.from_date}–${ti.to_date}: ${ti.price}₽`).join(' · ')}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div id="tariff-err" class="err-msg" style="display:none;">Выберите тариф</div>
+    </div>
+  ` : '';
+
+  document.getElementById('app').innerHTML = `
+    ${posterHtml}
+    <div class="container">
+      <div class="card">
+        <h1>${ev.title}</h1>
+        ${ev.event_date ? `<div class="ev-date">${ev.event_date}</div>` : ''}
+        ${ev.description ? `<div class="ev-desc">${ev.description}</div>` : ''}
+      </div>
+      <div class="card">
+        <div class="section-title">Анкета участника</div>
+        <div id="form-fields">
+          <div class="field-group">
+            <label>Телефон *</label>
+            <input type="tel" id="f-phone" class="inp" placeholder="+7 (999) 999-99-99">
+            <div id="err-phone" class="err-msg" style="display:none;"></div>
+          </div>
+          ${fieldsHtml}
+        </div>
+        ${tariffsHtml}
+        <div id="form-err" class="err-msg" style="display:none;margin-bottom:10px;"></div>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">
+          ${ev.payments_enabled ? 'Далее к оплате' : 'Зарегистрироваться'}
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Применяем маски
+  ev.fields.forEach(f => {
+    if (f.has_mask && f.mask_pattern && f.field_type !== 'select') {
+      const el = document.getElementById('f-' + f.slug);
+      if (el) applyMask(el, f.mask_pattern);
+    }
+  });
+  applyMask(document.getElementById('f-phone'), '+7 (999) 999-99-99');
+}
+
+function buildField(f) {
+  const req = f.is_required ? ' *' : '';
+  if (f.field_type === 'select') {
+    const options = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
+    return `<div class="field-group"><label>${f.label}${req}</label><select id="f-${f.slug}" class="inp"><option value="">— Выберите —</option>${options}</select><div id="err-${f.slug}" class="err-msg" style="display:none;"></div></div>`;
+  }
+  if (f.field_type === 'textarea') {
+    return `<div class="field-group"><label>${f.label}${req}</label><textarea id="f-${f.slug}" class="inp" placeholder="${f.label}"></textarea><div id="err-${f.slug}" class="err-msg" style="display:none;"></div></div>`;
+  }
+  if (f.field_type === 'checkbox') {
+    return `<div class="field-group" style="display:flex;align-items:center;gap:10px;"><input type="checkbox" id="f-${f.slug}" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"><label for="f-${f.slug}" style="text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--white);cursor:pointer;">${f.label}${req}</label></div>`;
+  }
+  const inputType = f.field_type === 'email' ? 'email' : f.field_type === 'phone' ? 'tel' : 'text';
+  return `<div class="field-group"><label>${f.label}${req}</label><input type="${inputType}" id="f-${f.slug}" class="inp" placeholder="${f.label}"><div id="err-${f.slug}" class="err-msg" style="display:none;"></div></div>`;
+}
+
+function selectTariff(id) {
+  _selectedTariff = _event.tariffs.find(t => t.id === id);
+  document.querySelectorAll('.tariff-card').forEach(el => el.classList.remove('selected'));
+  document.getElementById('tariff-' + id)?.classList.add('selected');
+  document.getElementById('tariff-err').style.display = 'none';
+
+  // Показываем дополнительный селект если нужен
+  const existing = document.getElementById('tariff-option-wrap');
+  if (existing) existing.remove();
+  if (_selectedTariff?.has_options && _selectedTariff.options?.length) {
+    const wrap = document.createElement('div');
+    wrap.id = 'tariff-option-wrap';
+    wrap.style.marginTop = '10px';
+    const opts = _selectedTariff.options.map(o=>`<option value="${o}">${o}</option>`).join('');
+    wrap.innerHTML = `<label>Выберите вариант *</label><select id="tariff-option" class="inp" style="margin-top:5px;"><option value="">— Выберите —</option>${opts}</select><div id="err-tariff-option" class="err-msg" style="display:none;"></div>`;
+    document.getElementById('tariff-' + id).after(wrap);
+  }
+}
+
+async function submitForm() {
+  const btn = document.getElementById('submit-btn');
+  let valid = true;
+
+  // Телефон
+  const phone = document.getElementById('f-phone')?.value.trim();
+  const errPhone = document.getElementById('err-phone');
+  if (!phone || phone.replace(/\D/g,'').length < 10) {
+    errPhone.textContent = 'Введите корректный номер телефона';
+    errPhone.style.display = '';
+    document.getElementById('f-phone').classList.add('error');
+    valid = false;
+  } else { errPhone.style.display = 'none'; document.getElementById('f-phone').classList.remove('error'); }
+
+  // Кастомные поля
+  const fieldsData = {};
+  for (const f of _event.fields) {
+    const el  = document.getElementById('f-' + f.slug);
+    if (!el) continue;
+    const val = f.field_type === 'checkbox' ? (el.checked ? 'Да' : '') : el.value.trim();
+    if (f.is_required && !val) {
+      const errEl = document.getElementById('err-' + f.slug);
+      if (errEl) { errEl.textContent = 'Обязательное поле'; errEl.style.display = ''; }
+      el.classList?.add('error');
+      valid = false;
+    } else {
+      const errEl = document.getElementById('err-' + f.slug);
+      if (errEl) errEl.style.display = 'none';
+      el.classList?.remove('error');
+    }
+    if (val) fieldsData[f.label] = val;
+  }
+
+  // Тариф
+  let selectedOption = null;
+  if (_event.payments_enabled) {
+    if (!_selectedTariff || _selectedTariff.current_price == null) {
+      document.getElementById('tariff-err').style.display = '';
+      valid = false;
+    } else {
+      document.getElementById('tariff-err').style.display = 'none';
+      if (_selectedTariff.has_options) {
+        selectedOption = document.getElementById('tariff-option')?.value || '';
+        if (!selectedOption) {
+          const e = document.getElementById('err-tariff-option');
+          if (e) { e.textContent = 'Выберите вариант'; e.style.display = ''; }
+          valid = false;
+        }
+      }
+    }
+  }
+
+  if (!valid) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
+
+  try {
+    const body = {
+      phone,
+      tg_user_id:      _tgId,
+      fields_data:     fieldsData,
+      tariff_id:       _selectedTariff?.id || null,
+      selected_option: selectedOption,
+    };
+
+    const res  = await fetch(`/api/events/${_slug}/register`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', Accept:'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (!data.ok) {
+      if (data.error === 'already_registered') {
+        renderAlreadyRegistered();
+        return;
+      }
+      document.getElementById('form-err').textContent = data.error || 'Ошибка регистрации';
+      document.getElementById('form-err').style.display = '';
+      btn.disabled = false;
+      btn.innerHTML = _event.payments_enabled ? 'Далее к оплате' : 'Зарегистрироваться';
+      return;
+    }
+
+    if (data.payment_url) {
+      location.href = data.payment_url;
+    } else {
+      location.href = `/event-success.html?reg=${data.reg_id}&event=${encodeURIComponent(_event.title)}`;
+    }
+  } catch(e) {
+    document.getElementById('form-err').textContent = 'Ошибка соединения. Попробуйте ещё раз.';
+    document.getElementById('form-err').style.display = '';
+    btn.disabled = false;
+    btn.innerHTML = _event.payments_enabled ? 'Далее к оплате' : 'Зарегистрироваться';
+  }
+}
+
+function renderAlreadyRegistered() {
+  document.getElementById('app').innerHTML = `
+    <div class="container">
+      <div class="card" style="text-align:center;padding:40px 20px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" width="48" height="48" style="margin:0 auto 16px;"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div style="font-size:.95rem;font-weight:700;margin-bottom:8px;">Вы уже зарегистрированы</div>
+        <div style="font-size:.78rem;color:var(--text-m);">Ваша заявка на это событие уже принята.</div>
+      </div>
+    </div>`;
+}
+
+function renderError(msg) {
+  document.getElementById('app').innerHTML = `
+    <div class="container">
+      <div class="card" style="text-align:center;padding:40px 20px;">
+        <div style="font-size:.85rem;color:var(--text-m);">${msg}</div>
+      </div>
+    </div>`;
+}
+
+// Простая маска ввода
+function applyMask(el, pattern) {
+  if (!el || !pattern) return;
+  el.addEventListener('input', function() {
+    const digits = this.value.replace(/\D/g,'');
+    let result = ''; let di = 0;
+    for (let i = 0; i < pattern.length && di < digits.length; i++) {
+      if (pattern[i] === '9') { result += digits[di++]; }
+      else { result += pattern[i]; if (digits[di] === pattern[i]) di++; }
+    }
+    this.value = result;
+  });
+}
+
+loadEvent();
+</script>
+</body>
+</html>

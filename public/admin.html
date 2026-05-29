@@ -559,6 +559,10 @@ select.inp option{background:var(--bg-card);}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
       Уведомления
     </button>
+    <button class="nav-item" data-tab="events" id="nav-events" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      События
+    </button>
     <button class="nav-item" data-tab="debug" id="nav-debug" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
       Debug Log
@@ -628,6 +632,10 @@ select.inp option{background:var(--bg-card);}
     <button class="mob-nav-item" data-tab="notifications">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       Уведомл.
+    </button>
+    <button class="mob-nav-item" data-tab="events" id="mob-nav-events" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      События
     </button>
     <button class="mob-nav-item" data-tab="debug" id="mob-nav-debug" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
@@ -1344,6 +1352,182 @@ select.inp option{background:var(--bg-card);}
     <button class="btn btn-w btn-md" style="margin-top:12px;max-width:540px;width:100%;" onclick="saveNotifications()">Сохранить</button>
   </div>
 
+  <!-- СОБЫТИЯ -->
+  <div class="tab-pane" id="tab-events">
+    <!-- Список событий -->
+    <div id="ev-list-view">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:.9rem;font-weight:700;">События</div>
+          <div style="font-size:.65rem;color:var(--text-d);margin-top:2px;">Регистрационные формы и анкеты</div>
+        </div>
+        <button class="btn btn-w btn-md" onclick="evCreateNew()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Новое событие
+        </button>
+      </div>
+      <div id="ev-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="ev-empty" style="display:none;text-align:center;padding:48px 0;color:var(--text-d);font-size:.8rem;">Событий пока нет</div>
+    </div>
+
+    <!-- Карточка события -->
+    <div id="ev-detail-view" style="display:none;">
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:20px;" onclick="evBackToList()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+        Назад
+      </button>
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <div>
+          <div id="ev-detail-title" style="font-size:.95rem;font-weight:700;"></div>
+          <div id="ev-detail-meta" style="font-size:.65rem;color:var(--text-d);margin-top:3px;"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" onclick="evOpenSettings()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            Настройки
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="evCopyLink()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            Ссылка
+          </button>
+        </div>
+      </div>
+
+      <!-- Поиск по участникам -->
+      <div style="position:relative;max-width:360px;margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-d);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="ev-reg-search" type="text" class="inp" placeholder="Имя, телефон, Telegram ID…" style="padding-left:32px;" oninput="evSearchRegs(this.value)">
+      </div>
+
+      <!-- Счётчики -->
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;min-width:100px;">
+          <div id="ev-count-total" style="font-size:1.3rem;font-weight:700;">—</div>
+          <div style="font-size:.6rem;color:var(--text-d);margin-top:1px;">Всего заявок</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;min-width:100px;">
+          <div id="ev-count-paid" style="font-size:1.3rem;font-weight:700;color:var(--green);">—</div>
+          <div style="font-size:.6rem;color:var(--text-d);margin-top:1px;">Оплачено</div>
+        </div>
+      </div>
+
+      <div id="ev-regs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="ev-regs-empty" style="display:none;text-align:center;padding:32px 0;color:var(--text-d);font-size:.78rem;">Участников пока нет</div>
+    </div>
+
+    <!-- Карточка участника -->
+    <div id="ev-participant-view" style="display:none;">
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:20px;" id="ev-back-to-detail" onclick="evBackToDetail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+        Назад
+      </button>
+      <div id="ev-participant-content"></div>
+    </div>
+
+    <!-- Модал настроек -->
+    <div id="ev-settings-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);overflow-y:auto;">
+      <div style="max-width:680px;margin:40px auto;padding:0 16px 60px;">
+        <div style="background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;">
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div style="font-size:.85rem;font-weight:700;">Настройки события</div>
+            <button class="btn btn-ghost btn-sm" onclick="evCloseSettings()">✕</button>
+          </div>
+
+          <!-- Основное -->
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:10px;">Основное</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+            <div><label class="label">Название события</label><input id="evs-title" type="text" class="inp" placeholder="Rock Fusion Camp 2026"></div>
+            <div><label class="label">Slug (URL)</label><input id="evs-slug" type="text" class="inp" placeholder="rock-fusion-2026" style="font-family:monospace;font-size:.75rem;"></div>
+            <div><label class="label">Дата события</label><input id="evs-date" type="date" class="inp"></div>
+            <div><label class="label">Тег (для карточки клиента)</label><input id="evs-tag" type="text" class="inp" placeholder="rock-fusion-2026"></div>
+            <div><label class="label">Описание</label><textarea id="evs-desc" class="inp" rows="3" placeholder="Краткое описание для шапки формы" style="resize:vertical;"></textarea></div>
+            <div>
+              <label class="label">Статус</label>
+              <select id="evs-status" class="inp">
+                <option value="draft">Черновик (форма недоступна)</option>
+                <option value="active">Активно (форма открыта)</option>
+                <option value="closed">Закрыто (регистрация закрыта)</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);">
+              <span style="font-size:.78rem;">Разрешить повторные регистрации</span>
+              <label class="toggle-sw"><input type="checkbox" id="evs-multi"><span class="toggle-track"></span></label>
+            </div>
+          </div>
+
+          <!-- Афиша -->
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:10px;">Афиша</div>
+          <div style="margin-bottom:20px;">
+            <div id="evs-poster-preview" style="display:none;margin-bottom:8px;"><img id="evs-poster-img" src="" style="max-width:200px;border-radius:var(--r);border:1px solid var(--border);"></div>
+            <input type="file" id="evs-poster-file" accept="image/jpeg,image/png" style="display:none;" onchange="evUploadPoster(this)">
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('evs-poster-file').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Загрузить афишу (JPG/PNG, до 1.5 МБ)
+            </button>
+            <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Используется как фон билета</div>
+          </div>
+
+          <!-- Поля формы -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);">Поля анкеты</div>
+            <button class="btn btn-ghost btn-sm" onclick="evAddField()">+ Добавить поле</button>
+          </div>
+          <div id="evs-fields-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+
+          <!-- Оплата -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);margin-bottom:12px;">
+            <span style="font-size:.78rem;font-weight:600;">Включить оплату</span>
+            <label class="toggle-sw"><input type="checkbox" id="evs-payments" onchange="evTogglePayments(this.checked)"><span class="toggle-track"></span></label>
+          </div>
+          <div id="evs-tariffs-section" style="display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);">Тарифы</div>
+              <button class="btn btn-ghost btn-sm" onclick="evAddTariff()">+ Тариф</button>
+            </div>
+            <div id="evs-tariffs-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+          </div>
+
+          <!-- Мессенджеры -->
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:12px;margin-top:4px;padding-top:16px;border-top:1px solid var(--border);">Уведомления</div>
+          <!-- Telegram -->
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-size:.78rem;font-weight:600;">Telegram</span>
+              <label class="toggle-sw"><input type="checkbox" id="evs-tg-enabled" onchange="evToggleTgFields(this.checked)"><span class="toggle-track"></span></label>
+            </div>
+            <div id="evs-tg-fields" style="display:none;flex-direction:column;gap:8px;">
+              <div><label class="label">Chat ID администратора</label><input id="evs-tg-chat" type="text" class="inp" placeholder="-100123456789" style="font-family:monospace;font-size:.75rem;"></div>
+              <div><label class="label">ID ветки (topic, опционально)</label><input id="evs-tg-thread" type="text" class="inp" placeholder="123" style="font-family:monospace;font-size:.75rem;"></div>
+              <div><label class="label">Шаблон уведомления администратору</label><textarea id="evs-tg-admin-tpl" class="inp" rows="3" placeholder="Новая регистрация — {event}&#10;Телефон: {phone}&#10;Тариф: {tariff}&#10;#{code}" style="resize:vertical;font-size:.72rem;"></textarea></div>
+              <div><label class="label">Шаблон сообщения участнику</label><textarea id="evs-tg-user-tpl" class="inp" rows="3" placeholder="Вы зарегистрированы на {event}!&#10;Дата: {date}&#10;Тариф: {tariff}&#10;Ваш билет: {code}" style="resize:vertical;font-size:.72rem;"></textarea></div>
+              <div style="font-size:.6rem;color:var(--text-d);">Переменные: {name} {phone} {event} {date} {tariff} {option} {reg_id} {code}</div>
+            </div>
+          </div>
+          <!-- Max -->
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-size:.78rem;font-weight:600;">Max</span>
+              <label class="toggle-sw"><input type="checkbox" id="evs-max-enabled" onchange="evToggleMaxFields(this.checked)"><span class="toggle-track"></span></label>
+            </div>
+            <div id="evs-max-fields" style="display:none;flex-direction:column;gap:8px;">
+              <div><label class="label">Chat ID администратора</label><input id="evs-max-chat" type="text" class="inp" placeholder="7262014" style="font-family:monospace;font-size:.75rem;"></div>
+              <div><label class="label">Шаблон уведомления администратору</label><textarea id="evs-max-admin-tpl" class="inp" rows="3" placeholder="Новая регистрация — {event}&#10;Телефон: {phone}" style="resize:vertical;font-size:.72rem;"></textarea></div>
+              <div><label class="label">Шаблон сообщения участнику</label><textarea id="evs-max-user-tpl" class="inp" rows="3" placeholder="Вы зарегистрированы на {event}!&#10;Билет: {code}" style="resize:vertical;font-size:.72rem;"></textarea></div>
+              <div style="font-size:.6rem;color:var(--text-d);">Переменные: {name} {phone} {event} {date} {tariff} {option} {reg_id} {code}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-ghost btn-md" onclick="evCloseSettings()">Отмена</button>
+            <button class="btn btn-w btn-md" onclick="evSaveSettings()">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- DEBUG LOG -->
   <div class="tab-pane" id="tab-debug">
     <div style="margin-bottom:20px;">
@@ -1768,6 +1952,10 @@ async function initUser() {
     if (nd)  nd.style.display  = 'flex';
     if (mnd) mnd.style.display = 'flex';
     const lb=document.getElementById('log-csv-btn'); if(lb) lb.style.display='';
+    const ne = document.getElementById('nav-events');
+    const mne = document.getElementById('mob-nav-events');
+    if (ne)  ne.style.display  = 'flex';
+    if (mne) mne.style.display = 'flex';
   }
   if (r!=='developer') {
     const ts=document.getElementById('tg-technical-settings'); if(ts) ts.style.display='none';
@@ -3485,6 +3673,390 @@ async function init() {
 }
 
 init();
+
+// ══════════════════════════════════════════════════════════════════════
+// СОБЫТИЯ
+// ══════════════════════════════════════════════════════════════════════
+let _evCurrentId   = null;
+let _evAllRegs     = [];
+let _evSettingsNew = false;
+
+// ── Список событий ────────────────────────────────────────────────────
+async function loadEvents() {
+  const res  = await apiFetch('/api/admin/events');
+  const data = await res.json();
+  const list = document.getElementById('ev-list');
+  const empty = document.getElementById('ev-empty');
+  if (!data.ok || !data.events.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  const statusLabel = { draft: 'Черновик', active: 'Активно', closed: 'Закрыто' };
+  const statusColor = { draft: 'var(--text-d)', active: 'var(--green)', closed: 'var(--red)' };
+  list.innerHTML = data.events.map(ev => `
+    <div class="booking-card" style="cursor:pointer;" onclick="evOpenDetail(${ev.id})">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        ${ev.poster_url ? `<img src="${ev.poster_url}" style="width:52px;height:52px;object-fit:cover;border-radius:var(--r);flex-shrink:0;">` : `<div style="width:52px;height:52px;background:var(--bg-deep);border-radius:var(--r);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="color:var(--text-d)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.82rem;font-weight:700;margin-bottom:3px;">${ev.title}</div>
+          <div style="font-size:.65rem;color:var(--text-d);">${ev.event_date || 'Дата не указана'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:.65rem;font-weight:700;color:${statusColor[ev.status]};">${statusLabel[ev.status]}</div>
+          <div style="font-size:.62rem;color:var(--text-d);margin-top:2px;">${ev.registrations_count} заявок · ${ev.paid_count} оплачено</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('[data-tab="events"]')?.addEventListener('click', loadEvents);
+});
+
+// ── Детали события ────────────────────────────────────────────────────
+async function evOpenDetail(id) {
+  _evCurrentId = id;
+  const res  = await apiFetch(`/api/admin/events/${id}`);
+  const data = await res.json();
+  if (!data.ok) return;
+  const ev = data.event;
+
+  document.getElementById('ev-detail-title').textContent = ev.title;
+  document.getElementById('ev-detail-meta').textContent  =
+    (ev.event_date || '') + (ev.tag ? ` · #${ev.tag}` : '') + ` · ${ev.registrations_count} заявок`;
+  document.getElementById('ev-count-total').textContent  = ev.registrations_count;
+  document.getElementById('ev-count-paid').textContent   = ev.paid_count;
+
+  document.getElementById('ev-list-view').style.display   = 'none';
+  document.getElementById('ev-detail-view').style.display = '';
+  document.getElementById('ev-participant-view').style.display = 'none';
+
+  await evLoadRegs('');
+}
+
+async function evLoadRegs(q) {
+  const url  = `/api/admin/events/${_evCurrentId}/registrations` + (q ? `?q=${encodeURIComponent(q)}` : '');
+  const res  = await apiFetch(url);
+  const data = await res.json();
+  _evAllRegs = data.registrations || [];
+  evRenderRegs(_evAllRegs);
+}
+
+function evSearchRegs(q) {
+  if (!q) { evRenderRegs(_evAllRegs); return; }
+  const lc = q.toLowerCase();
+  evRenderRegs(_evAllRegs.filter(r =>
+    r.phone?.toLowerCase().includes(lc) ||
+    r.tg_user_id?.toLowerCase().includes(lc) ||
+    r.display_name?.toLowerCase().includes(lc)
+  ));
+}
+
+function evRenderRegs(regs) {
+  const el    = document.getElementById('ev-regs-list');
+  const empty = document.getElementById('ev-regs-empty');
+  if (!regs.length) { el.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  const statusColor = { free:'var(--green)', paid:'var(--green)', pending:'var(--yellow, #f5a623)', failed:'var(--red)' };
+  const statusLabel = { free:'Бесплатно', paid:'Оплачено', pending:'Ожидает оплаты', failed:'Ошибка' };
+  el.innerHTML = regs.map(r => `
+    <div class="booking-card" style="cursor:pointer;" onclick="evOpenParticipant(${r.id})">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--bg-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.72rem;font-weight:700;color:var(--accent);">${(r.display_name||r.phone||'?')[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.8rem;font-weight:600;margin-bottom:2px;">${r.display_name || r.phone}</div>
+          <div style="font-size:.62rem;color:var(--text-d);">${r.phone}${r.tariff ? ' · ' + r.tariff : ''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:.65rem;font-weight:700;color:${statusColor[r.payment_status]};">${statusLabel[r.payment_status]}</div>
+          <div style="font-size:.6rem;color:var(--text-d);margin-top:1px;">${r.created_at}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function evOpenParticipant(regId) {
+  const res  = await apiFetch(`/api/admin/events/${_evCurrentId}/registrations/${regId}`);
+  const data = await res.json();
+  if (!data.ok) return;
+  const r = data.registration;
+
+  const rows = Object.entries(r.fields_data || {}).map(([label, val]) =>
+    `<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-d);font-size:.72rem;min-width:140px;">${label}</span><span style="font-size:.72rem;font-weight:600;">${val}</span></div>`
+  ).join('');
+
+  const payBlock = r.payment_status !== 'free' ? `
+    <div style="margin-top:16px;padding:12px;background:var(--bg-deep);border-radius:var(--r);">
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:8px;">Оплата</div>
+      <div style="font-size:.78rem;">Статус: <b>${r.payment_status === 'paid' ? '✅ Оплачено' : r.payment_status}</b></div>
+      ${r.payment_amount ? `<div style="font-size:.78rem;margin-top:4px;">Сумма: <b>${r.payment_amount} ₽</b></div>` : ''}
+      ${r.paid_at ? `<div style="font-size:.78rem;margin-top:4px;">Дата: <b>${r.paid_at}</b></div>` : ''}
+      ${r.payment_order_id ? `<div style="font-size:.62rem;color:var(--text-d);margin-top:4px;font-family:monospace;">Order: ${r.payment_order_id}</div>` : ''}
+    </div>` : '';
+
+  document.getElementById('ev-participant-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:44px;height:44px;border-radius:50%;background:var(--accent)1a;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:var(--accent);">${(r.display_name||r.phone||'?')[0].toUpperCase()}</div>
+      <div>
+        <div style="font-size:.85rem;font-weight:700;">${r.display_name || r.phone}</div>
+        <div style="font-size:.65rem;color:var(--text-d);">${r.phone}${r.tg_user_id ? ' · TG: ' + r.tg_user_id : ''}</div>
+      </div>
+    </div>
+    ${r.tariff ? `<div style="font-size:.72rem;margin-bottom:4px;">Тариф: <b>${r.tariff}</b>${r.selected_option ? ' · ' + r.selected_option : ''}</div>` : ''}
+    <div style="font-size:.65rem;color:var(--text-d);margin-bottom:12px;">Заявка: ${r.created_at} · Билет: ${r.ticket_sent ? '✅' : '—'}</div>
+    <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:6px;">Ответы анкеты</div>
+    <div>${rows || '<span style="font-size:.72rem;color:var(--text-d);">Нет данных</span>'}</div>
+    ${payBlock}
+  `;
+
+  document.getElementById('ev-detail-view').style.display      = 'none';
+  document.getElementById('ev-participant-view').style.display = '';
+}
+
+function evBackToList()   { document.getElementById('ev-list-view').style.display = ''; document.getElementById('ev-detail-view').style.display = 'none'; _evCurrentId = null; }
+function evBackToDetail() { document.getElementById('ev-participant-view').style.display = 'none'; document.getElementById('ev-detail-view').style.display = ''; }
+
+function evCopyLink() {
+  if (!_evCurrentId) return;
+  apiFetch(`/api/admin/events/${_evCurrentId}`).then(r=>r.json()).then(d=>{
+    if (!d.ok) return;
+    const url = `${location.origin}/event/${d.event.slug}`;
+    navigator.clipboard.writeText(url).then(()=>showToast('Ссылка скопирована'));
+  });
+}
+
+// ── Новое событие ─────────────────────────────────────────────────────
+function evCreateNew() {
+  _evCurrentId   = null;
+  _evSettingsNew = true;
+  evResetSettingsForm({});
+  document.getElementById('ev-settings-modal').style.display = '';
+}
+
+// ── Настройки ─────────────────────────────────────────────────────────
+async function evOpenSettings() {
+  if (!_evCurrentId) return;
+  _evSettingsNew = false;
+  const res  = await apiFetch(`/api/admin/events/${_evCurrentId}`);
+  const data = await res.json();
+  if (!data.ok) return;
+  evResetSettingsForm(data.event);
+  document.getElementById('ev-settings-modal').style.display = '';
+}
+
+function evResetSettingsForm(ev) {
+  document.getElementById('evs-title').value   = ev.title  || '';
+  document.getElementById('evs-slug').value    = ev.slug   || '';
+  document.getElementById('evs-date').value    = ev.event_date || '';
+  document.getElementById('evs-tag').value     = ev.tag    || '';
+  document.getElementById('evs-desc').value    = ev.description || '';
+  document.getElementById('evs-status').value  = ev.status || 'draft';
+  document.getElementById('evs-multi').checked = !!ev.allow_multiple_registrations;
+  document.getElementById('evs-payments').checked = !!ev.payments_enabled;
+
+  // Афиша
+  const preview = document.getElementById('evs-poster-preview');
+  if (ev.poster_url) {
+    document.getElementById('evs-poster-img').src = ev.poster_url;
+    preview.style.display = '';
+  } else { preview.style.display = 'none'; }
+
+  evTogglePayments(!!ev.payments_enabled);
+  evRenderFieldsForm(ev.fields || []);
+  evRenderTariffsForm(ev.tariffs || []);
+
+  const ms = ev.messenger_settings || {};
+  document.getElementById('evs-tg-enabled').checked     = !!(ms.tg?.enabled);
+  document.getElementById('evs-tg-chat').value          = ms.tg?.admin_chat_id || '';
+  document.getElementById('evs-tg-thread').value        = ms.tg?.admin_thread_id || '';
+  document.getElementById('evs-tg-admin-tpl').value     = ms.tg?.admin_template || '';
+  document.getElementById('evs-tg-user-tpl').value      = ms.tg?.user_template || '';
+  evToggleTgFields(!!(ms.tg?.enabled));
+
+  document.getElementById('evs-max-enabled').checked    = !!(ms.max?.enabled);
+  document.getElementById('evs-max-chat').value         = ms.max?.admin_chat_id || '';
+  document.getElementById('evs-max-admin-tpl').value    = ms.max?.admin_template || '';
+  document.getElementById('evs-max-user-tpl').value     = ms.max?.user_template || '';
+  evToggleMaxFields(!!(ms.max?.enabled));
+}
+
+function evCloseSettings() {
+  document.getElementById('ev-settings-modal').style.display = 'none';
+  document.getElementById('evs-poster-file').value = '';
+}
+
+function evTogglePayments(on) { document.getElementById('evs-tariffs-section').style.display = on ? '' : 'none'; }
+function evToggleTgFields(on) { document.getElementById('evs-tg-fields').style.display = on ? 'flex' : 'none'; }
+function evToggleMaxFields(on) { document.getElementById('evs-max-fields').style.display = on ? 'flex' : 'none'; }
+
+// ── Поля анкеты ───────────────────────────────────────────────────────
+let _evFields = [];
+
+function evRenderFieldsForm(fields) {
+  _evFields = fields.map(f => ({ ...f }));
+  evRedrawFields();
+}
+
+function evRedrawFields() {
+  const el = document.getElementById('evs-fields-list');
+  el.innerHTML = _evFields.map((f, i) => `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" class="inp" placeholder="Название поля" value="${f.label||''}" oninput="_evFields[${i}].label=this.value" style="flex:1;">
+        <select class="inp" style="width:130px;" onchange="_evFields[${i}].field_type=this.value">
+          ${['text','phone','email','select','textarea','checkbox'].map(t=>`<option value="${t}" ${f.field_type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);flex-shrink:0;" onclick="_evFields.splice(${i},1);evRedrawFields()">✕</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" class="inp" placeholder="slug (машинное имя)" value="${f.slug||''}" oninput="_evFields[${i}].slug=this.value" style="flex:1;font-family:monospace;font-size:.72rem;">
+      </div>
+      ${f.field_type==='select'?`<input type="text" class="inp" placeholder='Варианты через запятую: "Иванов, Петров"' value="${(f.options||[]).join(', ')}" oninput="_evFields[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)" style="font-size:.72rem;">`:''}
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
+          <input type="checkbox" ${f.is_required?'checked':''} onchange="_evFields[${i}].is_required=this.checked"> Обязательное
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
+          <input type="checkbox" ${f.has_mask?'checked':''} onchange="_evFields[${i}].has_mask=this.checked;evRedrawFields()"> Маска
+        </label>
+        ${f.has_mask?`<input type="text" class="inp" placeholder="+7 (999) 999-99-99" value="${f.mask_pattern||''}" oninput="_evFields[${i}].mask_pattern=this.value" style="width:160px;font-family:monospace;font-size:.72rem;">`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function evAddField() {
+  _evFields.push({ label:'', field_type:'text', slug:'', has_mask:false, mask_pattern:'', is_required:true, options:[] });
+  evRedrawFields();
+}
+
+// ── Тарифы ────────────────────────────────────────────────────────────
+let _evTariffs = [];
+
+function evRenderTariffsForm(tariffs) {
+  _evTariffs = tariffs.map(t => ({ ...t, tiers: (t.tiers||[]).map(x=>({...x})) }));
+  evRedrawTariffs();
+}
+
+function evRedrawTariffs() {
+  const el = document.getElementById('evs-tariffs-list');
+  el.innerHTML = _evTariffs.map((t, ti) => `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:12px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <input type="text" class="inp" placeholder="Название тарифа (Full pass)" value="${t.name||''}" oninput="_evTariffs[${ti}].name=this.value" style="flex:1;">
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="_evTariffs.splice(${ti},1);evRedrawTariffs()">✕</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;margin-bottom:8px;cursor:pointer;">
+        <input type="checkbox" ${t.has_options?'checked':''} onchange="_evTariffs[${ti}].has_options=this.checked;evRedrawTariffs()"> Добавить список для выбора (танцоры)
+      </label>
+      ${t.has_options?`<input type="text" class="inp" placeholder='Варианты через запятую: "Иванов, Петров"' value="${(t.options||[]).join(', ')}" oninput="_evTariffs[${ti}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)" style="margin-bottom:8px;font-size:.72rem;">`:''}
+      <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-d);margin-bottom:6px;">Ценовые периоды</div>
+      ${(t.tiers||[]).map((tier, ri) => `
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+          <input type="date" class="inp" value="${tier.from_date||''}" oninput="_evTariffs[${ti}].tiers[${ri}].from_date=this.value" style="width:130px;">
+          <span style="color:var(--text-d);font-size:.7rem;">—</span>
+          <input type="date" class="inp" value="${tier.to_date||''}" oninput="_evTariffs[${ti}].tiers[${ri}].to_date=this.value" style="width:130px;">
+          <input type="number" class="inp" placeholder="Цена ₽" value="${tier.price||''}" oninput="_evTariffs[${ti}].tiers[${ri}].price=parseInt(this.value)||0" style="width:90px;">
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="_evTariffs[${ti}].tiers.splice(${ri},1);evRedrawTariffs()">✕</button>
+        </div>
+      `).join('')}
+      <button class="btn btn-ghost btn-sm" onclick="_evTariffs[${ti}].tiers.push({from_date:'',to_date:'',price:0});evRedrawTariffs()">+ Период</button>
+    </div>
+  `).join('');
+}
+
+function evAddTariff() {
+  _evTariffs.push({ name:'', has_options:false, options:[], tiers:[] });
+  evRedrawTariffs();
+}
+
+// ── Сохранение настроек ───────────────────────────────────────────────
+async function evSaveSettings() {
+  const payload = {
+    title:                        document.getElementById('evs-title').value.trim(),
+    slug:                         document.getElementById('evs-slug').value.trim(),
+    description:                  document.getElementById('evs-desc').value.trim(),
+    event_date:                   document.getElementById('evs-date').value || null,
+    tag:                          document.getElementById('evs-tag').value.trim() || null,
+    status:                       document.getElementById('evs-status').value,
+    payments_enabled:             document.getElementById('evs-payments').checked,
+    allow_multiple_registrations: document.getElementById('evs-multi').checked,
+    messenger_settings: {
+      tg: {
+        enabled:         document.getElementById('evs-tg-enabled').checked,
+        admin_chat_id:   document.getElementById('evs-tg-chat').value.trim() || null,
+        admin_thread_id: document.getElementById('evs-tg-thread').value.trim() || null,
+        admin_template:  document.getElementById('evs-tg-admin-tpl').value.trim() || null,
+        user_template:   document.getElementById('evs-tg-user-tpl').value.trim() || null,
+      },
+      max: {
+        enabled:         document.getElementById('evs-max-enabled').checked,
+        admin_chat_id:   document.getElementById('evs-max-chat').value.trim() || null,
+        admin_template:  document.getElementById('evs-max-admin-tpl').value.trim() || null,
+        user_template:   document.getElementById('evs-max-user-tpl').value.trim() || null,
+      },
+    },
+  };
+
+  if (!payload.title) return showToast('Введите название события');
+  if (!payload.slug)  return showToast('Введите slug');
+
+  const url    = _evSettingsNew ? '/api/admin/events' : `/api/admin/events/${_evCurrentId}`;
+  const method = _evSettingsNew ? 'POST' : 'PUT';
+
+  const res  = await apiFetch(url, { method, body: JSON.stringify(payload) });
+  const data = await res.json();
+  if (!data.ok) { showToast(data.message || 'Ошибка сохранения'); return; }
+
+  const evId = data.event.id;
+  _evCurrentId = evId;
+
+  // Сохраняем поля
+  if (_evFields.length) {
+    await apiFetch(`/api/admin/events/${evId}/fields`, { method:'POST', body: JSON.stringify({ fields: _evFields }) });
+  }
+  // Сохраняем тарифы
+  if (payload.payments_enabled && _evTariffs.length) {
+    await apiFetch(`/api/admin/events/${evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: _evTariffs }) });
+  }
+
+  evCloseSettings();
+  showToast('Сохранено');
+
+  if (_evSettingsNew) {
+    _evSettingsNew = false;
+    loadEvents();
+  } else {
+    evOpenDetail(evId);
+  }
+}
+
+// ── Загрузка афиши ────────────────────────────────────────────────────
+async function evUploadPoster(input) {
+  if (!input.files[0]) return;
+  if (!_evCurrentId) {
+    showToast('Сначала сохраните событие, затем загрузите афишу');
+    input.value = '';
+    return;
+  }
+  const fd = new FormData();
+  fd.append('poster', input.files[0]);
+  const res  = await fetch(`/api/admin/events/${_evCurrentId}/poster`, {
+    method:'POST',
+    headers:{ Authorization: 'Bearer ' + localStorage.getItem('rh_token') },
+    body: fd,
+  });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('evs-poster-img').src = data.poster_url + '?t=' + Date.now();
+    document.getElementById('evs-poster-preview').style.display = '';
+    showToast('Афиша загружена');
+  }
+}
 </script>
 </body>
 </html>

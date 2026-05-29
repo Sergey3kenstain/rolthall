@@ -526,34 +526,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   const saved = sessionStorage.getItem(TOKEN_KEY);
   if (saved) { showBookingsView('', saved); return; }
 
-  // Автологин через Max magic link (?ml=TOKEN)
-  const _ml = new URLSearchParams(window.location.search).get('ml');
-  if (_ml) {
-    try {
-      const res  = await fetch('/api/auth/max-login?token=' + encodeURIComponent(_ml), {
-        headers: { Accept: 'application/json' },
-      });
-      const data = await res.json();
-      if (data.ok && data.token) {
-        if (data.role === 'owner' || data.role === 'manager') {
-          localStorage.setItem('rh_token', data.token);
-          window.location.href = '/admin';
-          return;
-        }
-        sessionStorage.setItem(TOKEN_KEY, data.token);
-        const clean = new URL(window.location.href);
-        clean.searchParams.delete('ml');
-        window.history.replaceState({}, '', clean);
-        showBookingsView(data.name || '', data.token);
-        return;
-      }
-      if (data.error === 'not_found') {
-        window.location.href = '/login?hint=max_not_linked';
-        return;
-      }
-    } catch (e) { /* продолжаем */ }
-  }
-
   // Если открыто через Telegram WebApp — пробуем автовход по initData
   const tg       = window.Telegram?.WebApp;
   const initData = tg?.initData;

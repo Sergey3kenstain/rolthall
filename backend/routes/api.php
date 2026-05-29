@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\EventAdminController;
+use App\Http\Controllers\EventPublicController;
 use App\Http\Controllers\HallController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MaxController;
@@ -20,7 +22,6 @@ Route::middleware('throttle:10,1')->group(function () {
 });
 Route::post('/auth/tg-sync',    [AuthController::class, 'tgSync'])->middleware('throttle:30,1');
 Route::get('/auth/tg-profile',  [AuthController::class, 'tgProfile'])->middleware('throttle:30,1');
-Route::get('/auth/max-login',   [AuthController::class, 'maxMagicLogin'])->middleware('throttle:10,1');
 Route::get('/auth/max-profile', [AuthController::class, 'maxProfile'])->middleware('throttle:30,1');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout',         [AuthController::class, 'logout']);
@@ -128,6 +129,25 @@ Route::post('/telegram/webhook',      [TelegramController::class, 'webhook']);
 Route::get('/telegram/set-webhook',   [TelegramController::class, 'setWebhook']);
 Route::get('/telegram/webhook-info',  [TelegramController::class, 'webhookInfo']);
 Route::get('/telegram/test',          [TelegramController::class, 'test']);
+
+// ── Events (admin) ────────────────────────────────────────────────────
+Route::middleware('auth:sanctum')->prefix('admin/events')->group(function () {
+    Route::get('/',                              [EventAdminController::class, 'index']);
+    Route::post('/',                             [EventAdminController::class, 'store']);
+    Route::get('/{id}',                          [EventAdminController::class, 'show']);
+    Route::put('/{id}',                          [EventAdminController::class, 'update']);
+    Route::delete('/{id}',                       [EventAdminController::class, 'destroy']);
+    Route::post('/{id}/fields',                  [EventAdminController::class, 'syncFields']);
+    Route::post('/{id}/tariffs',                 [EventAdminController::class, 'syncTariffs']);
+    Route::post('/{id}/poster',                  [EventAdminController::class, 'uploadPoster']);
+    Route::get('/{id}/registrations',            [EventAdminController::class, 'registrations']);
+    Route::get('/{id}/registrations/{regId}',    [EventAdminController::class, 'registrationDetail']);
+});
+
+// ── Events (public form) ──────────────────────────────────────────────
+Route::get('/events/{slug}',                     [EventPublicController::class, 'show'])->middleware('throttle:60,1');
+Route::post('/events/{slug}/register',           [EventPublicController::class, 'register'])->middleware('throttle:10,1');
+Route::post('/events/payment-webhook',           [EventPublicController::class, 'paymentWebhook']);
 
 // ── Max Bot ───────────────────────────────────────────────────────────
 Route::post('/max/webhook',           [MaxController::class, 'webhook']);

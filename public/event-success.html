@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Регистрация подтверждена</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="icon" href="/favicon.png">
+<style>
+  :root{
+    --bg:#3D3B3F;--bg-card:#2E2C30;--bg-deep:#252328;
+    --accent:#376FFF;--accent2:#5B8FFF;
+    --white:#fff;--text-m:#A0A0A8;--text-d:#6C6C76;
+    --border:rgba(255,255,255,.08);--green:#4CAF82;
+    --r:8px;--r-lg:14px;--font:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--white);font-family:var(--font);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px 24px;max-width:420px;width:100%;text-align:center;}
+  .icon-wrap{width:72px;height:72px;border-radius:50%;background:rgba(76,175,130,.12);border:1.5px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+  h1{font-size:1.05rem;font-weight:800;margin-bottom:8px;}
+  .sub{font-size:.78rem;color:var(--text-m);line-height:1.6;margin-bottom:20px;}
+  .reg-code{display:inline-block;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--r);padding:10px 20px;font-size:1rem;font-weight:800;font-family:monospace;letter-spacing:.1em;color:var(--accent);margin-bottom:24px;}
+  .notice{background:rgba(55,111,255,.08);border:1px solid rgba(55,111,255,.2);border-radius:var(--r);padding:12px 14px;font-size:.72rem;color:var(--text-m);line-height:1.6;}
+  .btn{display:block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r);padding:13px 24px;font-size:.85rem;font-weight:700;font-family:var(--font);cursor:pointer;text-decoration:none;margin-top:16px;width:100%;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" width="32" height="32">
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  </div>
+  <h1>Регистрация принята!</h1>
+  <p class="sub" id="ev-name">Ваша заявка успешно оформлена.</p>
+  <div class="reg-code" id="ev-code">—</div>
+  <p class="sub">Билет и подтверждение будут отправлены в мессенджер.</p>
+  <div class="notice" id="ev-notice">
+    Если вы пришли через Telegram или Max — уведомление уже отправлено в чат с ботом.
+  </div>
+  <a href="/" class="btn">На главную</a>
+</div>
+<script>
+  const p    = new URLSearchParams(location.search);
+  const regId = p.get('reg');
+  const evName = decodeURIComponent(p.get('event') || '');
+
+  if (evName) {
+    document.getElementById('ev-name').textContent = `Вы зарегистрированы на «${evName}».`;
+  }
+  if (regId) {
+    document.getElementById('ev-code').textContent = '#' + String(regId).padStart(6, '0');
+  }
+
+  const tg = window.Telegram?.WebApp;
+  if (tg?.initDataUnsafe?.user) {
+    document.getElementById('ev-notice').textContent =
+      'Подтверждение и билет отправлены в чат с ботом.';
+    setTimeout(() => tg.close(), 4000);
+  }
+</script>
+</body>
+</html>
