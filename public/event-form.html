@@ -138,22 +138,35 @@ function render() {
 
 function buildField(f, depSlugs) {
   const req  = f.is_required ? ' *' : '';
+  const ph   = f.placeholder || f.label || '';
   const isDep = depSlugs?.has(f.slug);
-  const attr  = isDep ? ' data-tariff-dep' : '';
-  const hide  = isDep ? ' style="display:none;"' : '';
-  const wrap  = (inner, extraStyle='') => `<div class="field-group"${attr}${isDep?` style="display:none;"`:extraStyle?` style="${extraStyle}"`:''}>${inner}</div>`;
+  const wrap  = (inner, extraStyle='') => `<div class="field-group"${isDep?' data-tariff-dep style="display:none;"':extraStyle?` style="${extraStyle}"`:''}>${inner}</div>`;
+  const err  = `<div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`;
+
   if (f.field_type === 'select') {
     const options = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
-    return wrap(`<label>${f.label}${req}</label><select id="f-${f.slug}" class="inp"><option value="">— Выберите —</option>${options}</select><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
+    return wrap(`<label>${f.label}${req}</label><select id="f-${f.slug}" class="inp"><option value="">— Выберите —</option>${options}</select>${err}`);
+  }
+  if (f.field_type === 'multiselect') {
+    const checks = (f.options || []).map(o =>
+      `<label style="display:flex;align-items:center;gap:8px;font-size:.78rem;cursor:pointer;padding:4px 0;">
+        <input type="checkbox" data-multi="${f.slug}" value="${o}" style="width:15px;height:15px;accent-color:var(--accent);">${o}
+      </label>`).join('');
+    return wrap(`<label>${f.label}${req}</label><div id="f-${f.slug}" style="display:flex;flex-direction:column;gap:2px;">${checks}</div>${err}`);
   }
   if (f.field_type === 'textarea') {
-    return wrap(`<label>${f.label}${req}</label><textarea id="f-${f.slug}" class="inp" placeholder="${f.label}"></textarea><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
+    return wrap(`<label>${f.label}${req}</label><textarea id="f-${f.slug}" class="inp" placeholder="${ph}"></textarea>${err}`);
   }
   if (f.field_type === 'checkbox') {
     return wrap(`<input type="checkbox" id="f-${f.slug}" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);"><label for="f-${f.slug}" style="text-transform:none;letter-spacing:0;font-size:.78rem;color:var(--white);cursor:pointer;">${f.label}${req}</label>`, 'display:flex;align-items:center;gap:10px;');
   }
-  const inputType = f.field_type === 'email' ? 'email' : f.field_type === 'phone' ? 'tel' : 'text';
-  return wrap(`<label>${f.label}${req}</label><input type="${inputType}" id="f-${f.slug}" class="inp" placeholder="${f.label}"><div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`);
+  if (f.field_type === 'file') {
+    return wrap(`<label>${f.label}${req}</label><input type="file" id="f-${f.slug}" class="inp" style="padding:8px;">${err}`);
+  }
+  const typeMap = { email:'email', phone:'tel', number:'number', date:'date', telegram:'text', instagram:'text' };
+  const inputType = typeMap[f.field_type] || 'text';
+  const phAttr = (f.field_type === 'telegram') ? '@username' : (f.field_type === 'instagram') ? '@username' : ph;
+  return wrap(`<label>${f.label}${req}</label><input type="${inputType}" id="f-${f.slug}" class="inp" placeholder="${phAttr}">${err}`);
 }
 
 function selectTariff(id) {
@@ -204,7 +217,14 @@ async function submitForm() {
     // Пропускаем скрытые зависимые поля
     const fieldWrap = el.closest('[data-tariff-dep]');
     if (fieldWrap && fieldWrap.style.display === 'none') continue;
-    const val = f.field_type === 'checkbox' ? (el.checked ? 'Да' : '') : el.value.trim();
+    let val;
+    if (f.field_type === 'checkbox') {
+      val = el.checked ? 'Да' : '';
+    } else if (f.field_type === 'multiselect') {
+      val = Array.from(document.querySelectorAll(`[data-multi="${f.slug}"]:checked`)).map(c => c.value).join(', ');
+    } else {
+      val = el.value?.trim() ?? '';
+    }
     if (f.is_required && !val) {
       const errEl = document.getElementById('err-' + f.slug);
       if (errEl) { errEl.textContent = 'Обязательное поле'; errEl.style.display = ''; }
