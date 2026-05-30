@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/favicon.png" type="image/png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Редактор события — ROLTHALL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1e1c24;--bg-card:#26232e;--bg-card2:#2E2B35;
+  --bg-hover:rgba(255,255,255,.04);--border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.14);
+  --text:#D9D9D9;--text-m:rgba(217,217,217,.55);--text-d:rgba(217,217,217,.35);
+  --white:#fff;--accent:#376FFF;--accent-d:rgba(55,111,255,.15);
+  --green:#2ECC71;--green-bg:rgba(46,204,113,.12);
+  --orange:#F39C12;--orange-bg:rgba(243,156,18,.12);
+  --red:#E74C3C;--red-bg:rgba(231,76,60,.12);
+  --sidebar-w:240px;--font:'Unbounded',sans-serif;--r:10px;--r-lg:14px;
+  --mob-h:54px;--mob-nav-h:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{font-family:var(--font);}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(217,217,217,.15);border-radius:2px;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;}
+.sidebar-logo{padding:20px 18px 14px;cursor:pointer;}
+.sidebar-logo svg{height:12px;width:auto;display:block;max-width:190px;}
+.sidebar-profile{padding:12px 14px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.s-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;}
+.s-name{font-size:.76rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.s-role{font-size:.6rem;color:var(--text-d);margin-top:2px;}
+.sidebar-nav{padding:10px;flex:1;}
+.nav-section{padding:14px 8px 5px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--r);margin-bottom:2px;color:var(--text-m);font-size:.78rem;font-weight:500;cursor:pointer;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--white);}
+.nav-item.active{background:rgba(255,255,255,.07);color:var(--white);}
+.sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);}
+.btn-logout{width:100%;font-family:var(--font);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:9px 14px;border-radius:var(--r);background:transparent;border:1px solid var(--border2);color:var(--text-d);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;}
+.btn-logout:hover{color:var(--red);border-color:rgba(231,76,60,.3);}
+.btn-logout svg{width:13px;height:13px;}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar-w);flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── MOB HEADER ── */
+.mob-header{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:var(--mob-h);padding:0 18px;background:var(--bg);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;}
+.mob-header-logo{height:12px;width:auto;max-width:190px;display:block;cursor:pointer;}
+.mob-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#fff;cursor:pointer;}
+
+/* ── MOB NAV ── */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:199;height:calc(var(--mob-nav-h) + env(safe-area-inset-bottom,0px));background:var(--bg-card);border-top:1px solid var(--border);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.mob-nav::-webkit-scrollbar{display:none;}
+.mob-nav-inner{display:flex;align-items:stretch;min-width:100%;width:max-content;height:var(--mob-nav-h);}
+.mob-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-width:72px;gap:5px;padding:8px 6px 6px;font-size:.48rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-d);cursor:pointer;border:none;border-top:2px solid transparent;background:transparent;font-family:var(--font);transition:color .15s,border-color .15s;white-space:nowrap;}
+.mob-nav-item svg{width:20px;height:20px;flex-shrink:0;}
+.mob-nav-item.active{color:var(--white);border-top-color:var(--white);}
+
+/* ── EDITOR TOPBAR ── */
+.ed-topbar{position:sticky;top:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.ed-back{display:flex;align-items:center;gap:6px;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-m);background:none;border:none;cursor:pointer;padding:0;transition:color .15s;flex-shrink:0;}
+.ed-back:hover{color:var(--white);}
+.ed-back svg{width:14px;height:14px;}
+.ed-title{font-size:.82rem;font-weight:700;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ed-actions{display:flex;gap:8px;flex-shrink:0;}
+
+/* ── EDITOR TABS ── */
+.ed-tabs{display:flex;gap:2px;padding:16px 24px 0;background:var(--bg-card);border-bottom:1px solid var(--border);}
+.ed-tab{font-family:var(--font);font-size:.64rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:var(--r) var(--r) 0 0;cursor:pointer;border:none;background:transparent;color:var(--text-m);transition:all .15s;position:relative;bottom:-1px;border:1px solid transparent;}
+.ed-tab.active{background:var(--bg);color:var(--white);border-color:var(--border);border-bottom-color:var(--bg);}
+.ed-body{flex:1;padding:24px;overflow-x:hidden;}
+.ed-pane{display:none;}
+.ed-pane.active{display:block;}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--font);font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;}
+.btn-md{font-size:.72rem;padding:10px 18px;border-radius:var(--r);}
+.btn-sm{font-size:.66rem;padding:7px 14px;border-radius:var(--r);}
+.btn-xs{font-size:.6rem;padding:5px 10px;border-radius:7px;}
+.btn-w{background:var(--white);color:var(--bg);} .btn-w:hover{opacity:.88;}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{background:rgba(255,255,255,.09);}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(231,76,60,.2);}
+.btn-icon{width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r);background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text-m);cursor:pointer;transition:all .14s;flex-shrink:0;}
+.btn-icon:hover{background:rgba(255,255,255,.09);color:var(--white);}
+.btn-icon.danger:hover{background:var(--red-bg);color:var(--red);border-color:rgba(231,76,60,.3);}
+.btn-icon svg{width:13px;height:13px;}
+
+/* ── FORMS ── */
+.label{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);display:block;margin-bottom:5px;}
+.inp,.sel,.ta{width:100%;font-family:var(--font);font-size:.76rem;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;outline:none;transition:border-color .15s;appearance:none;}
+.inp:focus,.sel:focus,.ta:focus{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.06);}
+.inp::placeholder,.ta::placeholder{color:var(--text-d);}
+.sel option{background:#26232e;}
+.ta{resize:vertical;min-height:72px;}
+.form-row{display:grid;gap:12px;}
+.form-row-2{grid-template-columns:1fr 1fr;}
+.form-row-3{grid-template-columns:1fr 1fr 1fr;}
+.form-row-4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+
+/* ── TOGGLE ── */
+.toggle-sw{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0;}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid var(--border);transition:background .2s;cursor:pointer;}
+.toggle-track::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;}
+.toggle-sw input:checked + .toggle-track{background:rgba(55,111,255,.6);border-color:rgba(55,111,255,.4);}
+.toggle-sw input:checked + .toggle-track::after{transform:translateX(16px);}
+.toggle-row{display:flex;align-items:center;gap:10px;}
+.toggle-label{font-size:.68rem;font-weight:500;color:var(--text-m);}
+
+/* ── FIELD BLOCK ── */
+.field-block{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:8px;overflow:hidden;transition:border-color .2s;}
+.field-block:hover{border-color:var(--border2);}
+.field-block.drag-over{border-color:var(--accent);border-style:dashed;}
+.fb-header{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;user-select:none;}
+.fb-drag{color:var(--text-d);cursor:grab;display:flex;align-items:center;flex-shrink:0;}
+.fb-drag svg{width:14px;height:14px;}
+.fb-drag:active{cursor:grabbing;}
+.fb-badge{font-size:.54rem;font-weight:700;padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;}
+.fb-type-text,.fb-type-number,.fb-type-multiselect{background:rgba(55,111,255,.14);color:#7ea8ff;}
+.fb-type-email,.fb-type-date{background:rgba(243,156,18,.12);color:#f9c84a;}
+.fb-type-phone{background:rgba(155,89,182,.14);color:#c39bd3;}
+.fb-type-telegram{background:rgba(55,111,255,.14);color:#7ea8ff;}
+.fb-type-instagram{background:rgba(231,76,60,.1);color:#f1948a;}
+.fb-type-textarea,.fb-type-file{background:rgba(255,255,255,.07);color:var(--text-m);}
+.fb-type-select{background:rgba(243,156,18,.12);color:#f9c84a;}
+.fb-type-checkbox{background:rgba(46,204,113,.12);color:#6fda9f;}
+.fb-name{font-size:.76rem;font-weight:600;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fb-key{font-size:.6rem;color:var(--text-d);font-family:monospace;}
+.fb-actions{display:flex;gap:5px;flex-shrink:0;}
+.fb-chevron{width:16px;height:16px;color:var(--text-d);transition:transform .2s;flex-shrink:0;}
+.field-block.open .fb-chevron{transform:rotate(180deg);}
+.fb-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border);}
+.field-block.open .fb-body{display:block;padding-top:14px;}
+
+/* ── PANEL SECTION ── */
+.panel-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.panel-section-title{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-d);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.panel-section-title svg{width:11px;height:11px;}
+
+/* ── DEP RULE ── */
+.dep-rule{display:flex;align-items:center;gap:7px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border);}
+.dep-rule .sel,.dep-rule .inp{flex:1;min-width:0;font-size:.72rem;padding:6px 9px;}
+.dep-label{font-size:.62rem;color:var(--text-d);white-space:nowrap;flex-shrink:0;}
+
+/* ── ADD FIELD GRID ── */
+.add-field-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:20px;}
+.field-type-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--bg-card);cursor:pointer;transition:all .15s;font-family:var(--font);}
+.field-type-btn:hover{border-color:rgba(55,111,255,.4);background:rgba(55,111,255,.08);}
+.field-type-btn svg{width:17px;height:17px;color:var(--text-m);}
+.field-type-btn:hover svg{color:#7ea8ff;}
+.field-type-btn span{font-size:.56rem;font-weight:600;color:var(--text-m);text-align:center;line-height:1.3;}
+.field-type-btn:hover span{color:var(--white);}
+
+/* ── TARIFF BLOCK ── */
+.tariff-block{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:8px;}
+.tier-row{display:grid;grid-template-columns:1fr 1fr 100px 28px;gap:7px;align-items:center;margin-bottom:6px;}
+
+/* ── PH CHIPS ── */
+.ph-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.ph-chip{font-size:.62rem;font-family:monospace;background:rgba(55,111,255,.1);border:1px solid rgba(55,111,255,.2);color:#7ea8ff;padding:3px 8px;border-radius:5px;cursor:pointer;transition:all .14s;}
+.ph-chip:hover{background:rgba(55,111,255,.2);}
+.ph-chip.cf{background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.2);color:#6fda9f;}
+
+/* ── NOTICE ── */
+.notice{border-radius:var(--r);padding:10px 14px;font-size:.65rem;font-weight:500;line-height:1.6;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px;}
+.notice svg{width:14px;height:14px;flex-shrink:0;margin-top:1px;}
+.notice-blue{background:rgba(55,111,255,.1);border:1px solid rgba(55,111,255,.2);color:#7ea8ff;}
+.notice-orange{background:var(--orange-bg);border:1px solid rgba(243,156,18,.2);color:#f9c84a;}
+
+/* ── POSTER UPLOAD ── */
+.poster-zone{border:1px dashed rgba(255,255,255,.2);border-radius:var(--r-lg);padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;background:rgba(255,255,255,.02);}
+.poster-zone:hover{border-color:rgba(255,255,255,.4);}
+.poster-zone svg{width:22px;height:22px;color:var(--text-d);margin:0 auto 8px;}
+
+/* ── TOAST ── */
+.rh-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg-card2,#2E2B35);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:.72rem;font-weight:600;color:var(--white);z-index:9999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;max-width:90vw;}
+.rh-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.rh-toast.err{border-color:var(--red);color:#ff8080;}
+
+/* ── PREVIEW MODAL ── */
+.preview-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:500;overflow-y:auto;padding:40px 20px;}
+.preview-modal-inner{max-width:480px;margin:0 auto;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.preview-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.preview-modal-body{padding:20px;}
+.prev-field{margin-bottom:14px;}
+.prev-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:4px;}
+.prev-inp{width:100%;font-family:var(--font);font-size:.72rem;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:8px 11px;outline:none;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  :root{--sidebar-w:200px;}
+  .add-field-grid{grid-template-columns:repeat(4,1fr);}
+  .form-row-4{grid-template-columns:1fr 1fr;}
+  .form-row-3{grid-template-columns:1fr 1fr;}
+  .tier-row{grid-template-columns:1fr 1fr 28px;}
+  .tier-row > :nth-child(3){display:none;}
+}
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .mob-header{display:flex;}
+  .mob-nav{display:block;}
+  .main{margin-left:0;padding-top:var(--mob-h);}
+  .ed-body{padding:16px;padding-bottom:calc(var(--mob-nav-h) + 24px);}
+  .add-field-grid{grid-template-columns:repeat(3,1fr);}
+  .form-row-2,.form-row-3,.form-row-4{grid-template-columns:1fr;}
+  .tier-row{grid-template-columns:1fr 80px 28px;}
+}
+@media(max-width:480px){
+  .add-field-grid{grid-template-columns:repeat(2,1fr);}
+  .ed-tabs{padding:12px 14px 0;gap:1px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;}
+  .ed-tab{font-size:.58rem;padding:8px 12px;flex-shrink:0;}
+}
+</style>
+</head>
+<body>
+<div class="rh-toast" id="rh-toast"></div>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="rh-logo" viewBox="0 0 1280 71"><g><path d="M0 70.0138V0.986328H103.497C120.746 0.986328 131.095 14.7922 131.095 28.5971C131.095 42.402 120.746 56.2079 103.497 56.2079H31.1472V70.0138H0ZM31.1472 24.653V32.5422H95.6108C98.3707 32.5422 99.9473 31.0628 99.9473 28.5981C99.9473 26.1334 98.3697 24.654 95.6108 24.654H31.1472V24.653Z" fill="white"/><path d="M242.477 0C261.501 0 276.976 16.4682 276.976 35.5C276.976 54.5318 261.501 71 242.477 71H170.522C151.498 71 136.023 54.5318 136.023 35.5C136.023 16.4682 151.498 0 170.522 0H242.477ZM176.929 25.6392C171.508 25.6392 167.072 30.0765 167.072 35.5C167.072 40.9235 171.508 45.3608 176.929 45.3608H236.07C241.491 45.3608 245.927 40.9235 245.927 35.5C245.927 30.0765 241.491 25.6392 236.07 25.6392H176.929Z" fill="white"/><path d="M303.194 70.0138H268.103L323.991 0.986328H359.082L414.97 70.0138H379.88L341.536 22.6804L303.193 70.0138H303.194Z" fill="white"/><path d="M443.161 24.653H393.285V0.986328H524.381V24.653H474.308V70.0138H443.161V24.653Z" fill="white"/><path d="M663.361 70.0138H632.214V30.5697L563.414 70.0138H532.267V0.986328H563.414V40.4304L632.213 0.986328H663.36V70.0138H663.361Z" fill="white"/><path d="M765.87 0.986328L791.301 19.2295L816.731 0.986328H860.692L813.281 35.0069L862.073 70.0138H818.111L791.301 50.7844L764.49 70.0138H720.529L769.321 35.0069L721.909 0.986328H765.87Z" fill="white"/><path d="M958.669 0C977.692 0 993.168 16.4682 993.168 35.5C993.168 54.5318 977.692 71 958.669 71H886.715C867.691 71 852.216 54.5318 852.216 35.5C852.216 16.4682 867.69 0 886.715 0H958.669ZM893.121 25.6392C887.7 25.6392 883.264 30.0765 883.264 35.5C883.264 40.9235 887.7 45.3608 893.121 45.3608H952.262C957.683 45.3608 962.118 40.9235 962.118 35.5C962.118 30.0765 957.683 25.6392 952.262 25.6392H893.121Z" fill="white"/><path d="M1019.39 70.0138H984.296L1040.18 0.986328H1075.27L1131.16 70.0138H1096.07L1057.73 22.6804L1019.39 70.0138H1019.39Z" fill="white"/><path d="M1168.22 70.0138H1133.13L1189.02 0.986328H1224.11L1280 70.0138H1244.91L1206.57 22.6804L1168.22 70.0138H1168.22Z" fill="white"/></g></symbol>
+</svg>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo" onclick="goBack()"><svg><use href="#rh-logo"/></svg></div>
+  <div class="sidebar-profile">
+    <div class="s-avatar" id="s-avatar">—</div>
+    <div style="min-width:0;">
+      <div class="s-name" id="s-name">Загрузка…</div>
+      <div class="s-role" id="s-role"></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Аналитика</div>
+    <button class="nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Сводная
+    </button>
+    <button class="nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Брони
+    </button>
+    <button class="nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Холл
+    </button>
+    <button class="nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Клиенты
+    </button>
+    <div class="nav-section">Настройки</div>
+    <button class="nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Лог действий
+    </button>
+    <button class="nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Профиль
+    </button>
+    <button class="nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>Telegram
+    </button>
+    <button class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>События
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="doLogout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Выйти
+    </button>
+  </div>
+</aside>
+
+<!-- ══ MOB HEADER ══ -->
+<div class="mob-header">
+  <svg class="mob-header-logo" onclick="goBack()"><use href="#rh-logo"/></svg>
+  <div class="mob-avatar" id="mob-avatar">—</div>
+</div>
+
+<!-- ══ MOB NAV ══ -->
+<nav class="mob-nav">
+  <div class="mob-nav-inner">
+    <button class="mob-nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Сводная
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Брони
+    </button>
+    <button class="mob-nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>События
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Профиль
+    </button>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+  <!-- EDITOR TOPBAR -->
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Назад
+    </button>
+    <div class="ed-title" id="ed-title">Новое событие</div>
+    <div class="ed-actions">
+      <button class="btn btn-ghost btn-sm" onclick="previewEvent()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Предпросмотр
+      </button>
+      <button class="btn btn-w btn-sm" onclick="saveEvent()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        Сохранить
+      </button>
+    </div>
+  </div>
+
+  <!-- EDITOR TABS -->
+  <div class="ed-tabs">
+    <button class="ed-tab active" onclick="switchEdTab('fields',this)">Поля анкеты</button>
+    <button class="ed-tab" onclick="switchEdTab('tariffs',this)">Тарифы</button>
+    <button class="ed-tab" onclick="switchEdTab('messenger',this)">Мессенджеры</button>
+    <button class="ed-tab" onclick="switchEdTab('settings',this)">Настройки</button>
+  </div>
+
+  <!-- ══ BODY ══ -->
+  <div class="ed-body">
+
+    <!-- ── TAB: ПОЛЯ ── -->
+    <div class="ed-pane active" id="ed-fields">
+      <div class="notice notice-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Поле «Телефон» добавляется автоматически и всегда обязательно. Перетаскивайте блоки для сортировки. Зависимость позволяет показать поле только при выборе определённого значения в другом select-поле.
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="label" style="margin-bottom:8px;">Добавить поле</div>
+        <div class="add-field-grid" id="addFieldGrid"></div>
+      </div>
+      <div id="fieldsList"></div>
+    </div>
+
+    <!-- ── TAB: ТАРИФЫ ── -->
+    <div class="ed-pane" id="ed-tariffs">
+      <div class="notice notice-orange">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Тарифы доступны только если включена оплата (вкладка Настройки). Каждый тариф имеет ценовые периоды. Галочки «Показывать поля» определяют, какие поля анкеты появляются при выборе тарифа.
+      </div>
+      <div id="tariffsList"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addTariff()">+ Добавить тариф</button>
+    </div>
+
+    <!-- ── TAB: МЕССЕНДЖЕРЫ ── -->
+    <div class="ed-pane" id="ed-messenger">
+      <!-- TELEGRAM -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:.78rem;font-weight:700;display:flex;align-items:center;gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+            Telegram
+          </div>
+          <label class="toggle-sw">
+            <input type="checkbox" id="ms-tg-enabled" onchange="toggleSection('ms-tg-cfg',this.checked)">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+        <div id="ms-tg-cfg" style="display:none;flex-direction:column;gap:12px;">
+          <div class="form-row form-row-3">
+            <div class="form-group"><label class="label">Chat ID администратора</label><input type="text" class="inp" id="ms-tg-chat" placeholder="-100123456789"></div>
+            <div class="form-group"><label class="label">Thread ID (опционально)</label><input type="text" class="inp" id="ms-tg-thread" placeholder="ID темы"></div>
+          </div>
+          <div class="form-group">
+            <label class="label">Шаблон уведомления администратору</label>
+            <div class="ph-list" id="ms-tg-admin-ph"></div>
+            <textarea class="ta" id="ms-tg-admin-tpl" rows="6" style="font-family:monospace;font-size:.7rem;" placeholder="🎟 Новая заявка на {event}&#10;&#10;👤 {name}&#10;📞 {phone}&#10;&#10;{fields}"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="label">Шаблон уведомления участнику</label>
+            <textarea class="ta" id="ms-tg-user-tpl" rows="5" style="font-family:monospace;font-size:.7rem;" placeholder="✅ Вы зарегистрированы на «{event}»&#10;&#10;Дата: {date}&#10;Ваш код: {code}"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAX -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:.78rem;font-weight:700;">Max</div>
+          <label class="toggle-sw">
+            <input type="checkbox" id="ms-max-enabled" onchange="toggleSection('ms-max-cfg',this.checked)">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+        <div id="ms-max-cfg" style="display:none;flex-direction:column;gap:12px;">
+          <div class="form-group"><label class="label">Chat ID администратора</label><input type="text" class="inp" id="ms-max-chat" placeholder="ID чата"></div>
+          <div class="form-group">
+            <label class="label">Шаблон уведомления администратору</label>
+            <textarea class="ta" id="ms-max-admin-tpl" rows="5" style="font-family:monospace;font-size:.7rem;"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="label">Шаблон уведомления участнику</label>
+            <textarea class="ta" id="ms-max-user-tpl" rows="4" style="font-family:monospace;font-size:.7rem;"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: НАСТРОЙКИ ── -->
+    <div class="ed-pane" id="ed-settings">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- Основное -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Основное</div>
+          <div class="form-row form-row-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="label">Название события *</label>
+              <input type="text" class="inp" id="cfg-title" placeholder="Открытый контест" oninput="document.getElementById('ed-title').textContent=this.value||'Новое событие'">
+            </div>
+            <div class="form-group">
+              <label class="label">Slug (URL) *</label>
+              <input type="text" class="inp" id="cfg-slug" placeholder="open-contest-2026" style="font-family:monospace;">
+            </div>
+            <div class="form-group">
+              <label class="label">Дата события</label>
+              <input type="date" class="inp" id="cfg-date">
+            </div>
+            <div class="form-group">
+              <label class="label">Тег / категория</label>
+              <input type="text" class="inp" id="cfg-tag" placeholder="contest">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="label">Описание</label>
+            <textarea class="ta" id="cfg-desc" placeholder="Краткое описание для формы регистрации…"></textarea>
+          </div>
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="label">Статус</label>
+              <select class="sel" id="cfg-status">
+                <option value="draft">Черновик</option>
+                <option value="active">Активно</option>
+                <option value="closed">Закрыто</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Настройки регистрации -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Регистрация</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="toggle-row">
+              <label class="toggle-sw"><input type="checkbox" id="cfg-payments" onchange="onPaymentsToggle(this.checked)"><div class="toggle-track"></div></label>
+              <span class="toggle-label">Включить оплату (T-Bank)</span>
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-sw"><input type="checkbox" id="cfg-multi"><div class="toggle-track"></div></label>
+              <span class="toggle-label">Разрешить повторную регистрацию</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Афиша -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;" id="cfg-poster-section">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Афиша</div>
+          <div id="cfg-poster-preview" style="display:none;margin-bottom:10px;">
+            <img id="cfg-poster-img" style="max-height:160px;border-radius:var(--r);border:1px solid var(--border);display:block;">
+          </div>
+          <div class="poster-zone" onclick="document.getElementById('cfg-poster-file').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <div style="font-size:.72rem;color:var(--text-m);">Нажмите для загрузки</div>
+            <div style="font-size:.6rem;color:var(--text-d);margin-top:3px;">JPG, PNG · до 1.5 МБ</div>
+          </div>
+          <input type="file" id="cfg-poster-file" accept=".jpg,.jpeg,.png" style="display:none" onchange="uploadPoster(this)">
+          <div id="cfg-poster-note" style="font-size:.62rem;color:var(--text-d);margin-top:6px;display:none;">Для загрузки афиши сначала сохраните событие.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ed-body -->
+</main>
+
+<!-- ══ PREVIEW MODAL ══ -->
+<div class="preview-modal" id="previewModal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="preview-modal-inner">
+    <div class="preview-modal-head">
+      <div style="font-size:.82rem;font-weight:700;">Предпросмотр формы</div>
+      <button onclick="document.getElementById('previewModal').style.display='none'" style="background:none;border:none;color:var(--text-m);font-size:1.2rem;cursor:pointer;">×</button>
+    </div>
+    <div class="preview-modal-body" id="previewBody"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
+const API   = '/api';
+let _token  = localStorage.getItem('rh_token') || '';
+let _evId   = new URLSearchParams(location.search).get('id') || null;
+let _fields  = [];
+let _tariffs = [];
+let _fldCnt  = 0;
+
+/* ═══════════════════════════════
+   FIELD TYPES
+═══════════════════════════════ */
+const FIELD_TYPES = [
+  {type:'text',        label:'Текст',        icon:'<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>'},
+  {type:'number',      label:'Число',        icon:'<path d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>'},
+  {type:'email',       label:'E-mail',       icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'},
+  {type:'phone',       label:'Телефон',      icon:'<path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.7a19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>'},
+  {type:'telegram',    label:'Telegram',     icon:'<path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>'},
+  {type:'instagram',   label:'Instagram',    icon:'<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>'},
+  {type:'select',      label:'Select',       icon:'<path d="M4 6h16M4 12h16M4 18h7"/><polyline points="15 15 18 18 21 15"/>'},
+  {type:'multiselect', label:'Мульти',       icon:'<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'},
+  {type:'textarea',    label:'Текстarea',    icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>'},
+  {type:'checkbox',    label:'Чекбокс',      icon:'<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'},
+  {type:'date',        label:'Дата',         icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'},
+  {type:'file',        label:'Файл',         icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'},
+];
+
+/* ═══════════════════════════════
+   INIT
+═══════════════════════════════ */
+async function init() {
+  if (!_token) { location.href = '/admin'; return; }
+  const me = await api('/auth/me');
+  if (!me?.ok) { location.href = '/admin'; return; }
+  const u = me.user;
+  document.getElementById('s-avatar').textContent  = (u.name||'?')[0].toUpperCase();
+  document.getElementById('mob-avatar').textContent = (u.name||'?')[0].toUpperCase();
+  document.getElementById('s-name').textContent    = u.name || u.email || '—';
+  document.getElementById('s-role').textContent    = u.role || '';
+
+  renderAddButtons();
+  updateDepSelects();
+  updatePhList();
+
+  if (_evId) {
+    await loadEvent(_evId);
+  } else {
+    document.getElementById('cfg-poster-note').style.display = '';
+  }
+}
+
+/* ═══════════════════════════════
+   LOAD EVENT
+═══════════════════════════════ */
+async function loadEvent(id) {
+  const data = await api(`/admin/events/${id}`);
+  if (!data?.ok) { showToast('Ошибка загрузки события', true); return; }
+  const ev = data.event;
+
+  document.getElementById('ed-title').textContent = ev.title || 'Без названия';
+  document.getElementById('cfg-title').value    = ev.title || '';
+  document.getElementById('cfg-slug').value     = ev.slug  || '';
+  document.getElementById('cfg-date').value     = ev.event_date || '';
+  document.getElementById('cfg-tag').value      = ev.tag   || '';
+  document.getElementById('cfg-desc').value     = ev.description || '';
+  document.getElementById('cfg-status').value   = ev.status || 'draft';
+  document.getElementById('cfg-payments').checked = !!ev.payments_enabled;
+  document.getElementById('cfg-multi').checked   = !!ev.allow_multiple_registrations;
+  onPaymentsToggle(!!ev.payments_enabled);
+
+  if (ev.poster_url) {
+    document.getElementById('cfg-poster-img').src = ev.poster_url;
+    document.getElementById('cfg-poster-preview').style.display = '';
+    document.getElementById('cfg-poster-note').style.display = 'none';
+  }
+
+  // Fields
+  _fields = [];
+  (ev.fields || []).forEach(f => {
+    _fields.push({
+      id: ++_fldCnt,
+      dbId: f.id,
+      type: f.field_type,
+      slug: f.slug,
+      label: f.label,
+      placeholder: f.placeholder || '',
+      required: !!f.is_required,
+      options: f.options || [],
+      has_mask: !!f.has_mask,
+      mask_pattern: f.mask_pattern || '',
+      dep_field: f.dep_field || '',
+      dep_value: f.dep_value || '',
+    });
+  });
+  renderAllFields();
+
+  // Tariffs
+  _tariffs = (ev.tariffs || []).map(t => ({
+    dbId: t.id,
+    name: t.name || '',
+    has_options: !!t.has_options,
+    options: t.options || [],
+    dependent_fields: t.dependent_fields || [],
+    tiers: (t.tiers || []).map(tier => ({...tier})),
+  }));
+  renderAllTariffs();
+
+  // Messenger
+  const ms = ev.messenger_settings || {};
+  if (ms.tg?.enabled) {
+    document.getElementById('ms-tg-enabled').checked = true;
+    toggleSection('ms-tg-cfg', true);
+  }
+  document.getElementById('ms-tg-chat').value      = ms.tg?.admin_chat_id   || '';
+  document.getElementById('ms-tg-thread').value    = ms.tg?.admin_thread_id || '';
+  document.getElementById('ms-tg-admin-tpl').value = ms.tg?.admin_template  || '';
+  document.getElementById('ms-tg-user-tpl').value  = ms.tg?.user_template   || '';
+
+  if (ms.max?.enabled) {
+    document.getElementById('ms-max-enabled').checked = true;
+    toggleSection('ms-max-cfg', true);
+  }
+  document.getElementById('ms-max-chat').value     = ms.max?.admin_chat_id   || '';
+  document.getElementById('ms-max-admin-tpl').value= ms.max?.admin_template  || '';
+  document.getElementById('ms-max-user-tpl').value = ms.max?.user_template   || '';
+
+  updatePhList();
+}
+
+/* ═══════════════════════════════
+   SAVE EVENT
+═══════════════════════════════ */
+async function saveEvent() {
+  const title = document.getElementById('cfg-title').value.trim();
+  const slug  = document.getElementById('cfg-slug').value.trim();
+  if (!title) { showToast('Введите название события', true); switchEdTab('settings', document.querySelectorAll('.ed-tab')[3]); return; }
+  if (!slug)  { showToast('Введите slug', true); switchEdTab('settings', document.querySelectorAll('.ed-tab')[3]); return; }
+
+  const paymentsEnabled = document.getElementById('cfg-payments').checked;
+
+  const payload = {
+    title, slug,
+    description:                  document.getElementById('cfg-desc').value.trim() || null,
+    event_date:                   document.getElementById('cfg-date').value || null,
+    tag:                          document.getElementById('cfg-tag').value.trim() || null,
+    status:                       document.getElementById('cfg-status').value,
+    payments_enabled:             paymentsEnabled,
+    allow_multiple_registrations: document.getElementById('cfg-multi').checked,
+    messenger_settings: {
+      tg: {
+        enabled:         document.getElementById('ms-tg-enabled').checked,
+        admin_chat_id:   document.getElementById('ms-tg-chat').value.trim()   || null,
+        admin_thread_id: document.getElementById('ms-tg-thread').value.trim() || null,
+        admin_template:  document.getElementById('ms-tg-admin-tpl').value.trim() || null,
+        user_template:   document.getElementById('ms-tg-user-tpl').value.trim()  || null,
+      },
+      max: {
+        enabled:        document.getElementById('ms-max-enabled').checked,
+        admin_chat_id:  document.getElementById('ms-max-chat').value.trim()      || null,
+        admin_template: document.getElementById('ms-max-admin-tpl').value.trim() || null,
+        user_template:  document.getElementById('ms-max-user-tpl').value.trim()  || null,
+      },
+    },
+  };
+
+  const url    = _evId ? `/admin/events/${_evId}` : '/admin/events';
+  const method = _evId ? 'PUT' : 'POST';
+  const data = await api(url, { method, body: JSON.stringify(payload) });
+  if (!data?.ok) { showToast(data?.message || 'Ошибка сохранения', true); return; }
+
+  _evId = data.event.id;
+  history.replaceState(null, '', `?id=${_evId}`);
+  document.getElementById('cfg-poster-note').style.display = 'none';
+
+  // Save fields
+  const fieldsPayload = _fields.map((f, i) => ({
+    label:       f.label,
+    placeholder: f.placeholder || null,
+    field_type:  f.type,
+    slug:        f.slug,
+    has_mask:    f.has_mask,
+    mask_pattern:f.mask_pattern || null,
+    is_required: f.required,
+    options:     f.options,
+    sort_order:  i,
+    dep_field:   f.dep_field || null,
+    dep_value:   f.dep_value || null,
+  }));
+  await api(`/admin/events/${_evId}/fields`, { method:'POST', body: JSON.stringify({ fields: fieldsPayload }) });
+
+  // Save tariffs
+  if (paymentsEnabled && _tariffs.length) {
+    const validTariffs = _tariffs.filter(t => t.tiers.length > 0);
+    if (validTariffs.length) {
+      await api(`/admin/events/${_evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: validTariffs.map((t,i) => ({
+        name: t.name,
+        has_options: t.has_options,
+        options: t.options,
+        dependent_fields: t.dependent_fields,
+        sort_order: i,
+        tiers: t.tiers,
+      })) }) });
+    }
+  }
+
+  showToast('Сохранено ✓');
+}
+
+/* ═══════════════════════════════
+   FIELD BUILDER
+═══════════════════════════════ */
+function renderAddButtons() {
+  document.getElementById('addFieldGrid').innerHTML = FIELD_TYPES.map(t => `
+    <button class="field-type-btn" onclick="addField('${t.type}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="17" height="17">${t.icon}</svg>
+      <span>${t.label}</span>
+    </button>`).join('');
+}
+
+function addField(type, defaults = {}) {
+  const f = {
+    id:          ++_fldCnt,
+    dbId:        defaults.dbId        || null,
+    type,
+    slug:        defaults.slug        || '',
+    label:       defaults.label       || '',
+    placeholder: defaults.placeholder || '',
+    required:    defaults.required    !== undefined ? defaults.required : true,
+    options:     defaults.options     || [],
+    has_mask:    defaults.has_mask    || false,
+    mask_pattern:defaults.mask_pattern|| '',
+    dep_field:   defaults.dep_field   || '',
+    dep_value:   defaults.dep_value   || '',
+  };
+  _fields.push(f);
+  appendFieldEl(f);
+  updateDepSelects();
+  updatePhList();
+  setTimeout(() => { document.getElementById('fb-'+f.id)?.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 80);
+}
+
+function renderAllFields() {
+  document.getElementById('fieldsList').innerHTML = '';
+  _fields.forEach(f => appendFieldEl(f));
+  updateDepSelects();
+  updatePhList();
+}
+
+function appendFieldEl(f) {
+  const list = document.getElementById('fieldsList');
+  const ti = FIELD_TYPES.find(t => t.type === f.type) || {label: f.type};
+  const hasOpts = ['select','multiselect'].includes(f.type);
+  const isCb   = f.type === 'checkbox';
+
+  const div = document.createElement('div');
+  div.className = 'field-block';
+  div.id = 'fb-' + f.id;
+  div.draggable = true;
+  div.dataset.fid = f.id;
+
+  div.innerHTML = `
+    <div class="fb-header" onclick="toggleFb(${f.id})">
+      <div class="fb-drag" onclick="event.stopPropagation()" title="Перетащить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1" fill="currentColor"/><circle cx="15" cy="6" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="18" r="1" fill="currentColor"/><circle cx="15" cy="18" r="1" fill="currentColor"/></svg>
+      </div>
+      <span class="fb-badge fb-type-${f.type}">${ti.label}</span>
+      <span class="fb-name">${esc(f.label || f.slug || 'Новое поле')}</span>
+      <span class="fb-key">${f.slug ? '{'+f.slug+'}' : ''}</span>
+      <div class="fb-actions" onclick="event.stopPropagation()">
+        <button class="btn-icon danger" title="Удалить" onclick="removeField(${f.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div>
+      <svg class="fb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="fb-body">
+      <div class="form-row form-row-4" style="margin-bottom:12px;">
+        <div class="form-group">
+          <label class="label">Ключ (slug) *</label>
+          <input type="text" class="inp" value="${esc(f.slug)}" placeholder="role"
+            oninput="updateFld(${f.id},'slug',this.value);updFbHeader(${f.id})">
+        </div>
+        <div class="form-group">
+          <label class="label">Подпись</label>
+          <input type="text" class="inp" value="${esc(f.label)}" placeholder="Роль в танце"
+            oninput="updateFld(${f.id},'label',this.value);updFbHeader(${f.id})">
+        </div>
+        <div class="form-group">
+          <label class="label">Тип</label>
+          <select class="sel" onchange="changeFldType(${f.id},this.value)">
+            ${FIELD_TYPES.map(t=>`<option value="${t.type}"${t.type===f.type?' selected':''}>${t.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group" style="justify-content:flex-end;padding-top:2px;">
+          <label class="label" style="visibility:hidden">.</label>
+          <div class="toggle-row">
+            <label class="toggle-sw">
+              <input type="checkbox" ${f.required?'checked':''} onchange="updateFld(${f.id},'required',this.checked)">
+              <div class="toggle-track"></div>
+            </label>
+            <span class="toggle-label">Обязательное</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="label">${isCb ? 'Текст чекбокса' : 'Placeholder'}</label>
+        ${isCb
+          ? `<textarea class="ta" rows="2" oninput="updateFld(${f.id},'placeholder',this.value)">${esc(f.placeholder)}</textarea>`
+          : `<input type="text" class="inp" value="${esc(f.placeholder)}" placeholder="Подсказка в поле…" oninput="updateFld(${f.id},'placeholder',this.value)">`}
+      </div>
+
+      ${hasOpts ? `
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="label">Варианты (каждый с новой строки)</label>
+        <textarea class="ta" rows="4" placeholder="Лидер&#10;Фолловер&#10;Новичок"
+          oninput="updateFld(${f.id},'options',this.value.split('\\n').map(s=>s.trim()).filter(Boolean))">${esc((f.options||[]).join('\n'))}</textarea>
+      </div>` : ''}
+
+      ${!isCb ? `
+      <div class="form-row form-row-2" style="margin-bottom:12px;">
+        <div class="form-group">
+          <div class="toggle-row" style="margin-bottom:6px;">
+            <label class="toggle-sw">
+              <input type="checkbox" ${f.has_mask?'checked':''} id="mask-toggle-${f.id}" onchange="updateFld(${f.id},'has_mask',this.checked);toggleMaskInp(${f.id},this.checked)">
+              <div class="toggle-track"></div>
+            </label>
+            <span class="toggle-label">Маска (regex)</span>
+          </div>
+          <input type="text" class="inp" id="mask-inp-${f.id}" value="${esc(f.mask_pattern)}"
+            placeholder="^[0-9]+$" style="font-family:monospace;font-size:.68rem;display:${f.has_mask?'':'none'}"
+            oninput="updateFld(${f.id},'mask_pattern',this.value)">
+        </div>
+      </div>` : ''}
+
+      <!-- DEPENDENCY -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          Зависимость (показывать если…)
+        </div>
+        <div class="dep-rule">
+          <span class="dep-label">Поле</span>
+          <select class="sel" id="dep-field-${f.id}" onchange="updateFld(${f.id},'dep_field',this.value)">
+            <option value="">— всегда —</option>
+          </select>
+          <span class="dep-label">=</span>
+          <input type="text" class="inp" value="${esc(f.dep_value)}" placeholder="Значение1, Значение2"
+            oninput="updateFld(${f.id},'dep_value',this.value)"
+            title="Одно или несколько значений через запятую">
+        </div>
+      </div>
+    </div>`;
+
+  list.appendChild(div);
+
+  // Init dep select
+  const depSel = document.getElementById('dep-field-' + f.id);
+  if (depSel) {
+    _fields.filter(x => x.id !== f.id && ['select','multiselect'].includes(x.type)).forEach(x => {
+      const opt = document.createElement('option');
+      opt.value = x.slug;
+      opt.textContent = x.label || x.slug;
+      if (x.slug === f.dep_field) opt.selected = true;
+      depSel.appendChild(opt);
+    });
+  }
+
+  // Drag & drop
+  div.addEventListener('dragstart', e => { e.dataTransfer.setData('fid', f.id); div.style.opacity='.4'; });
+  div.addEventListener('dragend',   () => { div.style.opacity=''; });
+  div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
+  div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+  div.addEventListener('drop', e => {
+    e.preventDefault(); div.classList.remove('drag-over');
+    const fromId = parseInt(e.dataTransfer.getData('fid'));
+    if (fromId === f.id) return;
+    const fromEl = document.getElementById('fb-' + fromId);
+    const li = document.getElementById('fieldsList');
+    const nodes = Array.from(li.children);
+    const fi = nodes.indexOf(fromEl), ti = nodes.indexOf(div);
+    if (fi < ti) li.insertBefore(fromEl, div.nextSibling); else li.insertBefore(fromEl, div);
+    const fromIdx = _fields.findIndex(x => x.id === fromId);
+    const toIdx   = _fields.findIndex(x => x.id === f.id);
+    const [moved] = _fields.splice(fromIdx, 1);
+    _fields.splice(toIdx, 0, moved);
+  });
+}
+
+function toggleFb(id) { document.getElementById('fb-'+id)?.classList.toggle('open'); }
+
+function removeField(id) {
+  _fields = _fields.filter(f => f.id !== id);
+  const el = document.getElementById('fb-' + id);
+  if (el) { el.style.transition='all .2s'; el.style.opacity='0'; el.style.transform='translateX(20px)'; setTimeout(()=>el.remove(),200); }
+  updateDepSelects();
+  updatePhList();
+}
+
+function updateFld(id, key, val) {
+  const f = _fields.find(f => f.id === id);
+  if (f) f[key] = val;
+  if (key === 'options') updateDepSelects();
+}
+
+function updFbHeader(id) {
+  const f = _fields.find(f => f.id === id);
+  if (!f) return;
+  const el = document.getElementById('fb-' + id);
+  const nm = el?.querySelector('.fb-name');
+  const kl = el?.querySelector('.fb-key');
+  if (nm) nm.textContent = f.label || f.slug || 'Новое поле';
+  if (kl) kl.textContent = f.slug ? '{'+f.slug+'}' : '';
+}
+
+function toggleMaskInp(id, show) {
+  const el = document.getElementById('mask-inp-' + id);
+  if (el) el.style.display = show ? '' : 'none';
+}
+
+function changeFldType(id, newType) {
+  const f = _fields.find(f => f.id === id);
+  if (!f) return;
+  f.type = newType;
+  const el = document.getElementById('fb-' + id);
+  const isOpen = el?.classList.contains('open');
+  if (el) el.remove();
+  const idx = _fields.findIndex(x => x.id === id);
+  const after = _fields[idx + 1] ? document.getElementById('fb-' + _fields[idx+1].id) : null;
+  appendFieldEl(f);
+  const newEl = document.getElementById('fb-' + id);
+  const li = document.getElementById('fieldsList');
+  if (after && after.parentElement === li) li.insertBefore(newEl, after);
+  if (isOpen) newEl.classList.add('open');
+  updateDepSelects();
+  updatePhList();
+}
+
+function updateDepSelects() {
+  const selectFields = _fields.filter(f => ['select','multiselect'].includes(f.type));
+  _fields.forEach(f => {
+    const sel = document.getElementById('dep-field-' + f.id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— всегда —</option>' +
+      selectFields.filter(x => x.id !== f.id)
+        .map(x => `<option value="${esc(x.slug)}"${x.slug===prev?' selected':''}>${esc(x.label||x.slug)}</option>`).join('');
+  });
+}
+
+/* ═══════════════════════════════
+   TARIFF BUILDER
+═══════════════════════════════ */
+function addTariff() {
+  _tariffs.push({ name:'', has_options:false, options:[], dependent_fields:[], tiers:[] });
+  renderAllTariffs();
+}
+
+function renderAllTariffs() {
+  const el = document.getElementById('tariffsList');
+  el.innerHTML = '';
+  _tariffs.forEach((t, ti) => {
+    const depFieldsHtml = _fields.filter(f => f.slug).map(f => `
+      <label style="display:flex;align-items:center;gap:7px;font-size:.68rem;padding:3px 0;cursor:pointer;">
+        <input type="checkbox" ${(t.dependent_fields||[]).includes(f.slug)?'checked':''}
+          onchange="toggleDepField(${ti},'${f.slug}',this.checked)">
+        ${esc(f.label||f.slug)}
+      </label>`).join('');
+
+    const div = document.createElement('div');
+    div.className = 'tariff-block';
+    div.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+        <input type="text" class="inp" placeholder="Название тарифа (Full pass)" value="${esc(t.name)}"
+          oninput="_tariffs[${ti}].name=this.value" style="flex:1;">
+        <button class="btn-icon danger" onclick="_tariffs.splice(${ti},1);renderAllTariffs()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="toggle-row" style="margin-bottom:8px;">
+        <label class="toggle-sw">
+          <input type="checkbox" ${t.has_options?'checked':''} onchange="_tariffs[${ti}].has_options=this.checked;renderAllTariffs()">
+          <div class="toggle-track"></div>
+        </label>
+        <span class="toggle-label">Список вариантов (выбор участника)</span>
+      </div>
+      ${t.has_options ? `
+      <textarea class="ta" rows="3" placeholder="Лидер&#10;Фолловер" style="margin-bottom:8px;font-size:.72rem;"
+        oninput="_tariffs[${ti}].options=this.value.split('\\n').map(s=>s.trim()).filter(Boolean)">${esc((t.options||[]).join('\n'))}</textarea>` : ''}
+      ${_fields.filter(f=>f.slug).length ? `
+      <div style="margin-bottom:10px;">
+        <div class="label" style="margin-bottom:6px;">Показывать поля при выборе этого тарифа</div>
+        ${depFieldsHtml}
+      </div>` : ''}
+      <div class="label" style="margin-bottom:6px;">Ценовые периоды</div>
+      <div id="tiers-${ti}">
+        ${(t.tiers||[]).map((tier,ri) => `
+        <div class="tier-row">
+          <input type="date" class="inp" value="${esc(tier.from_date||'')}" oninput="_tariffs[${ti}].tiers[${ri}].from_date=this.value" placeholder="От">
+          <input type="date" class="inp" value="${esc(tier.to_date||'')}"   oninput="_tariffs[${ti}].tiers[${ri}].to_date=this.value" placeholder="До">
+          <input type="number" class="inp" value="${esc(String(tier.price||''))}" oninput="_tariffs[${ti}].tiers[${ri}].price=parseInt(this.value)||0" placeholder="Цена ₽">
+          <button class="btn-icon danger" onclick="_tariffs[${ti}].tiers.splice(${ri},1);renderAllTariffs()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="_tariffs[${ti}].tiers.push({from_date:'',to_date:'',price:0});renderAllTariffs()" style="margin-top:6px;">+ Период</button>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function toggleDepField(ti, slug, checked) {
+  if (!_tariffs[ti]) return;
+  const df = _tariffs[ti].dependent_fields || [];
+  if (checked && !df.includes(slug)) df.push(slug);
+  else if (!checked) _tariffs[ti].dependent_fields = df.filter(s => s !== slug);
+  else _tariffs[ti].dependent_fields = df;
+  _tariffs[ti].dependent_fields = _tariffs[ti].dependent_fields.filter(s => s !== slug).concat(checked ? [slug] : []);
+}
+
+/* ═══════════════════════════════
+   MESSENGER PH LIST
+═══════════════════════════════ */
+function updatePhList() {
+  const base = ['{name}','{phone}','{event}','{date}','{tariff}','{option}','{code}','{reg_id}','{fields}'];
+  const cf   = _fields.filter(f=>f.slug).map(f => `{cf_${f.slug}}`);
+  const el   = document.getElementById('ms-tg-admin-ph');
+  if (!el) return;
+  el.innerHTML =
+    base.map(p=>`<span class="ph-chip" onclick="insertPh('ms-tg-admin-tpl','${p}')">${p}</span>`).join('') +
+    cf.map(p=>`<span class="ph-chip cf" onclick="insertPh('ms-tg-admin-tpl','${p}')">${p}</span>`).join('');
+}
+
+function insertPh(taId, ph) {
+  const ta = document.getElementById(taId);
+  if (!ta) return;
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  ta.value = ta.value.slice(0,s) + ph + ta.value.slice(e);
+  ta.selectionStart = ta.selectionEnd = s + ph.length;
+  ta.focus();
+}
+
+/* ═══════════════════════════════
+   POSTER UPLOAD
+═══════════════════════════════ */
+async function uploadPoster(input) {
+  if (!input.files[0]) return;
+  if (!_evId) { showToast('Сначала сохраните событие', true); input.value = ''; return; }
+  const fd = new FormData();
+  fd.append('poster', input.files[0]);
+  const res  = await fetch(`/api/admin/events/${_evId}/poster`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + _token },
+    body: fd,
+  });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('cfg-poster-img').src = data.poster_url + '?t=' + Date.now();
+    document.getElementById('cfg-poster-preview').style.display = '';
+    showToast('Афиша загружена');
+  } else {
+    showToast(data.message || 'Ошибка загрузки', true);
+  }
+  input.value = '';
+}
+
+/* ═══════════════════════════════
+   PREVIEW
+═══════════════════════════════ */
+function previewEvent() {
+  const slug = document.getElementById('cfg-slug').value.trim();
+  if (slug) { window.open(`/event/${slug}`, '_blank'); return; }
+  // Inline preview
+  const body = document.getElementById('previewBody');
+  body.innerHTML = '';
+  const phone = document.createElement('div');
+  phone.className = 'prev-field';
+  phone.innerHTML = `<div class="prev-label">Телефон *</div><input type="tel" class="prev-inp" placeholder="+7 (___) ___-__-__">`;
+  body.appendChild(phone);
+  _fields.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = 'prev-field';
+    const dep = f.dep_field ? ` <span style="font-size:.56rem;background:rgba(243,156,18,.12);color:#f9c84a;padding:1px 5px;border-radius:4px;">если ${f.dep_field}=${f.dep_value||'?'}</span>` : '';
+    let inp = '';
+    if (['text','number','email','phone','telegram','instagram','date'].includes(f.type)) {
+      inp = `<input type="text" class="prev-inp" placeholder="${esc(f.placeholder||f.label)}">`;
+    } else if (f.type === 'textarea') {
+      inp = `<textarea class="prev-inp" rows="3" style="resize:vertical;" placeholder="${esc(f.placeholder||f.label)}"></textarea>`;
+    } else if (['select','multiselect'].includes(f.type)) {
+      const opts = (f.options||[]).map(o=>`<option>${esc(o)}</option>`).join('');
+      inp = `<select class="prev-inp"><option value="">${esc(f.placeholder||'Выберите…')}</option>${opts}</select>`;
+    } else if (f.type === 'checkbox') {
+      inp = `<label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;"><input type="checkbox"><span style="font-size:.72rem;color:var(--text-m);">${esc(f.placeholder||f.label)}</span></label>`;
+    } else if (f.type === 'file') {
+      inp = `<input type="file" style="font-size:.72rem;color:var(--text-m);">`;
+    }
+    wrap.innerHTML = `<div class="prev-label">${esc(f.label||f.slug)}${f.required?' *':''}${dep}</div>${inp}`;
+    body.appendChild(wrap);
+  });
+  const btn = document.createElement('button');
+  btn.style.cssText = 'width:100%;font-family:var(--font);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);cursor:pointer;margin-top:8px;';
+  btn.textContent = document.getElementById('cfg-payments').checked ? 'Далее к оплате' : 'Зарегистрироваться';
+  body.appendChild(btn);
+  document.getElementById('previewModal').style.display = 'block';
+}
+
+/* ═══════════════════════════════
+   HELPERS
+═══════════════════════════════ */
+function switchEdTab(id, btn) {
+  document.querySelectorAll('.ed-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ed-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('ed-' + id)?.classList.add('active');
+  btn.classList.add('active');
+  if (id === 'tariffs') renderAllTariffs();
+  if (id === 'messenger') updatePhList();
+}
+
+function onPaymentsToggle(on) {
+  document.querySelectorAll('.ed-tab')[1].style.opacity = on ? '' : '.4';
+}
+
+function toggleSection(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+function goBack() { history.back(); }
+
+function doLogout() { localStorage.removeItem('rh_token'); location.href = '/admin'; }
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showToast(msg, err = false) {
+  const t = document.getElementById('rh-toast');
+  t.textContent = msg;
+  t.className = 'rh-toast' + (err ? ' err' : '');
+  void t.offsetWidth;
+  t.classList.add('show');
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ═══════════════════════════════
+   API
+═══════════════════════════════ */
+async function api(path, opts = {}) {
+  try {
+    const res = await fetch(API + path, {
+      ...opts,
+      headers: { 'Content-Type':'application/json', Accept:'application/json', Authorization:'Bearer '+_token, ...(opts.headers||{}) },
+    });
+    if (res.status === 401) { doLogout(); return null; }
+    return res.json();
+  } catch(e) { return null; }
+}
+
+init();
+</script>
+</body>
+</html>

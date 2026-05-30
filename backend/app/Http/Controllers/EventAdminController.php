@@ -117,14 +117,17 @@ class EventAdminController extends Controller
         $fields = $request->validate([
             'fields'               => 'required|array',
             'fields.*.label'       => 'required|string|max:191',
-            'fields.*.field_type'  => 'required|in:text,phone,email,select,textarea,checkbox',
-            'fields.*.slug'        => 'required|string|max:100',
-            'fields.*.has_mask'    => 'boolean',
-            'fields.*.mask_pattern'=> 'nullable|string|max:100',
-            'fields.*.is_required' => 'boolean',
-            'fields.*.options'            => 'nullable|array',
-            'fields.*.sort_order'         => 'integer',
-            'fields.*.depends_on_tariff'  => 'nullable|string|max:191',
+            'fields.*.field_type'        => 'required|in:text,number,phone,email,telegram,instagram,select,multiselect,textarea,checkbox,date,file',
+            'fields.*.slug'              => 'required|string|max:100',
+            'fields.*.placeholder'       => 'nullable|string|max:255',
+            'fields.*.has_mask'          => 'boolean',
+            'fields.*.mask_pattern'      => 'nullable|string|max:500',
+            'fields.*.is_required'       => 'boolean',
+            'fields.*.options'           => 'nullable|array',
+            'fields.*.sort_order'        => 'integer',
+            'fields.*.depends_on_tariff' => 'nullable|string|max:191',
+            'fields.*.dep_field'         => 'nullable|string|max:100',
+            'fields.*.dep_value'         => 'nullable|string|max:500',
         ])['fields'];
 
         $event->fields()->delete();

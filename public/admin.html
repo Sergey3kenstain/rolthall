@@ -3828,20 +3828,13 @@ function evCopyLink() {
 
 // ── Новое событие ─────────────────────────────────────────────────────
 function evCreateNew() {
-  _evCurrentId   = null;
-  _evSettingsNew = true;
-  evResetSettingsForm({});
-  document.getElementById('ev-settings-modal').style.display = '';
+  location.href = '/event-editor';
 }
 
 // ── Настройки ─────────────────────────────────────────────────────────
 async function evOpenSettings() {
   if (!_evCurrentId) return;
-  _evSettingsNew = false;
-  const data = await api(`/admin/events/${_evCurrentId}`);
-  if (!data?.ok) return;
-  evResetSettingsForm(data.event);
-  document.getElementById('ev-settings-modal').style.display = '';
+  location.href = `/event-editor?id=${_evCurrentId}`;
 }
 
 function evResetSettingsForm(ev) {

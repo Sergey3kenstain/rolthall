@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class EventField extends Model
 {
     protected $fillable = [
-        'event_id', 'label', 'field_type', 'slug',
+        'event_id', 'label', 'placeholder', 'field_type', 'slug',
         'has_mask', 'mask_pattern', 'is_required', 'options', 'sort_order',
-        'depends_on_tariff',
+        'depends_on_tariff', 'dep_field', 'dep_value',
     ];
 
     protected $casts = [
