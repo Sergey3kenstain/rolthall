@@ -64,6 +64,7 @@ class EventAdminController extends Controller
             'title'                        => 'required|string|max:191',
             'slug'                         => 'nullable|string|max:100|unique:events,slug|regex:/^[a-z0-9\-]+$/',
             'description'                  => 'nullable|string',
+            'form_css'                     => 'nullable|string',
             'event_date'                   => 'nullable|date',
             'tag'                          => 'nullable|string|max:100',
             'status'                       => 'nullable|in:draft,active,closed',
@@ -88,6 +89,7 @@ class EventAdminController extends Controller
             'title'                        => 'sometimes|string|max:191',
             'slug'                         => 'sometimes|string|max:100|unique:events,slug,' . $id . '|regex:/^[a-z0-9\-]+$/',
             'description'                  => 'sometimes|nullable|string',
+            'form_css'                     => 'sometimes|nullable|string',
             'event_date'                   => 'sometimes|nullable|date',
             'tag'                          => 'sometimes|nullable|string|max:100',
             'status'                       => 'sometimes|in:draft,active,closed',
@@ -206,6 +208,16 @@ class EventAdminController extends Controller
         return response()->json(['ok' => true, 'poster_url' => $event->poster_url], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function deletePoster(Request $request, int $id): JsonResponse
+    {
+        $event = Event::findOrFail($id);
+        if ($event->poster_path && file_exists(storage_path('app/public/' . $event->poster_path))) {
+            unlink(storage_path('app/public/' . $event->poster_path));
+        }
+        $event->update(['poster_path' => null]);
+        return response()->json(['ok' => true]);
+    }
+
     // ── Registrations ─────────────────────────────────────────────────────
 
     public function registrations(Request $request, int $id): JsonResponse
@@ -247,7 +259,9 @@ class EventAdminController extends Controller
             'title'                        => $event->title,
             'slug'                         => $event->slug,
             'description'                  => $event->description,
+            'form_css'                     => $event->form_css,
             'poster_url'                   => $event->poster_url,
+            'poster_path'                  => $event->poster_path,
             'event_date'                   => $event->event_date?->format('Y-m-d'),
             'tag'                          => $event->tag,
             'status'                       => $event->status,

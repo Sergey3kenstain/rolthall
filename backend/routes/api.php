@@ -140,6 +140,7 @@ Route::middleware('auth:sanctum')->prefix('admin/events')->group(function () {
     Route::post('/{id}/fields',                  [EventAdminController::class, 'syncFields']);
     Route::post('/{id}/tariffs',                 [EventAdminController::class, 'syncTariffs']);
     Route::post('/{id}/poster',                  [EventAdminController::class, 'uploadPoster']);
+    Route::delete('/{id}/poster',               [EventAdminController::class, 'deletePoster']);
     Route::get('/{id}/registrations',            [EventAdminController::class, 'registrations']);
     Route::get('/{id}/registrations/{regId}',    [EventAdminController::class, 'registrationDetail']);
 });

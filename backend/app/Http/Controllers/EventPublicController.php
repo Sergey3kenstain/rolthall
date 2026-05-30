@@ -50,6 +50,7 @@ class EventPublicController extends Controller
             'id'          => $event->id,
             'title'       => $event->title,
             'description' => $event->description,
+            'form_css'    => $event->form_css,
             'poster_url'  => $event->poster_url,
             'event_date'  => $event->event_date?->format('d.m.Y'),
             'payments_enabled'             => $event->payments_enabled,

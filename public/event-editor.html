@@ -172,6 +172,24 @@ button{font-family:var(--font);}
 .ph-chip:hover{background:rgba(55,111,255,.2);}
 .ph-chip.cf{background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.2);color:#6fda9f;}
 
+/* ── DEP POPUP ── */
+.dep-trigger{display:flex;align-items:center;gap:7px;padding:7px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:var(--font);font-size:.72rem;color:var(--text);width:100%;text-align:left;transition:border-color .15s;}
+.dep-trigger:hover{border-color:rgba(255,255,255,.25);}
+.dep-trigger .dt-val{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dep-trigger .dt-arrow{color:var(--text-d);flex-shrink:0;}
+.dep-popup-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);}
+.dep-popup-overlay.open{display:flex;align-items:center;justify-content:center;}
+.dep-popup{background:var(--bg-card);border:1px solid var(--border2);border-radius:var(--r-lg);width:320px;max-width:92vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.dep-popup-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.dep-popup-title{font-size:.72rem;font-weight:700;color:var(--white);}
+.dep-popup-close{background:none;border:none;color:var(--text-m);cursor:pointer;font-size:1.2rem;line-height:1;padding:0 2px;}
+.dep-popup-list{max-height:280px;overflow-y:auto;padding:6px;}
+.dep-popup-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;transition:background .12s;}
+.dep-popup-item:hover{background:rgba(255,255,255,.07);}
+.dep-popup-item.selected{background:rgba(55,111,255,.12);}
+.dep-popup-item-label{font-size:.74rem;font-weight:500;color:var(--white);flex:1;}
+.dep-popup-item-slug{font-size:.6rem;color:var(--text-d);font-family:monospace;}
+
 /* ── NOTICE ── */
 .notice{border-radius:var(--r);padding:10px 14px;font-size:.65rem;font-weight:500;line-height:1.6;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px;}
 .notice svg{width:14px;height:14px;flex-shrink:0;margin-top:1px;}
@@ -284,17 +302,49 @@ button{font-family:var(--font);}
 <!-- ══ MOB NAV ══ -->
 <nav class="mob-nav">
   <div class="mob-nav-inner">
-    <button class="mob-nav-item" onclick="location.href='/admin'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Сводная
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="analytics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+      Сводная
     </button>
-    <button class="mob-nav-item" onclick="location.href='/admin'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Брони
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="bookings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>
+      Брони
     </button>
-    <button class="mob-nav-item active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>События
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="halls">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      Холл
     </button>
-    <button class="mob-nav-item" onclick="location.href='/admin'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Профиль
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="users">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      Клиенты
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      Лог
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="blacklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg>
+      Бан-лист
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></svg>
+      Профиль
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="telegram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M22 2L11 13"></path><path d="M22 2L15 22l-4-9-9-4 20-7z"></path></svg>
+      Telegram
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="max">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l2 2 4-4"></path></svg>
+      Max
+    </button>
+    <button class="mob-nav-item" onclick="location.href='/admin'" data-tab="notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      Уведомл.
+    </button>
+    <button class="mob-nav-item active" data-tab="events">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      События
     </button>
   </div>
 </nav>
@@ -323,17 +373,94 @@ button{font-family:var(--font);}
 
   <!-- EDITOR TABS -->
   <div class="ed-tabs">
-    <button class="ed-tab active" onclick="switchEdTab('fields',this)">Поля анкеты</button>
+    <button class="ed-tab active" onclick="switchEdTab('settings',this)">Настройки</button>
+    <button class="ed-tab" onclick="switchEdTab('fields',this)">Поля анкеты</button>
     <button class="ed-tab" onclick="switchEdTab('tariffs',this)">Тарифы</button>
     <button class="ed-tab" onclick="switchEdTab('messenger',this)">Мессенджеры</button>
-    <button class="ed-tab" onclick="switchEdTab('settings',this)">Настройки</button>
   </div>
 
   <!-- ══ BODY ══ -->
   <div class="ed-body">
 
+    <!-- ── TAB: НАСТРОЙКИ ── -->
+    <div class="ed-pane active" id="ed-settings">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- Основное -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Основное</div>
+          <div class="form-row form-row-2" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="label">Название события *</label>
+              <input type="text" class="inp" id="cfg-title" placeholder="Открытый контест" oninput="document.getElementById('ed-title').textContent=this.value||'Новое событие'">
+            </div>
+            <div class="form-group">
+              <label class="label">Slug (URL) *</label>
+              <input type="text" class="inp" id="cfg-slug" placeholder="open-contest-2026" style="font-family:monospace;">
+            </div>
+            <div class="form-group">
+              <label class="label">Дата события</label>
+              <input type="date" class="inp" id="cfg-date">
+            </div>
+            <div class="form-group">
+              <label class="label">Статус</label>
+              <select class="sel" id="cfg-status">
+                <option value="draft">Черновик</option>
+                <option value="active">Активно</option>
+                <option value="closed">Закрыто</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="label">Описание</label>
+            <textarea class="ta" id="cfg-desc" placeholder="Краткое описание для формы регистрации…"></textarea>
+          </div>
+        </div>
+
+        <!-- Регистрация -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Регистрация</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="toggle-row">
+              <label class="toggle-sw"><input type="checkbox" id="cfg-payments" onchange="onPaymentsToggle(this.checked)"><div class="toggle-track"></div></label>
+              <span class="toggle-label">Включить оплату (T-Bank)</span>
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-sw"><input type="checkbox" id="cfg-multi"><div class="toggle-track"></div></label>
+              <span class="toggle-label">Разрешить повторную регистрацию</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Афиша -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;" id="cfg-poster-section">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Афиша</div>
+          <div id="cfg-poster-preview" style="display:none;margin-bottom:10px;">
+            <img id="cfg-poster-img" style="max-height:160px;border-radius:var(--r);border:1px solid var(--border);display:block;margin-bottom:8px;">
+            <button class="btn btn-danger btn-xs" onclick="deletePoster()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+              Удалить афишу
+            </button>
+          </div>
+          <div class="poster-zone" onclick="document.getElementById('cfg-poster-file').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <div style="font-size:.72rem;color:var(--text-m);">Нажмите для загрузки</div>
+            <div style="font-size:.6rem;color:var(--text-d);margin-top:3px;">JPG, PNG · до 1.5 МБ</div>
+          </div>
+          <input type="file" id="cfg-poster-file" accept=".jpg,.jpeg,.png" style="display:none" onchange="uploadPoster(this)">
+          <div id="cfg-poster-note" style="font-size:.62rem;color:var(--text-d);margin-top:6px;display:none;">Для загрузки афиши сначала сохраните событие.</div>
+        </div>
+
+        <!-- CSS формы -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
+          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:6px;">CSS формы</div>
+          <div style="font-size:.62rem;color:var(--text-d);margin-bottom:10px;">Применяется только к публичной странице этого события.</div>
+          <textarea class="ta" id="cfg-css" rows="6" style="font-family:monospace;font-size:.68rem;" placeholder=".card { background: #1a1a2e; }&#10;h1 { color: #e94560; }"></textarea>
+        </div>
+      </div>
+    </div>
+
     <!-- ── TAB: ПОЛЯ ── -->
-    <div class="ed-pane active" id="ed-fields">
+    <div class="ed-pane" id="ed-fields">
       <div class="notice notice-blue">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         Поле «Телефон» добавляется автоматически и всегда обязательно. Перетаскивайте блоки для сортировки. Зависимость позволяет показать поле только при выборе определённого значения в другом select-поле.
@@ -399,90 +526,30 @@ button{font-family:var(--font);}
           <div class="form-group"><label class="label">Chat ID администратора</label><input type="text" class="inp" id="ms-max-chat" placeholder="ID чата"></div>
           <div class="form-group">
             <label class="label">Шаблон уведомления администратору</label>
-            <textarea class="ta" id="ms-max-admin-tpl" rows="5" style="font-family:monospace;font-size:.7rem;"></textarea>
+            <div class="ph-list" id="ms-max-admin-ph"></div>
+            <textarea class="ta" id="ms-max-admin-tpl" rows="5" style="font-family:monospace;font-size:.7rem;" placeholder="🎟 Новая заявка на {event}&#10;&#10;👤 {name}&#10;📞 {phone}&#10;&#10;{fields}"></textarea>
           </div>
           <div class="form-group">
             <label class="label">Шаблон уведомления участнику</label>
-            <textarea class="ta" id="ms-max-user-tpl" rows="4" style="font-family:monospace;font-size:.7rem;"></textarea>
+            <textarea class="ta" id="ms-max-user-tpl" rows="4" style="font-family:monospace;font-size:.7rem;" placeholder="✅ Вы зарегистрированы на «{event}»&#10;&#10;Дата: {date}&#10;Ваш код: {code}"></textarea>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TAB: НАСТРОЙКИ ── -->
-    <div class="ed-pane" id="ed-settings">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <!-- Основное -->
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
-          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Основное</div>
-          <div class="form-row form-row-2" style="margin-bottom:12px;">
-            <div class="form-group">
-              <label class="label">Название события *</label>
-              <input type="text" class="inp" id="cfg-title" placeholder="Открытый контест" oninput="document.getElementById('ed-title').textContent=this.value||'Новое событие'">
-            </div>
-            <div class="form-group">
-              <label class="label">Slug (URL) *</label>
-              <input type="text" class="inp" id="cfg-slug" placeholder="open-contest-2026" style="font-family:monospace;">
-            </div>
-            <div class="form-group">
-              <label class="label">Дата события</label>
-              <input type="date" class="inp" id="cfg-date">
-            </div>
-            <div class="form-group">
-              <label class="label">Тег / категория</label>
-              <input type="text" class="inp" id="cfg-tag" placeholder="contest">
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label class="label">Описание</label>
-            <textarea class="ta" id="cfg-desc" placeholder="Краткое описание для формы регистрации…"></textarea>
-          </div>
-          <div class="form-row form-row-2">
-            <div class="form-group">
-              <label class="label">Статус</label>
-              <select class="sel" id="cfg-status">
-                <option value="draft">Черновик</option>
-                <option value="active">Активно</option>
-                <option value="closed">Закрыто</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Настройки регистрации -->
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;">
-          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Регистрация</div>
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div class="toggle-row">
-              <label class="toggle-sw"><input type="checkbox" id="cfg-payments" onchange="onPaymentsToggle(this.checked)"><div class="toggle-track"></div></label>
-              <span class="toggle-label">Включить оплату (T-Bank)</span>
-            </div>
-            <div class="toggle-row">
-              <label class="toggle-sw"><input type="checkbox" id="cfg-multi"><div class="toggle-track"></div></label>
-              <span class="toggle-label">Разрешить повторную регистрацию</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Афиша -->
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;" id="cfg-poster-section">
-          <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Афиша</div>
-          <div id="cfg-poster-preview" style="display:none;margin-bottom:10px;">
-            <img id="cfg-poster-img" style="max-height:160px;border-radius:var(--r);border:1px solid var(--border);display:block;">
-          </div>
-          <div class="poster-zone" onclick="document.getElementById('cfg-poster-file').click()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <div style="font-size:.72rem;color:var(--text-m);">Нажмите для загрузки</div>
-            <div style="font-size:.6rem;color:var(--text-d);margin-top:3px;">JPG, PNG · до 1.5 МБ</div>
-          </div>
-          <input type="file" id="cfg-poster-file" accept=".jpg,.jpeg,.png" style="display:none" onchange="uploadPoster(this)">
-          <div id="cfg-poster-note" style="font-size:.62rem;color:var(--text-d);margin-top:6px;display:none;">Для загрузки афиши сначала сохраните событие.</div>
         </div>
       </div>
     </div>
 
   </div><!-- /ed-body -->
 </main>
+
+<!-- ══ DEP POPUP OVERLAY ══ -->
+<div class="dep-popup-overlay" id="depPopupOverlay" onclick="if(event.target===this)closeDepPopup()">
+  <div class="dep-popup">
+    <div class="dep-popup-head">
+      <div class="dep-popup-title">Зависит от поля</div>
+      <button class="dep-popup-close" onclick="closeDepPopup()">×</button>
+    </div>
+    <div class="dep-popup-list" id="depPopupList"></div>
+  </div>
+</div>
 
 <!-- ══ PREVIEW MODAL ══ -->
 <div class="preview-modal" id="previewModal" onclick="if(event.target===this)this.style.display='none'">
@@ -505,6 +572,23 @@ let _evId   = new URLSearchParams(location.search).get('id') || null;
 let _fields  = [];
 let _tariffs = [];
 let _fldCnt  = 0;
+
+/* ═══════════════════════════════
+   MASK PRESETS
+═══════════════════════════════ */
+const EV_MASK_PRESETS = [
+  {label:'Телефон (+7)',         value:'^\\+7[0-9]{10}$'},
+  {label:'E-mail',               value:'^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$'},
+  {label:'Дата (ДД.ММ.ГГГГ)',    value:'^\\d{2}\\.\\d{2}\\.\\d{4}$'},
+  {label:'Только цифры',         value:'^[0-9]+$'},
+  {label:'Только буквы',         value:'^[A-Za-zА-Яа-яЁё]+$'},
+  {label:'Telegram @username',   value:'^@[A-Za-z0-9_]{5,32}$'},
+  {label:'Instagram @username',  value:'^@?[A-Za-z0-9._]{1,30}$'},
+  {label:'URL (https://)',       value:'^https?:\\/\\/.+'},
+  {label:'Время (ЧЧ:ММ)',        value:'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'},
+  {label:'ФИО',                  value:'^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$'},
+  {label:'Пароль (мин. 8 зн.)',  value:'^.{8,}$'},
+];
 
 /* ═══════════════════════════════
    FIELD TYPES
@@ -544,6 +628,20 @@ async function init() {
     await loadEvent(_evId);
   } else {
     document.getElementById('cfg-poster-note').style.display = '';
+    // Pre-fill messenger settings from system settings
+    const [tgCfg, maxCfg] = await Promise.all([
+      api('/admin/telegram/settings'),
+      api('/admin/max/settings'),
+    ]);
+    if (tgCfg?.chat_id)   document.getElementById('ms-tg-chat').value   = tgCfg.chat_id;
+    if (tgCfg?.thread_id) document.getElementById('ms-tg-thread').value = tgCfg.thread_id;
+    const defaultAdminTpl = '🎟 Новая заявка на {event}\n\n👤 {name}\n📞 {phone}\n\n{fields}';
+    const defaultUserTpl  = '✅ Вы зарегистрированы на «{event}»\n\nДата: {date}\nВаш код: {code}';
+    document.getElementById('ms-tg-admin-tpl').value = defaultAdminTpl;
+    document.getElementById('ms-tg-user-tpl').value  = defaultUserTpl;
+    if (maxCfg?.admin_chat_id) document.getElementById('ms-max-chat').value = maxCfg.admin_chat_id;
+    document.getElementById('ms-max-admin-tpl').value = defaultAdminTpl;
+    document.getElementById('ms-max-user-tpl').value  = defaultUserTpl;
   }
 }
 
@@ -561,6 +659,7 @@ async function loadEvent(id) {
   document.getElementById('cfg-date').value     = ev.event_date || '';
   document.getElementById('cfg-tag').value      = ev.tag   || '';
   document.getElementById('cfg-desc').value     = ev.description || '';
+  document.getElementById('cfg-css').value      = ev.form_css || '';
   document.getElementById('cfg-status').value   = ev.status || 'draft';
   document.getElementById('cfg-payments').checked = !!ev.payments_enabled;
   document.getElementById('cfg-multi').checked   = !!ev.allow_multiple_registrations;
@@ -631,16 +730,16 @@ async function loadEvent(id) {
 async function saveEvent() {
   const title = document.getElementById('cfg-title').value.trim();
   const slug  = document.getElementById('cfg-slug').value.trim();
-  if (!title) { showToast('Введите название события', true); switchEdTab('settings', document.querySelectorAll('.ed-tab')[3]); return; }
-  if (!slug)  { showToast('Введите slug', true); switchEdTab('settings', document.querySelectorAll('.ed-tab')[3]); return; }
+  if (!title) { showToast('Введите название события', true); switchEdTab('settings', document.querySelectorAll('.ed-tab')[0]); return; }
+  if (!slug)  { showToast('Введите slug', true); switchEdTab('settings', document.querySelectorAll('.ed-tab')[0]); return; }
 
   const paymentsEnabled = document.getElementById('cfg-payments').checked;
 
   const payload = {
     title, slug,
     description:                  document.getElementById('cfg-desc').value.trim() || null,
+    form_css:                     document.getElementById('cfg-css').value.trim() || null,
     event_date:                   document.getElementById('cfg-date').value || null,
-    tag:                          document.getElementById('cfg-tag').value.trim() || null,
     status:                       document.getElementById('cfg-status').value,
     payments_enabled:             paymentsEnabled,
     allow_multiple_registrations: document.getElementById('cfg-multi').checked,
@@ -675,7 +774,7 @@ async function saveEvent() {
   for (const f of _fields) {
     if (!f.slug || !f.label) {
       showToast('У всех полей должны быть заполнены Ключ (slug) и Подпись', true);
-      switchEdTab('fields', document.querySelectorAll('.ed-tab')[0]);
+      switchEdTab('fields', document.querySelectorAll('.ed-tab')[1]);
       return;
     }
   }
@@ -827,17 +926,21 @@ function appendFieldEl(f) {
       </div>` : ''}
 
       ${!isCb ? `
-      <div class="form-row form-row-2" style="margin-bottom:12px;">
-        <div class="form-group">
-          <div class="toggle-row" style="margin-bottom:6px;">
-            <label class="toggle-sw">
-              <input type="checkbox" ${f.has_mask?'checked':''} id="mask-toggle-${f.id}" onchange="updateFld(${f.id},'has_mask',this.checked);toggleMaskInp(${f.id},this.checked)">
-              <div class="toggle-track"></div>
-            </label>
-            <span class="toggle-label">Маска (regex)</span>
-          </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="toggle-row" style="margin-bottom:6px;">
+          <label class="toggle-sw">
+            <input type="checkbox" ${f.has_mask?'checked':''} id="mask-toggle-${f.id}" onchange="updateFld(${f.id},'has_mask',this.checked);toggleMaskInp(${f.id},this.checked)">
+            <div class="toggle-track"></div>
+          </label>
+          <span class="toggle-label">Маска (regex)</span>
+        </div>
+        <div id="mask-wrap-${f.id}" style="display:${f.has_mask?'flex':'none'};flex-direction:column;gap:6px;">
+          <select class="sel" style="font-size:.7rem;" onchange="applyMaskPreset(${f.id},this.value)">
+            <option value="">— пресет —</option>
+            ${EV_MASK_PRESETS.map(p=>`<option value="${esc(p.value)}">${esc(p.label)}</option>`).join('')}
+          </select>
           <input type="text" class="inp" id="mask-inp-${f.id}" value="${esc(f.mask_pattern)}"
-            placeholder="^[0-9]+$" style="font-family:monospace;font-size:.68rem;display:${f.has_mask?'':'none'}"
+            placeholder="^[0-9]+$" style="font-family:monospace;font-size:.68rem;"
             oninput="updateFld(${f.id},'mask_pattern',this.value)">
         </div>
       </div>` : ''}
@@ -850,11 +953,12 @@ function appendFieldEl(f) {
         </div>
         <div class="dep-rule">
           <span class="dep-label">Поле</span>
-          <select class="sel" id="dep-field-${f.id}" onchange="updateFld(${f.id},'dep_field',this.value)">
-            <option value="">— всегда —</option>
-          </select>
+          <button class="dep-trigger" id="dep-field-${f.id}" onclick="openDepPopup(${f.id})">
+            <span class="dt-val">${f.dep_field ? esc((_fields.find(x=>x.slug===f.dep_field)?.label)||f.dep_field) : '— всегда —'}</span>
+            <svg class="dt-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
           <span class="dep-label">=</span>
-          <input type="text" class="inp" value="${esc(f.dep_value)}" placeholder="Значение1, Значение2"
+          <input type="text" class="inp" value="${esc(f.dep_value)}" placeholder="Значение"
             oninput="updateFld(${f.id},'dep_value',this.value)"
             title="Одно или несколько значений через запятую">
         </div>
@@ -862,18 +966,6 @@ function appendFieldEl(f) {
     </div>`;
 
   list.appendChild(div);
-
-  // Init dep select
-  const depSel = document.getElementById('dep-field-' + f.id);
-  if (depSel) {
-    _fields.filter(x => x.id !== f.id && ['select','multiselect'].includes(x.type)).forEach(x => {
-      const opt = document.createElement('option');
-      opt.value = x.slug;
-      opt.textContent = x.label || x.slug;
-      if (x.slug === f.dep_field) opt.selected = true;
-      depSel.appendChild(opt);
-    });
-  }
 
   // Drag & drop
   div.addEventListener('dragstart', e => { e.dataTransfer.setData('fid', f.id); div.style.opacity='.4'; });
@@ -923,8 +1015,50 @@ function updFbHeader(id) {
 }
 
 function toggleMaskInp(id, show) {
-  const el = document.getElementById('mask-inp-' + id);
-  if (el) el.style.display = show ? '' : 'none';
+  const el = document.getElementById('mask-wrap-' + id);
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+function applyMaskPreset(fId, val) {
+  if (!val) return;
+  const inp = document.getElementById('mask-inp-' + fId);
+  if (inp) { inp.value = val; updateFld(fId, 'mask_pattern', val); }
+}
+
+let _depPopupFid = null;
+function openDepPopup(fId) {
+  _depPopupFid = fId;
+  const f = _fields.find(x => x.id === fId);
+  const avail = _fields.filter(x => x.id !== fId && ['select','multiselect'].includes(x.type));
+  const list = document.getElementById('depPopupList');
+  list.innerHTML = `
+    <div class="dep-popup-item${!f.dep_field?' selected':''}" onclick="setDepField(${fId},'')">
+      <span class="dep-popup-item-label">— всегда показывать —</span>
+    </div>
+    ${avail.map(x => `
+      <div class="dep-popup-item${f.dep_field===x.slug?' selected':''}" onclick="setDepField(${fId},'${esc(x.slug)}')">
+        <span class="dep-popup-item-label">${esc(x.label||x.slug)}</span>
+        <span class="dep-popup-item-slug">{${esc(x.slug)}}</span>
+      </div>`).join('')}
+    ${avail.length===0?'<div style="padding:14px;font-size:.68rem;color:var(--text-d);text-align:center;">Нет полей типа select/multiselect</div>':''}
+  `;
+  document.getElementById('depPopupOverlay').classList.add('open');
+}
+
+function closeDepPopup() {
+  document.getElementById('depPopupOverlay').classList.remove('open');
+  _depPopupFid = null;
+}
+
+function setDepField(fId, slug) {
+  updateFld(fId, 'dep_field', slug);
+  const f = _fields.find(x => x.id === fId);
+  const trigger = document.getElementById('dep-field-' + fId);
+  if (trigger) {
+    const label = slug ? ((_fields.find(x=>x.slug===slug)?.label)||slug) : '— всегда —';
+    trigger.querySelector('.dt-val').textContent = label;
+  }
+  closeDepPopup();
 }
 
 function changeFldType(id, newType) {
@@ -946,14 +1080,13 @@ function changeFldType(id, newType) {
 }
 
 function updateDepSelects() {
-  const selectFields = _fields.filter(f => ['select','multiselect'].includes(f.type));
+  // Refresh dep-trigger labels when a select/multiselect slug or label changes
   _fields.forEach(f => {
-    const sel = document.getElementById('dep-field-' + f.id);
-    if (!sel) return;
-    const prev = sel.value;
-    sel.innerHTML = '<option value="">— всегда —</option>' +
-      selectFields.filter(x => x.id !== f.id)
-        .map(x => `<option value="${esc(x.slug)}"${x.slug===prev?' selected':''}>${esc(x.label||x.slug)}</option>`).join('');
+    if (!f.dep_field) return;
+    const trigger = document.getElementById('dep-field-' + f.id);
+    if (!trigger) return;
+    const src = _fields.find(x => x.slug === f.dep_field);
+    trigger.querySelector('.dt-val').textContent = src ? (src.label || src.slug) : f.dep_field;
   });
 }
 
@@ -1034,11 +1167,13 @@ function toggleDepField(ti, slug, checked) {
 function updatePhList() {
   const base = ['{name}','{phone}','{event}','{date}','{tariff}','{option}','{code}','{reg_id}','{fields}'];
   const cf   = _fields.filter(f=>f.slug).map(f => `{cf_${f.slug}}`);
-  const el   = document.getElementById('ms-tg-admin-ph');
-  if (!el) return;
-  el.innerHTML =
-    base.map(p=>`<span class="ph-chip" onclick="insertPh('ms-tg-admin-tpl','${p}')">${p}</span>`).join('') +
-    cf.map(p=>`<span class="ph-chip cf" onclick="insertPh('ms-tg-admin-tpl','${p}')">${p}</span>`).join('');
+  const chips = (taId) =>
+    base.map(p=>`<span class="ph-chip" onclick="insertPh('${taId}','${p}')">${p}</span>`).join('') +
+    cf.map(p=>`<span class="ph-chip cf" onclick="insertPh('${taId}','${p}')">${p}</span>`).join('');
+  const tgEl = document.getElementById('ms-tg-admin-ph');
+  if (tgEl) tgEl.innerHTML = chips('ms-tg-admin-tpl');
+  const maxEl = document.getElementById('ms-max-admin-ph');
+  if (maxEl) maxEl.innerHTML = chips('ms-max-admin-tpl');
 }
 
 function insertPh(taId, ph) {
@@ -1053,6 +1188,18 @@ function insertPh(taId, ph) {
 /* ═══════════════════════════════
    POSTER UPLOAD
 ═══════════════════════════════ */
+async function deletePoster() {
+  if (!_evId) return;
+  const d = await api(`/admin/events/${_evId}/poster`, { method:'DELETE' });
+  if (d?.ok) {
+    document.getElementById('cfg-poster-preview').style.display = 'none';
+    document.getElementById('cfg-poster-img').src = '';
+    showToast('Афиша удалена');
+  } else {
+    showToast('Ошибка удаления', true);
+  }
+}
+
 async function uploadPoster(input) {
   if (!input.files[0]) return;
   if (!_evId) { showToast('Сначала сохраните событие', true); input.value = ''; return; }
@@ -1127,7 +1274,7 @@ function switchEdTab(id, btn) {
 }
 
 function onPaymentsToggle(on) {
-  document.querySelectorAll('.ed-tab')[1].style.opacity = on ? '' : '.4';
+  document.querySelectorAll('.ed-tab')[2].style.opacity = on ? '' : '.4';
 }
 
 function toggleSection(id, show) {
