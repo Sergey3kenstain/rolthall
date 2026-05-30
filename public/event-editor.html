@@ -531,11 +531,10 @@ async function init() {
   if (!_token) { location.href = '/admin'; return; }
   const me = await api('/auth/me');
   if (!me?.ok) { location.href = '/admin'; return; }
-  const u = me.user;
-  document.getElementById('s-avatar').textContent  = (u.name||'?')[0].toUpperCase();
-  document.getElementById('mob-avatar').textContent = (u.name||'?')[0].toUpperCase();
-  document.getElementById('s-name').textContent    = u.name || u.email || '—';
-  document.getElementById('s-role').textContent    = u.role || '';
+  document.getElementById('s-avatar').textContent  = (me.name||'?')[0].toUpperCase();
+  document.getElementById('mob-avatar').textContent = (me.name||'?')[0].toUpperCase();
+  document.getElementById('s-name').textContent    = me.name || me.email || '—';
+  document.getElementById('s-role').textContent    = me.role || '';
 
   renderAddButtons();
   updateDepSelects();
