@@ -172,6 +172,18 @@ button{font-family:var(--font);}
 .ph-chip:hover{background:rgba(55,111,255,.2);}
 .ph-chip.cf{background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.2);color:#6fda9f;}
 
+/* ── PARTICIPANTS ── */
+.pt-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;display:flex;flex-direction:column;gap:3px;min-width:120px;}
+.pt-stat-val{font-size:1.2rem;font-weight:700;color:var(--white);}
+.pt-stat-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);}
+.pt-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;}
+.pt-row-name{font-size:.76rem;font-weight:600;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pt-row-phone{font-size:.68rem;color:var(--text-m);flex-shrink:0;}
+.pt-row-meta{font-size:.6rem;color:var(--text-d);flex-shrink:0;}
+.pt-badge{font-size:.54rem;font-weight:700;padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;}
+.pt-badge-paid{background:var(--green-bg);color:var(--green);}
+.pt-badge-pend{background:var(--orange-bg);color:var(--orange);}
+
 /* ── DEP POPUP ── */
 .dep-trigger{display:flex;align-items:center;gap:7px;padding:7px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:var(--font);font-size:.72rem;color:var(--text);width:100%;text-align:left;transition:border-color .15s;}
 .dep-trigger:hover{border-color:rgba(255,255,255,.25);}
@@ -374,6 +386,7 @@ button{font-family:var(--font);}
   <!-- EDITOR TABS -->
   <div class="ed-tabs">
     <button class="ed-tab active" onclick="switchEdTab('settings',this)">Настройки</button>
+    <button class="ed-tab" onclick="switchEdTab('participants',this)">Участники</button>
     <button class="ed-tab" onclick="switchEdTab('fields',this)">Поля анкеты</button>
     <button class="ed-tab" onclick="switchEdTab('tariffs',this)">Тарифы</button>
     <button class="ed-tab" onclick="switchEdTab('messenger',this)">Мессенджеры</button>
@@ -395,7 +408,15 @@ button{font-family:var(--font);}
             </div>
             <div class="form-group">
               <label class="label">Slug (URL) *</label>
-              <input type="text" class="inp" id="cfg-slug" placeholder="open-contest-2026" style="font-family:monospace;">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="text" class="inp" id="cfg-slug" placeholder="open-contest-2026" style="font-family:monospace;flex:1;">
+                <button class="btn-icon" title="Предпросмотр" onclick="previewEvent()" style="flex-shrink:0;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-icon" title="Копировать ссылку" onclick="copyEventLink()" style="flex-shrink:0;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label class="label">Дата события</label>
@@ -457,6 +478,18 @@ button{font-family:var(--font);}
           <textarea class="ta" id="cfg-css" rows="6" style="font-family:monospace;font-size:.68rem;" placeholder=".card { background: #1a1a2e; }&#10;h1 { color: #e94560; }"></textarea>
         </div>
       </div>
+    </div>
+
+    <!-- ── TAB: УЧАСТНИКИ ── -->
+    <div class="ed-pane" id="ed-participants">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <input type="text" class="inp" id="pt-search" placeholder="Имя, телефон, Telegram ID…" style="flex:1;min-width:200px;" oninput="ptSearch(this.value)">
+        <button class="btn-icon" title="Скачать CSV" onclick="ptDownloadCsv()" style="width:32px;height:32px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+      <div id="pt-stats" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;"></div>
+      <div id="pt-list"></div>
     </div>
 
     <!-- ── TAB: ПОЛЯ ── -->
@@ -774,7 +807,7 @@ async function saveEvent() {
   for (const f of _fields) {
     if (!f.slug || !f.label) {
       showToast('У всех полей должны быть заполнены Ключ (slug) и Подпись', true);
-      switchEdTab('fields', document.querySelectorAll('.ed-tab')[1]);
+      switchEdTab('fields', document.querySelectorAll('.ed-tab')[2]);
       return;
     }
   }
@@ -1176,6 +1209,96 @@ function updatePhList() {
   if (maxEl) maxEl.innerHTML = chips('ms-max-admin-tpl');
 }
 
+/* ═══════════════════════════════
+   PARTICIPANTS
+═══════════════════════════════ */
+let _ptRegs = [];
+let _ptFields = [];
+
+async function loadParticipants() {
+  if (!_evId) { document.getElementById('pt-list').innerHTML = '<div style="font-size:.72rem;color:var(--text-d);text-align:center;padding:24px;">Сначала сохраните событие</div>'; return; }
+  const data = await api(`/admin/events/${_evId}/registrations?full=1`);
+  if (!data?.ok) return;
+  _ptRegs   = data.registrations || [];
+  _ptFields = data.fields || [];
+  ptRender(_ptRegs);
+}
+
+function ptSearch(q) {
+  const lq = q.toLowerCase();
+  const filtered = !lq ? _ptRegs : _ptRegs.filter(r =>
+    (r.display_name||'').toLowerCase().includes(lq) ||
+    (r.phone||'').includes(lq) ||
+    (r.tg_user_id||'').toLowerCase().includes(lq)
+  );
+  ptRender(filtered);
+}
+
+function ptRender(regs) {
+  const paymentsOn = document.getElementById('cfg-payments')?.checked;
+  const totalCount = _ptRegs.length;
+  const paidCount  = _ptRegs.filter(r => r.payment_status === 'paid').length;
+
+  const statsEl = document.getElementById('pt-stats');
+  statsEl.innerHTML = `
+    <div class="pt-stat"><div class="pt-stat-val">${totalCount}</div><div class="pt-stat-label">Регистраций</div></div>
+    ${paymentsOn ? `<div class="pt-stat"><div class="pt-stat-val" style="color:var(--green);">${paidCount}</div><div class="pt-stat-label">Оплачено</div></div>` : ''}
+  `;
+
+  if (!regs.length) {
+    document.getElementById('pt-list').innerHTML = '<div style="font-size:.72rem;color:var(--text-d);text-align:center;padding:24px;">Участников нет</div>';
+    return;
+  }
+  document.getElementById('pt-list').innerHTML = regs.map(r => `
+    <div class="pt-row">
+      <div style="flex:1;min-width:0;">
+        <div class="pt-row-name">${esc(r.display_name || r.phone || '—')}</div>
+        <div style="font-size:.62rem;color:var(--text-d);margin-top:2px;">${esc(r.phone||'')}${r.tg_user_id?` · @${esc(r.tg_user_id)}`:''}${r.tariff?` · ${esc(r.tariff)}`:''}</div>
+      </div>
+      <div class="pt-row-meta">${r.created_at}</div>
+      ${paymentsOn ? `<span class="pt-badge ${r.payment_status==='paid'?'pt-badge-paid':'pt-badge-pend'}">${r.payment_status==='paid'?'Оплачено':'Ожидает'}</span>` : ''}
+    </div>`).join('');
+}
+
+function ptDownloadCsv() {
+  if (!_ptRegs.length) { showToast('Нет данных для экспорта', true); return; }
+  const fixedHeaders = ['Дата', 'ID', 'Телефон', 'Имя', 'Telegram ID', 'Тариф', 'Вариант', 'Статус оплаты', 'Сумма'];
+  const customHeaders = _ptFields.map(f => f.label || f.slug);
+  const headers = [...fixedHeaders, ...customHeaders];
+
+  const rows = _ptRegs.map(r => {
+    const fixed = [
+      r.created_at, r.id, r.phone||'', r.display_name||'',
+      r.tg_user_id||'', r.tariff||'', r.selected_option||'',
+      r.payment_status||'', r.payment_amount||'',
+    ];
+    const custom = _ptFields.map(f => (r.fields_data?.[f.slug] ?? ''));
+    return [...fixed, ...custom];
+  });
+
+  const csvLine = arr => arr.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',');
+  const csv = '﻿' + [headers, ...rows].map(csvLine).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `event-${_evId}-participants.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ═══════════════════════════════
+   COPY EVENT LINK
+═══════════════════════════════ */
+function copyEventLink() {
+  const slug = document.getElementById('cfg-slug').value.trim();
+  if (!slug) { showToast('Введите slug', true); return; }
+  const url = location.origin + '/event/' + slug;
+  navigator.clipboard?.writeText(url).then(() => showToast('Ссылка скопирована')).catch(() => {
+    const inp = document.createElement('input');
+    inp.value = url; document.body.appendChild(inp); inp.select(); document.execCommand('copy'); inp.remove();
+    showToast('Ссылка скопирована');
+  });
+}
+
 function insertPh(taId, ph) {
   const ta = document.getElementById(taId);
   if (!ta) return;
@@ -1269,12 +1392,13 @@ function switchEdTab(id, btn) {
   document.querySelectorAll('.ed-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('ed-' + id)?.classList.add('active');
   btn.classList.add('active');
+  if (id === 'participants') loadParticipants();
   if (id === 'tariffs') renderAllTariffs();
   if (id === 'messenger') updatePhList();
 }
 
 function onPaymentsToggle(on) {
-  document.querySelectorAll('.ed-tab')[2].style.opacity = on ? '' : '.4';
+  document.querySelectorAll('.ed-tab')[3].style.opacity = on ? '' : '.4';
 }
 
 function toggleSection(id, show) {

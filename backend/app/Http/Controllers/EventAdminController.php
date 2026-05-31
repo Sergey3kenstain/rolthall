@@ -222,23 +222,30 @@ class EventAdminController extends Controller
 
     public function registrations(Request $request, int $id): JsonResponse
     {
-        $event = Event::findOrFail($id);
+        $event = Event::with('fields')->findOrFail($id);
         $q     = $request->query('q', '');
+        $full  = $request->boolean('full', false);
 
         $regs = EventRegistration::with('tariff')
             ->where('event_id', $id)
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($inner) use ($q) {
                     $inner->where('phone', 'like', "%{$q}%")
+                          ->orWhere('display_name', 'like', "%{$q}%")
                           ->orWhere('tg_user_id', 'like', "%{$q}%")
                           ->orWhereJsonContains('fields_data', $q);
                 });
             })
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn($r) => $this->formatRegistration($r));
+            ->map(fn($r) => $this->formatRegistration($r, $full));
 
-        return response()->json(['ok' => true, 'registrations' => $regs], 200, [], JSON_UNESCAPED_UNICODE);
+        $resp = ['ok' => true, 'registrations' => $regs];
+        if ($full) {
+            $resp['fields'] = $event->fields->map(fn($f) => ['slug' => $f->slug, 'label' => $f->label]);
+        }
+
+        return response()->json($resp, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function registrationDetail(int $eventId, int $regId): JsonResponse
