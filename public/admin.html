@@ -1820,9 +1820,9 @@ select.inp option{background:var(--bg-card);}
 const API = '/api';
 let _token = localStorage.getItem('rh_token');
 
-// Если нет токена — пробуем авто-логин через Telegram WebApp, иначе редирект на /login
-(async () => {
-  if (_token) return; // токен есть — продолжаем нормально
+// Promise, который резолвится true если авторизованы, иначе редиректит на /login
+const _authReady = (async () => {
+  if (_token) return true;
   const initData = window.Telegram?.WebApp?.initData;
   if (initData) {
     try {
@@ -1834,14 +1834,13 @@ let _token = localStorage.getItem('rh_token');
       const data = await res.json();
       if (data?.ok && data.redirect_to === '/admin' && data.token) {
         localStorage.setItem('rh_token', data.token);
-        // eslint-disable-next-line no-global-assign
         _token = data.token;
-        return; // продолжаем загрузку страницы с новым токеном
+        return true;
       }
     } catch(_) {}
   }
-  // Нет токена и TG-логин не сработал — на страницу входа
   window.location.href = '/login';
+  return false;
 })();
 
 let _toastTimer;
@@ -3697,7 +3696,7 @@ async function init() {
   loadPendingBadge();
 }
 
-init();
+_authReady.then(ok => { if (ok) init(); });
 
 // ══════════════════════════════════════════════════════════════════════
 // СОБЫТИЯ
