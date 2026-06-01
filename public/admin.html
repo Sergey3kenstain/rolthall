@@ -3753,7 +3753,7 @@ async function loadEvents() {
           </div>
           <div class="ec-meta-row">
             <span class="ec-meta-item">${svgUsers} ${ev.registrations_count} заявок</span>
-            ${ev.payments_enabled && ev.paid_amount ? `<span class="ec-meta-item">${svgPaid} ${ev.paid_amount.toLocaleString('ru-RU')} ₽</span>` : ''}
+            ${ev.payments_enabled ? `<span class="ec-meta-item">${svgPaid} ${(ev.paid_amount || 0).toLocaleString('ru-RU')} ₽</span>` : ''}
           </div>
         </div>
       </div>
