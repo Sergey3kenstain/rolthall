@@ -2429,7 +2429,8 @@ async function openBookingModal(id) {
   }
 
   document.getElementById('bm-hall').textContent    = b.hall || '—';
-  document.getElementById('bm-format').textContent  = b.format || '—';
+  const _fmtLabel = {hourly:'Почасовая', event:'Событие', allday:'Весь день'};
+  document.getElementById('bm-format').textContent  = _fmtLabel[b.format] || b.format || '—';
   document.getElementById('bm-date').textContent    = fmtDisplayDate(b.date);
   document.getElementById('bm-time').textContent    = (b.time_start||'—') + '–' + (b.time_end||'—');
   document.getElementById('bm-dur').textContent     = b.duration_hours ? b.duration_hours + ' ч' : '—';
