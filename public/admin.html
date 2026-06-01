@@ -476,6 +476,22 @@ select.inp option{background:var(--bg-card);}
   .dash-grid-3{grid-template-columns:1fr;}
   .bar-chart{height:80px;}
 }
+/* ── Event cards ─────────────────────────────────────────────────── */
+.ec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.ec-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px 20px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:190px;cursor:pointer;transition:border-color .15s,transform .12s;}
+.ec-card:hover{border-color:rgba(255,255,255,.18);}
+.ec-card:active{transform:scale(.98);}
+.ec-title{font-size:.8rem;font-weight:700;color:var(--white);margin:0 0 10px;line-height:1.4;}
+.ec-meta{display:flex;align-items:center;gap:14px;margin-bottom:7px;flex-wrap:wrap;}
+.ec-meta-item{display:flex;align-items:center;gap:5px;font-size:.62rem;color:var(--text-m);}
+.ec-meta-item svg{color:var(--text-d);flex-shrink:0;}
+.ec-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px;}
+.ec-thumb{width:58px;height:58px;background:var(--bg-deep);border-radius:var(--r);flex-shrink:0;overflow:hidden;}
+.ec-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.ec-actions{display:flex;gap:12px;align-items:center;}
+.ec-actions button{background:none;border:none;padding:4px;cursor:pointer;color:var(--text-d);transition:color .15s;line-height:0;}
+.ec-actions button:hover{color:var(--white);}
+.ec-status{display:inline-block;font-size:.55rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-bottom:8px;}
 @media(max-width:768px){
   .sidebar{display:none;}
   .mob-header{display:flex;}
@@ -1368,7 +1384,7 @@ select.inp option{background:var(--bg-card);}
           Новое событие
         </button>
       </div>
-      <div id="ev-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="ev-list" class="ec-grid"></div>
       <div id="ev-empty" style="display:none;text-align:center;padding:48px 0;color:var(--text-d);font-size:.8rem;">Событий пока нет</div>
     </div>
 
@@ -3717,18 +3733,32 @@ async function loadEvents() {
   }
   empty.style.display = 'none';
   const statusLabel = { draft: 'Черновик', active: 'Активно', closed: 'Закрыто' };
-  const statusColor = { draft: 'var(--text-d)', active: 'var(--green)', closed: 'var(--red)' };
+  const statusBg    = { draft: 'rgba(255,255,255,.06)', active: 'rgba(74,222,128,.12)', closed: 'rgba(248,113,113,.12)' };
+  const statusClr   = { draft: 'var(--text-d)', active: 'var(--green)', closed: 'var(--red)' };
+  const svgCal  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+  const svgUsers= `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`;
+  const svgPaid = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
+  const svgLink = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>`;
+  const svgOpen = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
   list.innerHTML = data.events.map(ev => `
-    <div class="booking-card" style="cursor:pointer;" onclick="location.href='/event-editor?id=${ev.id}'">
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        ${ev.poster_url ? `<img src="${ev.poster_url}" style="width:52px;height:52px;object-fit:cover;border-radius:var(--r);flex-shrink:0;">` : `<div style="width:52px;height:52px;background:var(--bg-deep);border-radius:var(--r);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="color:var(--text-d)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>`}
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.82rem;font-weight:700;margin-bottom:3px;">${ev.title}</div>
-          <div style="font-size:.65rem;color:var(--text-d);">${ev.event_date || 'Дата не указана'}</div>
+    <div class="ec-card" onclick="location.href='/event-editor?id=${ev.id}'">
+      <div>
+        <span class="ec-status" style="background:${statusBg[ev.status]};color:${statusClr[ev.status]};">${statusLabel[ev.status]}</span>
+        <p class="ec-title">${esc(ev.title)}</p>
+        <div class="ec-meta">
+          <span class="ec-meta-item">${svgCal} ${ev.event_date || '—'}</span>
+          <span class="ec-meta-item">${svgUsers} ${ev.registrations_count} заявок</span>
+          ${ev.payments_enabled ? `<span class="ec-meta-item">${svgPaid} ${ev.paid_count} оплачено</span>` : ''}
         </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:.65rem;font-weight:700;color:${statusColor[ev.status]};">${statusLabel[ev.status]}</div>
-          <div style="font-size:.62rem;color:var(--text-d);margin-top:2px;">${ev.registrations_count} заявок · ${ev.paid_count} оплачено</div>
+      </div>
+      <div class="ec-bottom">
+        <div class="ec-thumb">
+          ${ev.poster_url ? `<img src="${ev.poster_url}" alt="">` : ''}
+        </div>
+        <div class="ec-actions" onclick="event.stopPropagation()">
+          <button title="Скопировать ссылку" onclick="navigator.clipboard.writeText(location.origin+'/event/${esc(ev.slug)}').then(()=>showToast('Ссылка скопирована'))">${svgLink}</button>
+          <button title="Открыть форму" onclick="window.open('/event/${esc(ev.slug)}','_blank')">${svgOpen}</button>
         </div>
       </div>
     </div>
