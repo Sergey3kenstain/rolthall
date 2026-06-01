@@ -43,6 +43,7 @@ class EventAdminController extends Controller
                 'poster_url'        => $e->poster_url,
                 'registrations_count' => $e->registrations_count,
                 'paid_count'        => $e->registrations()->where('payment_status', 'paid')->count(),
+                'paid_amount'       => (int) $e->registrations()->where('payment_status', 'paid')->sum('payment_amount'),
             ]);
 
         return response()->json(['ok' => true, 'events' => $events], 200, [], JSON_UNESCAPED_UNICODE);

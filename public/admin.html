@@ -478,11 +478,12 @@ select.inp option{background:var(--bg-card);}
 }
 /* ── Event cards ─────────────────────────────────────────────────── */
 .ec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
-.ec-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px 20px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:190px;cursor:pointer;transition:border-color .15s,transform .12s;}
+.ec-card{position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px 20px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:190px;cursor:pointer;transition:border-color .15s,transform .12s;}
 .ec-card:hover{border-color:rgba(255,255,255,.18);}
 .ec-card:active{transform:scale(.98);}
-.ec-title{font-size:.8rem;font-weight:700;color:var(--white);margin:0 0 10px;line-height:1.4;}
-.ec-meta{display:flex;align-items:center;gap:14px;margin-bottom:7px;flex-wrap:wrap;}
+.ec-title{font-size:.8rem;font-weight:700;color:var(--white);margin:0 0 10px;line-height:1.4;padding-right:70px;}
+.ec-meta{display:flex;flex-direction:column;gap:6px;margin-bottom:7px;}
+.ec-meta-row{display:flex;align-items:center;gap:14px;}
 .ec-meta-item{display:flex;align-items:center;gap:5px;font-size:.62rem;color:var(--text-m);}
 .ec-meta-item svg{color:var(--text-d);flex-shrink:0;}
 .ec-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px;}
@@ -491,7 +492,7 @@ select.inp option{background:var(--bg-card);}
 .ec-actions{display:flex;gap:12px;align-items:center;}
 .ec-actions button{background:none;border:none;padding:4px;cursor:pointer;color:var(--text-d);transition:color .15s;line-height:0;}
 .ec-actions button:hover{color:var(--white);}
-.ec-status{display:inline-block;font-size:.55rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-bottom:8px;}
+.ec-status{position:absolute;top:16px;right:16px;font-size:.55rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;}
 @media(max-width:768px){
   .sidebar{display:none;}
   .mob-header{display:flex;}
@@ -3747,9 +3748,13 @@ async function loadEvents() {
         <span class="ec-status" style="background:${statusBg[ev.status]};color:${statusClr[ev.status]};">${statusLabel[ev.status]}</span>
         <p class="ec-title">${ev.title}</p>
         <div class="ec-meta">
-          <span class="ec-meta-item">${svgCal} ${ev.event_date || '—'}</span>
-          <span class="ec-meta-item">${svgUsers} ${ev.registrations_count} заявок</span>
-          ${ev.payments_enabled ? `<span class="ec-meta-item">${svgPaid} ${ev.paid_count} оплачено</span>` : ''}
+          <div class="ec-meta-row">
+            <span class="ec-meta-item">${svgCal} ${ev.event_date || '—'}</span>
+          </div>
+          <div class="ec-meta-row">
+            <span class="ec-meta-item">${svgUsers} ${ev.registrations_count} заявок</span>
+            ${ev.payments_enabled && ev.paid_amount ? `<span class="ec-meta-item">${svgPaid} ${ev.paid_amount.toLocaleString('ru-RU')} ₽</span>` : ''}
+          </div>
         </div>
       </div>
       <div class="ec-bottom">
