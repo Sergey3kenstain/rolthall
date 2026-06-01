@@ -58,7 +58,12 @@ class PaymentController extends Controller
         Log::info('TBank webhook', ['status' => $payload['Status'] ?? '?', 'order' => $payload['OrderId'] ?? '?']);
 
         if (!$this->tbank->verifyWebhook($payload)) {
-            Log::warning('TBank webhook: invalid token');
+            Log::warning('TBank webhook: invalid token', [
+                'received_token' => $payload['Token'] ?? '(none)',
+                'order'          => $payload['OrderId'] ?? '?',
+                'status'         => $payload['Status']  ?? '?',
+                'keys'           => array_keys($payload),
+            ]);
             return response('FAIL', 400);
         }
 
