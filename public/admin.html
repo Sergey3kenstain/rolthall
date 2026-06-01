@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>ROLTHALL — Панель управления</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1817,8 +1818,31 @@ select.inp option{background:var(--bg-card);}
 
 <script>
 const API = '/api';
-const _token = localStorage.getItem('rh_token');
-if (!_token) window.location.href = '/login';
+let _token = localStorage.getItem('rh_token');
+
+// Если нет токена — пробуем авто-логин через Telegram WebApp, иначе редирект на /login
+(async () => {
+  if (_token) return; // токен есть — продолжаем нормально
+  const initData = window.Telegram?.WebApp?.initData;
+  if (initData) {
+    try {
+      const res  = await fetch('/api/profile/tg-login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body:    JSON.stringify({ init_data: initData }),
+      });
+      const data = await res.json();
+      if (data?.ok && data.redirect_to === '/admin' && data.token) {
+        localStorage.setItem('rh_token', data.token);
+        // eslint-disable-next-line no-global-assign
+        _token = data.token;
+        return; // продолжаем загрузку страницы с новым токеном
+      }
+    } catch(_) {}
+  }
+  // Нет токена и TG-логин не сработал — на страницу входа
+  window.location.href = '/login';
+})();
 
 let _toastTimer;
 function showToast(msg, type = '') {

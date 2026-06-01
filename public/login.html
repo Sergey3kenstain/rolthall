@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         body:    JSON.stringify({ init_data: initData }),
       });
       const data = await res.json();
-      if (data.ok) {
+      if (data?.ok) {
         if (data.redirect_to === '/admin') {
           localStorage.setItem('rh_token', data.token);
           window.location.href = '/admin';
@@ -202,8 +202,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           sessionStorage.setItem(TOKEN_KEY, data.token);
           window.location.href = '/profile';
         }
+        return;
       }
-    } catch(_) {}
+      // Вход через TG не удался — показываем понятную ошибку
+      const errEl = document.getElementById('loginError');
+      const code  = res.status;
+      if (code === 404) {
+        errEl.textContent = 'Ваш Telegram не привязан к аккаунту. Войдите через телефон и пароль или обратитесь к администратору.';
+      } else if (code === 403) {
+        errEl.textContent = 'Ошибка проверки Telegram. Попробуйте открыть через бота заново.';
+      } else {
+        errEl.textContent = data?.error || 'Ошибка входа через Telegram. Войдите вручную.';
+      }
+      errEl.style.display = 'block';
+    } catch(_) {
+      document.getElementById('loginError').textContent = 'Нет соединения. Проверьте интернет.';
+      document.getElementById('loginError').style.display = 'block';
+    }
   }
 });
 </script>
