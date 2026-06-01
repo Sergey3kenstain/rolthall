@@ -140,22 +140,6 @@ class TelegramController extends Controller
                 ]),
             ]);
 
-            // Сообщение 2: запрос телефона (только если ещё не сохранён)
-            $needPhone = !$user || !$user->phone;
-            if ($needPhone) {
-                $this->telegram->sendMessage([
-                    'chat_id'      => $chatId,
-                    'text'         => "📱 Поделитесь номером телефона — так мы свяжем уведомления с вашими бронями.",
-                    'parse_mode'   => 'HTML',
-                    'reply_markup' => json_encode([
-                        'keyboard' => [[
-                            ['text' => '📱 Поделиться номером', 'request_contact' => true],
-                        ]],
-                        'resize_keyboard'   => true,
-                        'one_time_keyboard' => true,
-                    ]),
-                ]);
-            }
         } catch (\Throwable $e) {
             Log::error('Telegram sendStart error', ['error' => $e->getMessage()]);
         }
