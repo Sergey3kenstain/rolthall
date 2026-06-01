@@ -3745,7 +3745,7 @@ async function loadEvents() {
     <div class="ec-card" onclick="location.href='/event-editor?id=${ev.id}'">
       <div>
         <span class="ec-status" style="background:${statusBg[ev.status]};color:${statusClr[ev.status]};">${statusLabel[ev.status]}</span>
-        <p class="ec-title">${esc(ev.title)}</p>
+        <p class="ec-title">${ev.title}</p>
         <div class="ec-meta">
           <span class="ec-meta-item">${svgCal} ${ev.event_date || '—'}</span>
           <span class="ec-meta-item">${svgUsers} ${ev.registrations_count} заявок</span>
@@ -3757,8 +3757,8 @@ async function loadEvents() {
           ${ev.poster_url ? `<img src="${ev.poster_url}" alt="">` : ''}
         </div>
         <div class="ec-actions" onclick="event.stopPropagation()">
-          <button title="Скопировать ссылку" onclick="navigator.clipboard.writeText(location.origin+'/event/${esc(ev.slug)}').then(()=>showToast('Ссылка скопирована'))">${svgLink}</button>
-          <button title="Открыть форму" onclick="window.open('/event/${esc(ev.slug)}','_blank')">${svgOpen}</button>
+          <button title="Скопировать ссылку" onclick="navigator.clipboard.writeText(location.origin+'/event/${ev.slug}').then(()=>showToast('Ссылка скопирована'))">${svgLink}</button>
+          <button title="Открыть форму" onclick="window.open('/event/${ev.slug}','_blank')">${svgOpen}</button>
         </div>
       </div>
     </div>
