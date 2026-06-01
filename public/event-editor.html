@@ -387,7 +387,7 @@ button{font-family:var(--font);}
   <div class="ed-tabs">
     <button class="ed-tab active" onclick="switchEdTab('settings',this)">Настройки</button>
     <button class="ed-tab" onclick="switchEdTab('participants',this)">Участники</button>
-    <button class="ed-tab" onclick="switchEdTab('fields',this)">Поля анкеты</button>
+    <button class="ed-tab" onclick="switchEdTab('fields',this)">Форма</button>
     <button class="ed-tab" onclick="switchEdTab('tariffs',this)">Тарифы</button>
     <button class="ed-tab" onclick="switchEdTab('messenger',this)">Мессенджеры</button>
   </div>
@@ -456,7 +456,9 @@ button{font-family:var(--font);}
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;" id="cfg-poster-section">
           <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-d);margin-bottom:14px;">Афиша</div>
           <div id="cfg-poster-preview" style="display:none;margin-bottom:10px;">
-            <img id="cfg-poster-img" style="max-height:160px;border-radius:var(--r);border:1px solid var(--border);display:block;margin-bottom:8px;">
+            <a id="cfg-poster-link" href="#" target="_blank" rel="noopener">
+              <img id="cfg-poster-img" style="max-height:160px;border-radius:var(--r);border:1px solid var(--border);display:block;margin-bottom:8px;cursor:pointer;">
+            </a>
             <button class="btn btn-danger btn-xs" onclick="deletePoster()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
               Удалить афишу
@@ -690,7 +692,6 @@ async function loadEvent(id) {
   document.getElementById('cfg-title').value    = ev.title || '';
   document.getElementById('cfg-slug').value     = ev.slug  || '';
   document.getElementById('cfg-date').value     = ev.event_date || '';
-  document.getElementById('cfg-tag').value      = ev.tag   || '';
   document.getElementById('cfg-desc').value     = ev.description || '';
   document.getElementById('cfg-css').value      = ev.form_css || '';
   document.getElementById('cfg-status').value   = ev.status || 'draft';
@@ -699,7 +700,8 @@ async function loadEvent(id) {
   onPaymentsToggle(!!ev.payments_enabled);
 
   if (ev.poster_url) {
-    document.getElementById('cfg-poster-img').src = ev.poster_url;
+    document.getElementById('cfg-poster-img').src  = ev.poster_url;
+    document.getElementById('cfg-poster-link').href = ev.poster_url;
     document.getElementById('cfg-poster-preview').style.display = '';
     document.getElementById('cfg-poster-note').style.display = 'none';
   }
@@ -1335,7 +1337,8 @@ async function uploadPoster(input) {
   });
   const data = await res.json();
   if (data.ok) {
-    document.getElementById('cfg-poster-img').src = data.poster_url + '?t=' + Date.now();
+    document.getElementById('cfg-poster-img').src  = data.poster_url + '?t=' + Date.now();
+    document.getElementById('cfg-poster-link').href = data.poster_url;
     document.getElementById('cfg-poster-preview').style.display = '';
     showToast('Афиша загружена');
   } else {
