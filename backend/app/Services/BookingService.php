@@ -35,10 +35,14 @@ class BookingService
             $hours     = $this->pricing->calcHours($data['time_start'], $data['time_end']);
         }
 
-        // Проверяем конфликт слотов
+        // Проверяем конфликт слотов (hold с истёкшим временем не считается занятым)
         $conflict = Booking::where('hall_id', $hall->id)
             ->where('date', $date)
             ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_DRAFT])
+            ->where(function ($q) {
+                $q->where('status', '!=', Booking::STATUS_HOLD)
+                  ->orWhere('hold_expires_at', '>', now());
+            })
             ->where('time_start', '<', $timeEnd)
             ->where('time_end',   '>', $timeStart)
             ->exists();

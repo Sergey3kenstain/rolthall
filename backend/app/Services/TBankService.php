@@ -147,8 +147,8 @@ class TBankService
      */
     private function generateToken(array $data): string
     {
-        // Убираем массивы и null
-        $filtered = array_filter($data, fn($v) => !is_array($v) && $v !== null);
+        // Убираем массивы, null и пустые строки (по документации T-Bank)
+        $filtered = array_filter($data, fn($v) => !is_array($v) && $v !== null && $v !== '');
         $filtered['Password'] = $this->secretKey;
 
         ksort($filtered);
