@@ -82,7 +82,11 @@ function render() {
 
   // Слаги полей, которые зависят хотя бы от одного тарифа
   const tariffDepSlugs = new Set((ev.tariffs||[]).flatMap(t => t.dependent_fields||[]));
-  const fieldsHtml = ev.fields.map(f => buildField(f, tariffDepSlugs)).join('');
+  const hasPhoneField = ev.fields.some(f => f.slug === 'phone');
+  const fieldsHtml = hasPhoneField
+    ? ev.fields.map(f => buildField(f, tariffDepSlugs)).join('')
+    : `<div class="field-group"><label>Введите контактный телефон *</label><input type="tel" id="f-phone" class="inp" placeholder="+7 (999) 999-99-99"><div id="err-phone" class="err-msg" style="display:none;"></div></div>`
+      + ev.fields.map(f => buildField(f, tariffDepSlugs)).join('');
 
   const tariffsHtml = ev.payments_enabled && ev.tariffs?.length ? `
     <div style="margin-bottom:14px;">
@@ -117,11 +121,6 @@ function render() {
       <div class="card">
         <div class="section-title">Анкета участника</div>
         <div id="form-fields">
-          <div class="field-group">
-            <label>Телефон *</label>
-            <input type="tel" id="f-phone" class="inp" placeholder="+7 (999) 999-99-99">
-            <div id="err-phone" class="err-msg" style="display:none;"></div>
-          </div>
           ${fieldsHtml}
         </div>
         ${tariffsHtml}
@@ -140,7 +139,7 @@ function render() {
       if (el) applyMask(el, f.mask_pattern);
     }
   });
-  applyMask(document.getElementById('f-phone'), '+7 (999) 999-99-99');
+  applyPhoneMask(document.getElementById('f-phone'));
 
   // Wire field-to-field dependencies
   const checkFieldDeps = () => {
@@ -156,6 +155,10 @@ function render() {
 }
 
 function buildField(f, depSlugs) {
+  // System phone field — always renders as the standard phone input
+  if (f.slug === 'phone') {
+    return `<div class="field-group"><label>Введите контактный телефон *</label><input type="tel" id="f-phone" class="inp" placeholder="+7 (999) 999-99-99"><div id="err-phone" class="err-msg" style="display:none;"></div></div>`;
+  }
   const req  = f.is_required ? ' *' : '';
   const ph   = f.placeholder || f.label || '';
   const isDep = depSlugs?.has(f.slug);
@@ -349,8 +352,38 @@ function renderError(msg) {
 }
 
 // Простая маска ввода
+function applyPhoneMask(el) {
+  if (!el) return;
+  el.addEventListener('input', function() {
+    let digits = this.value.replace(/\D/g, '');
+    if (digits.startsWith('8') || digits.startsWith('7')) digits = digits.slice(1);
+    digits = digits.slice(0, 10);
+    if (!digits.length) { this.value = ''; return; }
+    let r = '+7 (';
+    if (digits.length < 3) { this.value = r + digits; return; }
+    r += digits.slice(0,3) + ') ';
+    if (digits.length < 6) { this.value = r + digits.slice(3); return; }
+    r += digits.slice(3,6) + '-';
+    if (digits.length < 8) { this.value = r + digits.slice(6); return; }
+    r += digits.slice(6,8) + '-';
+    this.value = r + digits.slice(8);
+  });
+}
+
 function applyMask(el, pattern) {
   if (!el || !pattern) return;
+  // Regex pattern → validate on blur
+  if (/[\^\$\\\[]/.test(pattern)) {
+    try {
+      const re = new RegExp(pattern);
+      el.addEventListener('blur', function() {
+        if (this.value) this.classList.toggle('error', !re.test(this.value));
+      });
+      el.addEventListener('input', function() { this.classList.remove('error'); });
+    } catch(e) {}
+    return;
+  }
+  // Display mask (9 = digit placeholder)
   el.addEventListener('input', function() {
     const digits = this.value.replace(/\D/g,'');
     let result = ''; let di = 0;
