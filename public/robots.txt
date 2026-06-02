@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /event-editor
+Disallow: /event-editor.html
+Disallow: /staff-login.html
+Disallow: /api/
+
+Sitemap: https://hall.roltworld.com/sitemap.xml
