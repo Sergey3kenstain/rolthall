@@ -955,6 +955,7 @@ function applyCms() {
     const h = C.hero;
     if (h.image)    { const el=document.querySelector('#hero .hero-bg img'); if(el) el.src=h.image; }
     if (h.title)    { const el=document.querySelector('.hero-title'); if(el) el.innerHTML=h.title.replace(/\n/g,'<br>'); }
+    if (h.tag)      { const el=document.querySelector('.hero-tag');   if(el) el.textContent=h.tag; }
     if (h.desc)     { const el=document.querySelector('.hero-desc');  if(el) el.textContent=h.desc; }
     if (h.vertical) { const el=document.querySelector('.hero-vertical'); if(el) el.textContent=h.vertical; }
     if (h.price_from){ const el=document.querySelector('.div-hero-price .hero-stat-num'); if(el) el.textContent=Number(h.price_from).toLocaleString('ru-RU')+' ₽'; }

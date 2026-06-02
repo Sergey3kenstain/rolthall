@@ -860,6 +860,7 @@ select.inp option{background:var(--bg-card);}
         <div class="form-group"><label class="form-lbl">Заголовок</label><input type="text" class="inp" id="cms-hero-title" placeholder="346 м² свободы"></div>
         <div class="form-group"><label class="form-lbl">Вертикальная надпись</label><input type="text" class="inp" id="cms-hero-vertical" placeholder="г. Краснодар — ул. Коммунаров, 278/1 — 346 м²"></div>
       </div>
+      <div class="form-group"><label class="form-lbl">Тег (над заголовком)</label><input type="text" class="inp" id="cms-hero-tag" placeholder="Профессиональное танцевальное пространство в Краснодаре"></div>
       <div class="form-group"><label class="form-lbl">Подзаголовок</label><textarea class="inp" id="cms-hero-desc" style="min-height:56px;" placeholder="Пространство для тренировок…"></textarea></div>
       <div class="form-row">
         <div class="form-group"><label class="form-lbl">Цена от (₽/час)</label><input type="number" class="inp" id="cms-hero-price" placeholder="3500"></div>
@@ -2562,6 +2563,7 @@ async function loadHallsTab() {
   g('cms-hero-image',    cms.hero?.image);
   g('cms-hero-title',    cms.hero?.title);
   g('cms-hero-vertical', cms.hero?.vertical);
+  g('cms-hero-tag',      cms.hero?.tag);
   g('cms-hero-desc',     cms.hero?.desc);
   g('cms-hero-price',    cms.hero?.price_from);
   g('cms-hero-minhours', cms.hero?.min_hours);
@@ -2997,7 +2999,7 @@ async function publishHallCms() {
   btn.disabled=true; btn.textContent='Публикация…';
   const val = id => document.getElementById(id)?.value || '';
   const cms = {
-    hero: { image:val('cms-hero-image'), title:val('cms-hero-title'), vertical:val('cms-hero-vertical'), desc:val('cms-hero-desc'), price_from:+val('cms-hero-price')||null, min_hours:+val('cms-hero-minhours')||null, capacity:+val('cms-hero-capacity')||null },
+    hero: { image:val('cms-hero-image'), title:val('cms-hero-title'), vertical:val('cms-hero-vertical'), tag:val('cms-hero-tag'), desc:val('cms-hero-desc'), price_from:+val('cms-hero-price')||null, min_hours:+val('cms-hero-minhours')||null, capacity:+val('cms-hero-capacity')||null },
     about: { section_title:val('cms-about-title'), area_label:val('cms-about-area'), features:[{title:val('cms-f1-title'),text:val('cms-f1-text')},{title:val('cms-f2-title'),text:val('cms-f2-text')},{title:val('cms-f3-title'),text:val('cms-f3-text')}], carousel:cmsGetCarousel() },
     pricing: { hourly:cmsGetHourly(), hourly_note:val('cms-hourly-note'), event_table:cmsGetEventTable(), events:cmsGetEvents() },
     rules: { note:val('cms-rules-note'), accordion:cmsGetRulesAccordion(), ban:{label:val('cms-ban-label'),title:val('cms-ban-title'),items:cmsGetBanItems()} },
