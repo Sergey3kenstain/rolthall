@@ -2001,6 +2001,8 @@ async function initUser() {
   if (r!=='developer') {
     const ts=document.getElementById('tg-technical-settings'); if(ts) ts.style.display='none';
   }
+  const _hash = location.hash.slice(1);
+  if (_hash && document.getElementById('tab-' + _hash)) switchTab(_hash);
 }
 
 function toggleMobAvatarPopup(e) {
