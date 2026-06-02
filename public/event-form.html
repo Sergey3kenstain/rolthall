@@ -372,15 +372,31 @@ function applyPhoneMask(el) {
 
 function applyMask(el, pattern) {
   if (!el || !pattern) return;
-  // Regex pattern → validate on blur
-  if (/[\^\$\\\[]/.test(pattern)) {
+  // Split REGEX||CHAR_FILTER format
+  const sep = pattern.indexOf('||');
+  const mainPat = sep !== -1 ? pattern.slice(0, sep) : pattern;
+  const filterPat = sep !== -1 ? pattern.slice(sep + 2) : null;
+  // Regex pattern → char filter on input + validate on blur
+  if (/[\^\$\\\[]/.test(mainPat)) {
+    if (filterPat) {
+      try {
+        const filterRe = new RegExp(filterPat, 'gu');
+        el.addEventListener('input', function() {
+          const pos = this.selectionStart;
+          const orig = this.value;
+          this.value = orig.replace(new RegExp(filterPat, 'gu'), '');
+          const diff = orig.length - this.value.length;
+          if (diff) this.setSelectionRange(Math.max(0, pos - diff), Math.max(0, pos - diff));
+        });
+      } catch(e) {}
+    }
     try {
-      const re = new RegExp(pattern);
+      const re = new RegExp(mainPat);
       el.addEventListener('blur', function() {
         if (this.value) this.classList.toggle('error', !re.test(this.value));
       });
-      el.addEventListener('input', function() { this.classList.remove('error'); });
     } catch(e) {}
+    el.addEventListener('input', function() { this.classList.remove('error'); });
     return;
   }
   // Display mask (9 = digit placeholder)
