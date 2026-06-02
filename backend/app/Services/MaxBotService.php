@@ -17,6 +17,8 @@ class MaxBotService
         $this->token = $settings['token'] ?? config('services.max.bot_token', '');
     }
 
+    public function hasToken(): bool { return !empty($this->token); }
+
     public function sendToChat(int|string $chatId, string $text): bool
     {
         if (!$this->token) return false;
