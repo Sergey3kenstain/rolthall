@@ -58,6 +58,8 @@
 const _tg    = window.Telegram?.WebApp;
 const _tgId  = _tg?.initDataUnsafe?.user?.id?.toString() || null;
 const _slug  = location.pathname.replace(/^\/event\//, '').replace(/\/$/, '');
+const _urlP  = new URLSearchParams(location.search);
+const _maxId = _urlP.get('max_id') || null;
 let   _event = null;
 let   _selectedTariff = null;
 
@@ -294,6 +296,7 @@ async function submitForm() {
     const body = {
       phone,
       tg_user_id:      _tgId,
+      max_user_id:     _maxId,
       fields_data:     fieldsData,
       tariff_id:       _selectedTariff?.id || null,
       selected_option: selectedOption,
