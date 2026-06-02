@@ -141,13 +141,31 @@ function render() {
     }
   });
   applyMask(document.getElementById('f-phone'), '+7 (999) 999-99-99');
+
+  // Wire field-to-field dependencies
+  const checkFieldDeps = () => {
+    document.querySelectorAll('[data-dep-field]').forEach(el => {
+      const val = document.getElementById('f-' + el.dataset.depField)?.value || '';
+      el.style.display = val === el.dataset.depValue ? '' : 'none';
+    });
+  };
+  new Set(ev.fields.filter(f => f.dep_field).map(f => f.dep_field)).forEach(slug => {
+    document.getElementById('f-' + slug)?.addEventListener('change', checkFieldDeps);
+  });
+  checkFieldDeps();
 }
 
 function buildField(f, depSlugs) {
   const req  = f.is_required ? ' *' : '';
   const ph   = f.placeholder || f.label || '';
   const isDep = depSlugs?.has(f.slug);
-  const wrap  = (inner, extraStyle='') => `<div class="field-group"${isDep?' data-tariff-dep style="display:none;"':extraStyle?` style="${extraStyle}"`:''}>${inner}</div>`;
+  const isFieldDep = !isDep && !!f.dep_field;
+  const depAttrs = isDep
+    ? ' data-tariff-dep style="display:none;"'
+    : isFieldDep
+      ? ` data-dep-field="${f.dep_field}" data-dep-value="${(f.dep_value||'').replace(/"/g,'&quot;')}" style="display:none;"`
+      : '';
+  const wrap  = (inner, extraStyle='') => `<div class="field-group"${depAttrs||(extraStyle?` style="${extraStyle}"`:'') }>${inner}</div>`;
   const err  = `<div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`;
 
   if (f.field_type === 'select') {
