@@ -201,8 +201,9 @@ class EventPublicController extends Controller
     private function resolveClientId(string $phone, ?string $eventTag): ?int
     {
         $normalized = preg_replace('/[^\d]/', '', $phone);
+        $last10 = substr($normalized, -10);
         $client = Client::whereHas('user', fn($q) =>
-            $q->whereRaw("REGEXP_REPLACE(phone, '[^0-9]', '') LIKE ?", ["%{$normalized}"])
+            $q->where('phone', 'like', "%{$last10}")
         )->first();
 
         if ($client && $eventTag) {

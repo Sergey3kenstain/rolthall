@@ -623,7 +623,7 @@ const EV_MASK_PRESETS = [
   {label:'Telegram @username',      value:'^@[A-Za-z0-9_]{5,32}$||[^@A-Za-z0-9_]'},
   {label:'Instagram @username',     value:'^@?[A-Za-z0-9._]{1,30}$||[^@A-Za-z0-9._]'},
   {label:'URL (https://)',          value:'^https?:\\/\\/.+||[\\s]'},
-  {label:'ФИО',                     value:'^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$||[^А-ЯЁа-яё ]'},
+  {label:'ФИО',                     value:'^[А-ЯЁ][а-яё]+( [А-ЯЁ][а-яё]+){1,2}$||[^А-ЯЁа-яё ]'},
   {label:'Пароль (мин. 8 зн.)',     value:'^.{8,}$'},
 ];
 

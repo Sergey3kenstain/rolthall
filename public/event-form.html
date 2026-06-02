@@ -386,7 +386,7 @@ function applyMask(el, pattern) {
           const orig = this.value;
           this.value = orig.replace(new RegExp(filterPat, 'gu'), '');
           const diff = orig.length - this.value.length;
-          if (diff) this.setSelectionRange(Math.max(0, pos - diff), Math.max(0, pos - diff));
+          if (diff) try { this.setSelectionRange(Math.max(0, pos - diff), Math.max(0, pos - diff)); } catch(e) {}
         });
       } catch(e) {}
     }
