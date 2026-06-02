@@ -40,8 +40,8 @@
   },
   "geo": {
     "@type": "GeoCoordinates",
-    "latitude": 45.0355,
-    "longitude": 38.9753
+    "latitude": 45.052060,
+    "longitude": 38.985887
   },
   "openingHoursSpecification": {
     "@type": "OpeningHoursSpecification",
@@ -1013,6 +1013,7 @@ function applyCms() {
     if (h.title)    { const el=document.querySelector('.hero-title'); if(el) el.innerHTML=h.title.replace(/\n/g,'<br>'); }
     if (h.tag)      { const el=document.querySelector('.hero-tag');   if(el) el.textContent=h.tag; }
     if (h.desc)     { const el=document.querySelector('.hero-desc');  if(el) el.textContent=h.desc; }
+
     if (h.vertical) { const el=document.querySelector('.hero-vertical'); if(el) el.textContent=h.vertical; }
     if (h.price_from){ const el=document.querySelector('.div-hero-price .hero-stat-num'); if(el) el.textContent=Number(h.price_from).toLocaleString('ru-RU')+' ₽'; }
     if (h.min_hours) { const el=document.querySelector('.div-hero-time .hero-stat-num');  if(el) el.textContent=h.min_hours+' час'; }
@@ -1114,6 +1115,62 @@ function applyCms() {
       const col=document.querySelector('#contacts .contacts-layout > .reveal');
       const divs=col?col.querySelectorAll('div[style]'):null;
       if(divs?.length){ const hrs=divs[divs.length-1]; hrs.innerHTML=`Пн — Пт: ${c.hours_wd||'по записи'}<br>Сб — Вс: ${c.hours_we||'по записи'}<br>Бронирование — онлайн`; }
+    }
+  }
+  // SEO
+  if (C.seo) {
+    const s = C.seo;
+    if (s.title) document.title = s.title;
+    const setMeta = (sel, val) => { const el=document.querySelector(sel); if(el&&val) el.setAttribute('content', val); };
+    setMeta('meta[name="description"]',         s.desc);
+    setMeta('meta[name="keywords"]',            s.keywords);
+    setMeta('meta[property="og:title"]',        s.title);
+    setMeta('meta[property="og:description"]',  s.desc);
+    setMeta('meta[property="og:image"]',        s.og_image);
+    // Schema.org — обновляем телефон и координаты
+    const schema = document.querySelector('script[type="application/ld+json"]');
+    if (schema) {
+      try {
+        const obj = JSON.parse(schema.textContent);
+        if (C.contacts?.phone) obj.telephone = C.contacts.phone;
+        if (s.lat && s.lng) { obj.geo = { '@type':'GeoCoordinates', latitude: +s.lat, longitude: +s.lng }; }
+        if (s.opens || s.closes) { obj.openingHoursSpecification = { '@type':'OpeningHoursSpecification', dayOfWeek:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], opens: s.opens||'10:00', closes: s.closes||'23:00' }; }
+        schema.textContent = JSON.stringify(obj);
+      } catch(e) {}
+    }
+    // Яндекс.Метрика
+    if (s.metrika_id && !document.getElementById('ym-script')) {
+      const sc = document.createElement('script'); sc.id='ym-script';
+      sc.textContent = `(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");ym(${s.metrika_id},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});`;
+      document.head.appendChild(sc);
+      const noscript = document.createElement('noscript');
+      noscript.innerHTML = `<div><img src="https://mc.yandex.ru/watch/${s.metrika_id}" style="position:absolute;left:-9999px;" alt=""/></div>`;
+      document.body.insertBefore(noscript, document.body.firstChild);
+    }
+    // Google Tag Manager
+    if (s.gtm_id && !document.getElementById('gtm-script')) {
+      const sc = document.createElement('script'); sc.id='gtm-script';
+      sc.textContent = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${s.gtm_id}');`;
+      document.head.appendChild(sc);
+      const noscript = document.createElement('noscript');
+      noscript.innerHTML = `<iframe src="https://www.googletagmanager.com/ns.html?id=${s.gtm_id}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`;
+      document.body.insertBefore(noscript, document.body.firstChild);
+    }
+    // VK Pixel
+    if (s.vk_pixel && !document.getElementById('vk-pixel-script')) {
+      const sc = document.createElement('script'); sc.id='vk-pixel-script';
+      sc.textContent = `!function(){var t=document.createElement("script");t.type="text/javascript",t.async=!0,t.src="https://vk.com/js/api/openapi.js?169",t.onload=function(){VK.Retargeting.Init("${s.vk_pixel}"),VK.Retargeting.Hit()},document.head.appendChild(t)}();`;
+      document.head.appendChild(sc);
+    }
+    // Произвольный код
+    if (s.custom_head && !document.getElementById('seo-custom-script')) {
+      const wrap = document.createElement('div'); wrap.id='seo-custom-script';
+      wrap.innerHTML = s.custom_head;
+      Array.from(wrap.querySelectorAll('script')).forEach(old => {
+        const sc = document.createElement('script');
+        if (old.src) sc.src = old.src; else sc.textContent = old.textContent;
+        document.head.appendChild(sc);
+      });
     }
   }
 }

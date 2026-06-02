@@ -582,6 +582,10 @@ select.inp option{background:var(--bg-card);}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       События
     </button>
+    <button class="nav-item" data-tab="seo" id="nav-seo" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      SEO
+    </button>
     <button class="nav-item" data-tab="debug" id="nav-debug" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
       Debug Log
@@ -655,6 +659,10 @@ select.inp option{background:var(--bg-card);}
     <button class="mob-nav-item" data-tab="events" id="mob-nav-events" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       События
+    </button>
+    <button class="mob-nav-item" data-tab="seo" id="mob-nav-seo" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      SEO
     </button>
     <button class="mob-nav-item" data-tab="debug" id="mob-nav-debug" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
@@ -1549,6 +1557,81 @@ select.inp option{background:var(--bg-card);}
   </div>
 
   <!-- DEBUG LOG -->
+  <div class="tab-pane" id="tab-seo">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:.9rem;font-weight:700;">SEO</div>
+        <div style="font-size:.65rem;color:var(--text-d);margin-top:2px;">Только для разработчика</div>
+      </div>
+      <button class="btn btn-w btn-sm" onclick="saveSeoSettings()">Сохранить и применить</button>
+    </div>
+
+    <!-- Мета-теги -->
+    <div class="cms-section">
+      <div class="cms-section-title">Мета-теги лендинга</div>
+      <div class="form-group"><label class="form-lbl">Title (заголовок вкладки)</label><input type="text" class="inp" id="seo-title" placeholder="ROLTHALL — Аренда танцевального зала в Краснодаре"></div>
+      <div class="form-group"><label class="form-lbl">Description (160 символов)</label><textarea class="inp" id="seo-desc" style="min-height:62px;" placeholder="Профессиональный танцевальный зал 346 м² в Краснодаре…"></textarea></div>
+      <div class="form-group"><label class="form-lbl">Keywords</label><input type="text" class="inp" id="seo-keywords" placeholder="аренда танцевального зала Краснодар, …"></div>
+      <div class="form-group"><label class="form-lbl">OG Image URL (для соцсетей)</label><input type="text" class="inp" id="seo-og-image" placeholder="https://hall.roltworld.com/images/rolthall.png"></div>
+    </div>
+
+    <!-- Счётчики -->
+    <div class="cms-section">
+      <div class="cms-section-title">Счётчики и пиксели</div>
+      <div class="form-group">
+        <label class="form-lbl">Яндекс.Метрика — ID счётчика</label>
+        <input type="text" class="inp" id="seo-metrika-id" placeholder="12345678">
+        <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Вставь только цифровой ID из кабинета Метрики</div>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Google Tag Manager — ID</label>
+        <input type="text" class="inp" id="seo-gtm-id" placeholder="GTM-XXXXXXX">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">VK Pixel — ID</label>
+        <input type="text" class="inp" id="seo-vk-pixel" placeholder="VK-RTRG-XXXXXXX-XXXXXXX">
+        <div style="font-size:.6rem;color:var(--text-d);margin-top:4px;">Только ID, без кода — мы генерируем его автоматически</div>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Дополнительный код в &lt;head&gt;</label>
+        <textarea class="inp" id="seo-custom-head" style="min-height:100px;font-family:monospace;font-size:.7rem;" placeholder="<!-- любые скрипты, пиксели, верификационные теги -->"></textarea>
+      </div>
+    </div>
+
+    <!-- Schema.org -->
+    <div class="cms-section">
+      <div class="cms-section-title">Schema.org (структурированные данные)</div>
+      <div style="font-size:.62rem;color:var(--text-d);margin-bottom:12px;line-height:1.6;">Эти данные видят Гугл и Яндекс. Телефон тянется автоматически из раздела «Контакты» в настройках Холла.</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Широта (latitude)</label><input type="text" class="inp" id="seo-lat" placeholder="45.052060"></div>
+        <div class="form-group"><label class="form-lbl">Долгота (longitude)</label><input type="text" class="inp" id="seo-lng" placeholder="38.985887"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Открытие (10:00)</label><input type="text" class="inp" id="seo-opens" placeholder="10:00"></div>
+        <div class="form-group"><label class="form-lbl">Закрытие (23:00)</label><input type="text" class="inp" id="seo-closes" placeholder="23:00"></div>
+      </div>
+    </div>
+
+    <!-- Статус индексации -->
+    <div class="cms-section">
+      <div class="cms-section-title">Статус индексации</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="https://search.google.com/search-console" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:flex-start;gap:8px;text-decoration:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Google Search Console
+        </a>
+        <a href="https://webmaster.yandex.ru" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:flex-start;gap:8px;text-decoration:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Яндекс.Вебмастер
+        </a>
+        <a href="https://hall.roltworld.com/sitemap.xml" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:flex-start;gap:8px;text-decoration:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Sitemap.xml
+        </a>
+      </div>
+    </div>
+  </div>
+
   <div class="tab-pane" id="tab-debug">
     <div style="margin-bottom:20px;">
       <div style="font-size:.9rem;font-weight:700;">Debug Log</div>
@@ -1998,6 +2081,10 @@ async function initUser() {
     const mne = document.getElementById('mob-nav-events');
     if (ne)  ne.style.display  = 'flex';
     if (mne) mne.style.display = 'flex';
+    const ns = document.getElementById('nav-seo');
+    const mns = document.getElementById('mob-nav-seo');
+    if (ns)  ns.style.display  = 'flex';
+    if (mns) mns.style.display = 'flex';
   }
   if (r!=='developer') {
     const ts=document.getElementById('tg-technical-settings'); if(ts) ts.style.display='none';
@@ -2606,6 +2693,21 @@ async function loadHallsTab() {
   g('cms-hours-wd', cms.contacts?.hours_wd);
   g('cms-hours-we', cms.contacts?.hours_we);
 
+  // SEO
+  const s = cms.seo || {};
+  g('seo-title',       s.title);
+  g('seo-desc',        s.desc);
+  g('seo-keywords',    s.keywords);
+  g('seo-og-image',    s.og_image);
+  g('seo-metrika-id',  s.metrika_id);
+  g('seo-gtm-id',      s.gtm_id);
+  g('seo-vk-pixel',    s.vk_pixel);
+  g('seo-custom-head', s.custom_head);
+  g('seo-lat',         s.lat);
+  g('seo-lng',         s.lng);
+  g('seo-opens',       s.opens);
+  g('seo-closes',      s.closes);
+
   // Booking engine pricing
   loadEnginePricing();
 }
@@ -3005,10 +3107,41 @@ async function publishHallCms() {
     rules: { note:val('cms-rules-note'), accordion:cmsGetRulesAccordion(), ban:{label:val('cms-ban-label'),title:val('cms-ban-title'),items:cmsGetBanItems()} },
     faq: cmsGetFaq(),
     contacts: { address:val('cms-addr'), phone:val('cms-phone'), telegram:val('cms-tg'), whatsapp:val('cms-wa'), instagram:val('cms-ig'), map_src:val('cms-map-src'), map_link:val('cms-map-link'), hours_wd:val('cms-hours-wd'), hours_we:val('cms-hours-we') },
+    seo: _buildSeoPayload(),
   };
   const res = await api('/admin/halls/'+HALL_ID+'/publish', {method:'POST', body:JSON.stringify({cms})});
   btn.disabled=false; btn.textContent='Опубликовать';
   if (res?.ok) { btn.textContent='✓ Опубликовано'; setTimeout(()=>{btn.textContent='Опубликовать';},3000); }
+}
+
+function _buildSeoPayload() {
+  const val = id => document.getElementById(id)?.value || '';
+  return {
+    title:       val('seo-title'),
+    desc:        val('seo-desc'),
+    keywords:    val('seo-keywords'),
+    og_image:    val('seo-og-image'),
+    metrika_id:  val('seo-metrika-id'),
+    gtm_id:      val('seo-gtm-id'),
+    vk_pixel:    val('seo-vk-pixel'),
+    custom_head: val('seo-custom-head'),
+    lat:         val('seo-lat'),
+    lng:         val('seo-lng'),
+    opens:       val('seo-opens'),
+    closes:      val('seo-closes'),
+  };
+}
+
+async function saveSeoSettings() {
+  const btn = document.querySelector('#tab-seo .btn-w');
+  btn.disabled = true; btn.textContent = 'Сохранение…';
+  const h = await api('/admin/halls/' + HALL_ID);
+  if (!h) { btn.disabled=false; btn.textContent='Сохранить и применить'; return; }
+  const cms = Object.assign({}, (h.cms && Object.keys(h.cms).length) ? h.cms : CMS_DEFAULTS, { seo: _buildSeoPayload() });
+  const res = await api('/admin/halls/'+HALL_ID+'/publish', {method:'POST', body:JSON.stringify({cms})});
+  btn.disabled=false;
+  if (res?.ok) { btn.textContent='✓ Сохранено'; setTimeout(()=>{btn.textContent='Сохранить и применить';},3000); }
+  else { btn.textContent='Ошибка'; setTimeout(()=>{btn.textContent='Сохранить и применить';},3000); }
 }
 
 let _editHallId = null;
