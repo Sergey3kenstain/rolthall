@@ -901,17 +901,18 @@ async function saveEvent() {
   if (!fr?.ok) { showToast('Ошибка сохранения полей: ' + (fr?.message || 'проверьте slug и подпись'), true); return; }
 
   // Save tariffs
-  if (paymentsEnabled && _tariffs.length) {
-    const validTariffs = _tariffs.filter(t => t.tiers.length > 0);
-    if (validTariffs.length) {
-      const tr = await api(`/admin/events/${_evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: validTariffs.map((t,i) => ({
-        name: t.name,
-        condition_field: t.condition_field || null,
-        condition_value: t.condition_value || null,
-        sort_order: i,
-        tiers: t.tiers,
-      })) }) });
-      if (!tr?.ok) { showToast('Ошибка сохранения тарифов', true); return; }
+  if (paymentsEnabled) {
+    const tr = await api(`/admin/events/${_evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: _tariffs.map((t,i) => ({
+      name: t.name,
+      condition_field: t.condition_field || null,
+      condition_value: t.condition_value || null,
+      sort_order: i,
+      tiers: t.tiers,
+    })) }) });
+    if (!tr?.ok) {
+      const detail = tr?.message || tr?.errors ? JSON.stringify(tr.errors) : '';
+      showToast('Ошибка сохранения тарифов' + (detail ? ': ' + detail : ''), true);
+      return;
     }
   }
 
