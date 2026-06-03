@@ -1206,7 +1206,7 @@ function renderAllTariffs() {
   const el = document.getElementById('tariffsList');
   el.innerHTML = '';
   // Поля типа select/multiselect для условия
-  const condFields = _fields.filter(f => f.slug && ['select','multiselect','radio'].includes(f.field_type));
+  const condFields = _fields.filter(f => f.slug && ['select','multiselect','radio'].includes(f.type));
 
   _tariffs.forEach((t, ti) => {
     const isDynamic = !!t.condition_field;
