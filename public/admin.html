@@ -1994,6 +1994,7 @@ function switchTab(tab) {
     const loaders = {
       bookings: ()=>{ initBookingsTab(); loadAllBookings(); },
       halls: loadHallsTab,
+      seo: loadSeoTab,
       users: loadClientsTab,
       log: loadLogTab,
       blacklist: loadBlacklistTab,
@@ -2724,6 +2725,26 @@ async function loadHallsTab() {
 
   // Booking engine pricing
   loadEnginePricing();
+}
+
+async function loadSeoTab() {
+  const h = await api('/admin/halls/' + HALL_ID);
+  if (!h) return;
+  const cms = (h.cms && Object.keys(h.cms).length) ? h.cms : CMS_DEFAULTS;
+  const s = cms.seo || CMS_DEFAULTS.seo || {};
+  const g = (id, v) => { const el=document.getElementById(id); if(el) el.value = v||''; };
+  g('seo-title',       s.title);
+  g('seo-desc',        s.desc);
+  g('seo-keywords',    s.keywords);
+  g('seo-og-image',    s.og_image);
+  g('seo-metrika-id',  s.metrika_id);
+  g('seo-gtm-id',      s.gtm_id);
+  g('seo-vk-pixel',    s.vk_pixel);
+  g('seo-custom-head', s.custom_head);
+  g('seo-lat',         s.lat);
+  g('seo-lng',         s.lng);
+  g('seo-opens',       s.opens);
+  g('seo-closes',      s.closes);
 }
 
 /* ── BOOKING ENGINE PRICING ── */
