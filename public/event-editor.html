@@ -801,9 +801,8 @@ async function loadEvent(id) {
   _tariffs = (ev.tariffs || []).map(t => ({
     dbId: t.id,
     name: t.name || '',
-    has_options: !!t.has_options,
-    options: t.options || [],
-    dependent_fields: t.dependent_fields || [],
+    condition_field: t.condition_field || null,
+    condition_value: t.condition_value || '',
     tiers: (t.tiers || []).map(tier => ({...tier})),
   }));
   renderAllTariffs();
@@ -907,9 +906,8 @@ async function saveEvent() {
     if (validTariffs.length) {
       const tr = await api(`/admin/events/${_evId}/tariffs`, { method:'POST', body: JSON.stringify({ tariffs: validTariffs.map((t,i) => ({
         name: t.name,
-        has_options: t.has_options,
-        options: t.options,
-        dependent_fields: t.dependent_fields,
+        condition_field: t.condition_field || null,
+        condition_value: t.condition_value || null,
         sort_order: i,
         tiers: t.tiers,
       })) }) });
