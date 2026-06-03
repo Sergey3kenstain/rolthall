@@ -1498,7 +1498,7 @@ function toggleSection(id, show) {
   if (el) el.style.display = show ? 'flex' : 'none';
 }
 
-function goBack() { history.back(); }
+function goBack() { location.href = '/admin#events'; }
 
 function doLogout() { localStorage.removeItem('rh_token'); location.href = '/admin'; }
 function toggleMobAvatarPopup(e) {
