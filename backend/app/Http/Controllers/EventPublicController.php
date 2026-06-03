@@ -134,11 +134,15 @@ class EventPublicController extends Controller
 
         // Инициируем платёж если нужен
         if ($event->payments_enabled && $price > 0) {
+            $base = config('app.url');
             $result = $this->tbank->init([
-                'amount'      => $price * 100,
-                'order_id'    => $orderId,
-                'description' => "Событие «{$event->title}» — {$tariff->name}",
-                'phone'       => $data['phone'],
+                'amount'           => $price * 100,
+                'order_id'         => $orderId,
+                'description'      => "Событие «{$event->title}» — {$tariff->name}",
+                'phone'            => $data['phone'],
+                'notification_url' => $base . '/api/events/payment-webhook',
+                'success_url'      => $base . '/event-success.html?reg=' . $reg->id . '&paid=1',
+                'fail_url'         => $base . '/event-form.html?id=' . $event->slug . '&payment_failed=1',
             ]);
 
             if (!$result['ok']) {

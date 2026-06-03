@@ -75,6 +75,55 @@ class MaxBotService
         }
     }
 
+    public function sendPhoto(int|string $userId, string $photoPath, string $caption = '', array $buttons = []): bool
+    {
+        if (!$this->token) return false;
+
+        try {
+            // Загружаем фото в Max API, получаем токен
+            $upload = Http::withHeaders(['Authorization' => $this->token])
+                ->attach('data', fopen($photoPath, 'r'), basename($photoPath))
+                ->post("{$this->baseUrl}/uploads?type=photo");
+
+            if (!$upload->successful()) {
+                Log::error('Max sendPhoto upload error', ['status' => $upload->status(), 'body' => $upload->body()]);
+                return false;
+            }
+
+            $token = $upload->json('token');
+            if (!$token) {
+                Log::error('Max sendPhoto: no token in upload response', ['body' => $upload->body()]);
+                return false;
+            }
+
+            $body = [
+                'text'        => $caption,
+                'format'      => 'html',
+                'attachments' => [['type' => 'image', 'payload' => ['token' => $token]]],
+            ];
+            if (!empty($buttons)) {
+                $body['attachments'][] = $this->buildKeyboard($buttons)[0];
+            }
+
+            $response = Http::withHeaders(['Authorization' => $this->token])
+                ->post("{$this->baseUrl}/messages?user_id={$userId}", $body);
+
+            if (!$response->successful()) {
+                Log::error('Max sendPhoto message error', [
+                    'user_id' => $userId,
+                    'status'  => $response->status(),
+                    'body'    => $response->body(),
+                ]);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Max sendPhoto exception', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
     public function setCommands(array $commands): array
     {
         try {

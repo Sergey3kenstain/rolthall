@@ -25,14 +25,15 @@ class TBankService
      */
     public function init(array $params): array
     {
+        $base = config('app.url');
         $data = array_merge([
-            'TerminalKey' => $this->terminalKey,
-            'Amount'      => $params['amount'],        // в копейках
-            'OrderId'     => $params['order_id'],      // уникальный ID брони
-            'Description' => $params['description'],
-            'NotificationURL' => config('app.url') . '/api/payment/webhook',
-            'SuccessURL'  => config('app.url') . '/booking/success',
-            'FailURL'     => config('app.url') . '/booking/fail',
+            'TerminalKey'     => $this->terminalKey,
+            'Amount'          => $params['amount'],
+            'OrderId'         => $params['order_id'],
+            'Description'     => $params['description'],
+            'NotificationURL' => $params['notification_url'] ?? $base . '/api/payment/webhook',
+            'SuccessURL'      => $params['success_url']      ?? $base . '/booking/success',
+            'FailURL'         => $params['fail_url']         ?? $base . '/booking/fail',
         ], $params['extra'] ?? []);
 
         // Фискальный чек (54-ФЗ) — обязателен для T-Bank

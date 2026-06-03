@@ -169,10 +169,23 @@ class EventTicketService
             $event
         );
 
-        // Max API не поддерживает отправку файлов через user_id — только текст
-        $this->max->sendMessage($userId, $userText, [[
+        $buttons = [[
             ['type' => 'link', 'text' => '👤 Личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max'],
-        ]]);
+        ]];
+
+        $posterPath = $event->poster_path
+            ? storage_path('app/public/' . $event->poster_path)
+            : null;
+
+        if ($posterPath && file_exists($posterPath)) {
+            $ticketPath = $this->generateTicketImage($posterPath, $reg, $event);
+            $sent = $this->max->sendPhoto($userId, $ticketPath, $userText, $buttons);
+            if ($ticketPath !== $posterPath) @unlink($ticketPath);
+            if ($sent) return;
+        }
+
+        // Fallback: только текст
+        $this->max->sendMessage($userId, $userText, $buttons);
     }
 
     private function defaultUserTemplate(EventRegistration $reg, Event $event): string
