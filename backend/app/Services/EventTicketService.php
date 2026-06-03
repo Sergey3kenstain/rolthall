@@ -76,7 +76,7 @@ class EventTicketService
         ]);
         if ($maxEnabled) {
             $maxText = $this->renderTemplate($ms['max']['admin_template'] ?? null, $text, $reg, $event);
-            $ok = $this->max->sendMessage($ms['max']['admin_chat_id'], $maxText);
+            $ok = $this->max->sendToChat($ms['max']['admin_chat_id'], $maxText);
             Log::info('Event notifyAdmin max result', ['reg_id' => $reg->id, 'ok' => $ok]);
         }
     }
