@@ -1198,48 +1198,74 @@ function updateDepSelects() {
    TARIFF BUILDER
 ═══════════════════════════════ */
 function addTariff() {
-  _tariffs.push({ name:'', has_options:false, options:[], dependent_fields:[], tiers:[] });
+  _tariffs.push({ name:'', condition_field:null, condition_value:'', tiers:[] });
   renderAllTariffs();
 }
 
 function renderAllTariffs() {
   const el = document.getElementById('tariffsList');
   el.innerHTML = '';
+  // Поля типа select/multiselect для условия
+  const condFields = _fields.filter(f => f.slug && ['select','multiselect','radio'].includes(f.field_type));
+
   _tariffs.forEach((t, ti) => {
-    const depFieldsHtml = _fields.filter(f => f.slug).map(f => `
-      <label style="display:flex;align-items:center;gap:7px;font-size:.68rem;padding:3px 0;cursor:pointer;">
-        <input type="checkbox" ${(t.dependent_fields||[]).includes(f.slug)?'checked':''}
-          onchange="toggleDepField(${ti},'${f.slug}',this.checked)">
-        ${esc(f.label||f.slug)}
-      </label>`).join('');
+    const isDynamic = !!t.condition_field;
+
+    // Варианты значений для выбранного поля условия
+    const condField = condFields.find(f => f.slug === t.condition_field);
+    const condOptions = condField?.options || [];
+
+    const condFieldOpts = condFields.map(f =>
+      `<option value="${esc(f.slug)}" ${t.condition_field===f.slug?'selected':''}>${esc(f.label||f.slug)}</option>`
+    ).join('');
+
+    const condValueOpts = condOptions.length
+      ? condOptions.map(v => `<option value="${esc(v)}" ${t.condition_value===v?'selected':''}>${esc(v)}</option>`).join('')
+      : '';
+
+    const condValueHtml = condOptions.length
+      ? `<select class="sel" style="flex:1;" onchange="_tariffs[${ti}].condition_value=this.value">
+           <option value="">— значение —</option>${condValueOpts}
+         </select>`
+      : `<input type="text" class="inp" placeholder="Значение поля" value="${esc(t.condition_value||'')}"
+           style="flex:1;" oninput="_tariffs[${ti}].condition_value=this.value">`;
 
     const div = document.createElement('div');
     div.className = 'tariff-block';
     div.innerHTML = `
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-        <input type="text" class="inp" placeholder="Название тарифа (Full pass)" value="${esc(t.name)}"
+        <input type="text" class="inp" placeholder="Название тарифа (Full pass, Оффлайн...)" value="${esc(t.name)}"
           oninput="_tariffs[${ti}].name=this.value" style="flex:1;">
         <button class="btn-icon danger" onclick="_tariffs.splice(${ti},1);renderAllTariffs()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <div class="toggle-row" style="margin-bottom:8px;">
-        <label class="toggle-sw">
-          <input type="checkbox" ${t.has_options?'checked':''} onchange="_tariffs[${ti}].has_options=this.checked;renderAllTariffs()">
-          <div class="toggle-track"></div>
+
+      <div style="display:flex;gap:12px;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
+          <input type="radio" name="tariff-type-${ti}" value="static" ${!isDynamic?'checked':''}
+            onchange="_tariffs[${ti}].condition_field=null;_tariffs[${ti}].condition_value='';renderAllTariffs()">
+          Статичный
         </label>
-        <span class="toggle-label">Список вариантов (выбор участника)</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
+          <input type="radio" name="tariff-type-${ti}" value="dynamic" ${isDynamic?'checked':''}
+            onchange="_tariffs[${ti}].condition_field=(${JSON.stringify(condFields)}[0]?.slug||'');renderAllTariffs()">
+          Зависит от поля
+        </label>
       </div>
-      ${t.has_options ? `
-      <textarea class="ta" rows="3" placeholder="Лидер&#10;Фолловер" style="margin-bottom:8px;font-size:.72rem;"
-        oninput="_tariffs[${ti}].options=this.value.split('\\n').map(s=>s.trim()).filter(Boolean)">${esc((t.options||[]).join('\n'))}</textarea>` : ''}
-      ${_fields.filter(f=>f.slug).length ? `
-      <div style="margin-bottom:10px;">
-        <div class="label" style="margin-bottom:6px;">Показывать поля при выборе этого тарифа</div>
-        ${depFieldsHtml}
-      </div>` : ''}
+
+      ${isDynamic ? `
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+        <select class="sel" style="flex:1;" onchange="_tariffs[${ti}].condition_field=this.value;_tariffs[${ti}].condition_value='';renderAllTariffs()">
+          <option value="">— выберите поле —</option>${condFieldOpts}
+        </select>
+        ${condValueHtml}
+      </div>
+      <div class="label" style="margin-bottom:6px;font-size:.6rem;color:var(--text-d);">Тариф применится автоматически, когда участник выберет это значение в форме</div>
+      ` : ''}
+
       <div class="label" style="margin-bottom:6px;">Ценовые периоды</div>
-      <div id="tiers-${ti}">
+      <div>
         ${(t.tiers||[]).map((tier,ri) => `
         <div class="tier-row">
           <input type="date" class="inp" value="${esc(tier.from_date||'')}" oninput="_tariffs[${ti}].tiers[${ri}].from_date=this.value" placeholder="От">
@@ -1254,15 +1280,6 @@ function renderAllTariffs() {
     `;
     el.appendChild(div);
   });
-}
-
-function toggleDepField(ti, slug, checked) {
-  if (!_tariffs[ti]) return;
-  const df = _tariffs[ti].dependent_fields || [];
-  if (checked && !df.includes(slug)) df.push(slug);
-  else if (!checked) _tariffs[ti].dependent_fields = df.filter(s => s !== slug);
-  else _tariffs[ti].dependent_fields = df;
-  _tariffs[ti].dependent_fields = _tariffs[ti].dependent_fields.filter(s => s !== slug).concat(checked ? [slug] : []);
 }
 
 /* ═══════════════════════════════
