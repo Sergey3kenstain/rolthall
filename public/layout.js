@@ -99,13 +99,12 @@ if (!window._rhErrInit) {
       <a href="/#contacts">Контакты</a>
     </div>
     <div class="footer-legal-col">
-      <a href="/cttp_opd" target="_blank">Согласие на обработку персональных данных</a>
-      <a href="/user_agreement" target="_blank">Пользовательское соглашение</a>
-      <a href="/privacy_policy" target="_blank">Политика конфиденциальности</a>
+      <a href="/user_agreement" target="_blank">Публичный договор-оферта</a>
+      <a href="/privacy_policy" target="_blank">Согласие и политика конфиденциальности</a>
     </div>
   </div>
   <div class="footer-bottom">
-    <div class="footer-copy">© 2025 ROLTHALL. Все права защищены.</div>
+    <div class="footer-copy">© 2026 ROLTHALL. Все права защищены.</div>
     <div class="footer-dev">dev by <a href="https://t.me/Sergey_3kenstain" target="_blank">Sergey 3kenstain</a></div>
   </div>
 </footer>`;
