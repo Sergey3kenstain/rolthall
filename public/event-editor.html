@@ -1215,6 +1215,8 @@ function renderAllTariffs() {
     const condField = condFields.find(f => f.slug === t.condition_field);
     const condOptions = condField?.options || [];
 
+    const firstCondSlug = condFields[0]?.slug || '';
+
     const condFieldOpts = condFields.map(f =>
       `<option value="${esc(f.slug)}" ${t.condition_field===f.slug?'selected':''}>${esc(f.label||f.slug)}</option>`
     ).join('');
@@ -1249,7 +1251,7 @@ function renderAllTariffs() {
         </label>
         <label style="display:flex;align-items:center;gap:6px;font-size:.72rem;cursor:pointer;">
           <input type="radio" name="tariff-type-${ti}" value="dynamic" ${isDynamic?'checked':''}
-            onchange="_tariffs[${ti}].condition_field=(${JSON.stringify(condFields)}[0]?.slug||'');renderAllTariffs()">
+            onchange="_tariffs[${ti}].condition_field='${firstCondSlug}';renderAllTariffs()">
           Зависит от поля
         </label>
       </div>
