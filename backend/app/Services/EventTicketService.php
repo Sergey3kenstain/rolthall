@@ -207,73 +207,82 @@ class EventTicketService
 
     private function generateTicketImage(string $posterPath, EventRegistration $reg, Event $event): string
     {
-        $src = null;
         $ext = strtolower(pathinfo($posterPath, PATHINFO_EXTENSION));
-        if ($ext === 'png') {
-            $src = @imagecreatefrompng($posterPath);
-        } else {
-            $src = @imagecreatefromjpeg($posterPath);
-        }
-
-        if (!$src) {
-            // Если не удалось открыть — возвращаем оригинал
-            return $posterPath;
-        }
+        $src = $ext === 'png' ? @imagecreatefrompng($posterPath) : @imagecreatefromjpeg($posterPath);
+        if (!$src) return $posterPath;
 
         $w = imagesx($src);
         $h = imagesy($src);
 
-        // Полупрозрачная полоса снизу 20% высоты
-        $barH = (int)($h * 0.22);
+        // Полоса снизу — 24% высоты
+        $barH = (int)($h * 0.24);
         $barY = $h - $barH;
 
         $img = imagecreatetruecolor($w, $h);
+        imagealphablending($img, true);
         imagecopy($img, $src, 0, 0, 0, 0, $w, $h);
         imagedestroy($src);
 
-        // Тёмный фон полосы (rgba через imagefilledrectangle с alpha)
+        // Тёмный оверлей полосы
         $overlay = imagecreatetruecolor($w, $barH);
-        $bg      = imagecolorallocate($overlay, 20, 20, 25);
+        $bg = imagecolorallocate($overlay, 14, 13, 18);
         imagefilledrectangle($overlay, 0, 0, $w, $barH, $bg);
-        imagecopymerge($img, $overlay, 0, $barY, 0, 0, $w, $barH, 80);
+        imagecopymerge($img, $overlay, 0, $barY, 0, 0, $w, $barH, 88);
         imagedestroy($overlay);
 
-        // Текст
+        // Шрифты
+        $fontDir  = storage_path('app/fonts/');
+        $fontReg  = $fontDir . 'Unbounded-Regular.ttf';
+        $fontBold = $fontDir . 'Unbounded-Bold.ttf';
+        $hasTtf   = file_exists($fontReg) && file_exists($fontBold) && function_exists('imagettftext');
+
         $white  = imagecolorallocate($img, 255, 255, 255);
-        $gray   = imagecolorallocate($img, 180, 180, 190);
+        $gray   = imagecolorallocate($img, 160, 158, 172);
         $accent = imagecolorallocate($img, 55, 111, 255);
 
-        $fontSize = max(12, (int)($w / 45));
-        $x        = (int)($w * 0.04);
-        $lineH    = (int)($fontSize * 1.6);
-        $y        = $barY + (int)($barH * 0.12);
+        $pad  = (int)($w * 0.045);
+        $sTitle = max(11, (int)($w / 52));  // размер заголовка
+        $sSub   = max(8,  (int)($w / 72));  // размер подписи
 
-        // Название события
-        imagestring($img, min(5, $fontSize > 14 ? 5 : 4), $x, $y, mb_substr($event->title, 0, 40), $white);
-        $y += $lineH;
+        if ($hasTtf) {
+            $lineH = (int)($sTitle * 1.75);
+            $y = $barY + (int)($barH * 0.22) + $sTitle;
 
-        // Дата
-        $dateStr = $event->event_date?->format('d.m.Y') ?? '';
-        if ($dateStr) {
-            imagestring($img, 3, $x, $y, $dateStr, $gray);
+            // Название события (bold)
+            $title = mb_substr($event->title, 0, 45);
+            imagettftext($img, $sTitle, 0, $pad, $y, $white, $fontBold, $title);
             $y += $lineH;
-        }
 
-        // Тариф
-        if ($reg->tariff) {
-            $tariffStr = $reg->tariff->name . ($reg->selected_option ? " · {$reg->selected_option}" : '');
-            imagestring($img, 3, $x, $y, $tariffStr, $gray);
-            $y += $lineH;
-        }
+            // Дата + тариф (regular)
+            $dateStr = $event->event_date?->format('d.m.Y') ?? '';
+            $sub = $dateStr;
+            if ($reg->tariff) {
+                $sub .= ($sub ? '  ·  ' : '') . $reg->tariff->name;
+                if ($reg->selected_option) $sub .= ' · ' . $reg->selected_option;
+            }
+            if ($sub) {
+                imagettftext($img, $sSub, 0, $pad, $y, $gray, $fontReg, $sub);
+            }
 
-        // Номер билета — справа
-        $codeStr  = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
-        $codeFont = min(5, $fontSize > 14 ? 5 : 4);
-        $codeW    = strlen($codeStr) * imagefontwidth($codeFont);
-        imagestring($img, $codeFont, $w - $codeW - $x, $barY + (int)($barH * 0.12), $codeStr, $accent);
+            // Номер билета — справа, bold
+            $code  = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
+            $bbox  = imagettfbbox($sTitle, 0, $fontBold, $code);
+            $codeW = abs($bbox[4] - $bbox[0]);
+            $codeY = $barY + (int)($barH * 0.22) + $sTitle;
+            imagettftext($img, $sTitle, 0, $w - $pad - $codeW, $codeY, $accent, $fontBold, $code);
+        } else {
+            // Fallback без TTF — встроенный шрифт
+            $y = $barY + (int)($barH * 0.15);
+            imagestring($img, 5, $pad, $y, mb_substr($event->title, 0, 40), $white);
+            $y += 22;
+            $dateStr = $event->event_date?->format('d.m.Y') ?? '';
+            if ($dateStr) imagestring($img, 3, $pad, $y, $dateStr, $gray);
+            $code = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
+            imagestring($img, 5, $w - strlen($code) * imagefontwidth(5) - $pad, $barY + (int)($barH * 0.15), $code, $accent);
+        }
 
         $tmpPath = sys_get_temp_dir() . '/ticket_' . $reg->id . '_' . time() . '.jpg';
-        imagejpeg($img, $tmpPath, 90);
+        imagejpeg($img, $tmpPath, 92);
         imagedestroy($img);
 
         return $tmpPath;
