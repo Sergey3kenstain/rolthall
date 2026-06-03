@@ -2708,7 +2708,7 @@ async function loadHallsTab() {
   g('cms-hours-we', cms.contacts?.hours_we);
 
   // SEO
-  const s = cms.seo || {};
+  const s = cms.seo || CMS_DEFAULTS.seo || {};
   g('seo-title',       s.title);
   g('seo-desc',        s.desc);
   g('seo-keywords',    s.keywords);
