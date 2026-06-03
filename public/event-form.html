@@ -85,29 +85,48 @@ function render() {
     ? `<img src="${ev.poster_url}" class="poster" alt="Афиша">`
     : '';
 
-  // Слаги полей, которые зависят хотя бы от одного тарифа
-  const tariffDepSlugs = new Set((ev.tariffs||[]).flatMap(t => t.dependent_fields||[]));
   const hasPhoneField = ev.fields.some(f => f.slug === 'phone');
   const fieldsHtml = hasPhoneField
-    ? ev.fields.map(f => buildField(f, tariffDepSlugs)).join('')
+    ? ev.fields.map(f => buildField(f)).join('')
     : `<div class="field-group"><label>Введите контактный телефон *</label><input type="tel" id="f-phone" class="inp" placeholder="+7 (999) 999-99-99"><div id="err-phone" class="err-msg" style="display:none;"></div></div>`
-      + ev.fields.map(f => buildField(f, tariffDepSlugs)).join('');
+      + ev.fields.map(f => buildField(f)).join('');
 
-  const tariffsHtml = ev.payments_enabled && ev.tariffs?.length ? `
-    <div style="margin-bottom:14px;">
-      <div class="section-title">Выберите тариф</div>
-      <div id="tariffs-list" style="display:flex;flex-direction:column;gap:8px;">
-        ${ev.tariffs.map(t => `
-          <div class="tariff-card" id="tariff-${t.id}" onclick="selectTariff(${t.id})">
-            <div class="tariff-name">${t.name}</div>
-            <div class="tariff-price">${t.current_price != null ? t.current_price + ' ₽' : '<span style="color:var(--red)">Недоступен</span>'}</div>
-            <div class="tariff-tiers">${t.tiers.map(ti=>`${ti.from_date}–${ti.to_date}: ${ti.price}₽`).join(' · ')}</div>
+  // Статические тарифы — всегда видны, пользователь выбирает сам
+  // Динамические (condition_field != null) — скрыты, применяются авто при совпадении поля
+  const staticTariffs  = (ev.tariffs || []).filter(t => !t.condition_field);
+  const dynamicTariffs = (ev.tariffs || []).filter(t =>  t.condition_field);
+
+  let tariffsHtml = '';
+  if (ev.payments_enabled) {
+    if (staticTariffs.length) {
+      tariffsHtml += `
+        <div style="margin-bottom:14px;">
+          <div class="section-title">Выберите тариф</div>
+          <div id="tariffs-list" style="display:flex;flex-direction:column;gap:8px;">
+            ${staticTariffs.map(t => `
+              <div class="tariff-card" id="tariff-${t.id}" onclick="selectTariff(${t.id})">
+                <div class="tariff-name">${t.name}</div>
+                <div class="tariff-price">${t.current_price != null ? t.current_price + ' ₽' : '<span style="color:var(--red)">Недоступен</span>'}</div>
+                <div class="tariff-tiers">${t.tiers.map(ti=>`${ti.from_date}–${ti.to_date}: ${ti.price}₽`).join(' · ')}</div>
+              </div>
+            `).join('')}
           </div>
-        `).join('')}
-      </div>
-      <div id="tariff-err" class="err-msg" style="display:none;">Выберите тариф</div>
-    </div>
-  ` : '';
+          <div id="tariff-err" class="err-msg" style="display:none;">Выберите тариф</div>
+        </div>
+      `;
+    }
+    if (dynamicTariffs.length) {
+      if (!staticTariffs.length) {
+        tariffsHtml += `<div id="tariff-err" class="err-msg" style="display:none;margin-bottom:8px;">Выберите вариант выше</div>`;
+      }
+      tariffsHtml += `
+        <div id="dynamic-tariff-banner" style="display:none;margin-bottom:14px;padding:12px;border:1.5px solid var(--accent);border-radius:var(--r);background:rgba(55,111,255,.08);">
+          <div class="tariff-name" id="dynamic-tariff-name"></div>
+          <div class="tariff-price" id="dynamic-tariff-price" style="margin-top:4px;"></div>
+        </div>
+      `;
+    }
+  }
 
   if (ev.form_css) {
     let styleEl = document.getElementById('event-form-css');
@@ -137,7 +156,6 @@ function render() {
     </div>
   `;
 
-  // Применяем маски
   ev.fields.forEach(f => {
     if (f.has_mask && f.mask_pattern && f.field_type !== 'select') {
       const el = document.getElementById('f-' + f.slug);
@@ -146,7 +164,7 @@ function render() {
   });
   applyPhoneMask(document.getElementById('f-phone'));
 
-  // Wire field-to-field dependencies
+  // Зависимости поле→поле
   const checkFieldDeps = () => {
     document.querySelectorAll('[data-dep-field]').forEach(el => {
       const val = document.getElementById('f-' + el.dataset.depField)?.value || '';
@@ -157,24 +175,21 @@ function render() {
     document.getElementById('f-' + slug)?.addEventListener('change', checkFieldDeps);
   });
   checkFieldDeps();
+
+  initDynamicTariffs();
 }
 
-function buildField(f, depSlugs) {
-  // System phone field — always renders as the standard phone input
+function buildField(f) {
   if (f.slug === 'phone') {
     return `<div class="field-group"><label>Введите контактный телефон *</label><input type="tel" id="f-phone" class="inp" placeholder="+7 (999) 999-99-99"><div id="err-phone" class="err-msg" style="display:none;"></div></div>`;
   }
   const req  = f.is_required ? ' *' : '';
   const ph   = f.placeholder || f.label || '';
-  const isDep = depSlugs?.has(f.slug);
-  const isFieldDep = !isDep && !!f.dep_field;
-  const depAttrs = isDep
-    ? ' data-tariff-dep style="display:none;"'
-    : isFieldDep
-      ? ` data-dep-field="${f.dep_field}" data-dep-value="${(f.dep_value||'').replace(/"/g,'&quot;')}" style="display:none;"`
-      : '';
+  const depAttrs = f.dep_field
+    ? ` data-dep-field="${f.dep_field}" data-dep-value="${(f.dep_value||'').replace(/"/g,'&quot;')}" style="display:none;"`
+    : '';
   const wrap  = (inner, extraStyle='') => `<div class="field-group"${depAttrs||(extraStyle?` style="${extraStyle}"`:'') }>${inner}</div>`;
-  const err  = `<div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`;
+  const err   = `<div id="err-${f.slug}" class="err-msg" style="display:none;"></div>`;
 
   if (f.field_type === 'select') {
     const options = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
@@ -206,26 +221,51 @@ function selectTariff(id) {
   _selectedTariff = _event.tariffs.find(t => t.id === id);
   document.querySelectorAll('.tariff-card').forEach(el => el.classList.remove('selected'));
   document.getElementById('tariff-' + id)?.classList.add('selected');
-  document.getElementById('tariff-err').style.display = 'none';
+  const errEl = document.getElementById('tariff-err');
+  if (errEl) errEl.style.display = 'none';
+}
 
-  // Показываем дополнительный селект если нужен
-  const existing = document.getElementById('tariff-option-wrap');
-  if (existing) existing.remove();
-  if (_selectedTariff?.has_options && _selectedTariff.options?.length) {
-    const wrap = document.createElement('div');
-    wrap.id = 'tariff-option-wrap';
-    wrap.style.marginTop = '10px';
-    const opts = _selectedTariff.options.map(o=>`<option value="${o}">${o}</option>`).join('');
-    wrap.innerHTML = `<label>Выберите вариант *</label><select id="tariff-option" class="inp" style="margin-top:5px;"><option value="">— Выберите —</option>${opts}</select><div id="err-tariff-option" class="err-msg" style="display:none;"></div>`;
-    document.getElementById('tariff-' + id).after(wrap);
-  }
+function initDynamicTariffs() {
+  const ev = _event;
+  const dynamicTariffs = (ev.tariffs || []).filter(t => t.condition_field);
+  if (!dynamicTariffs.length || !ev.payments_enabled) return;
 
-  // Показываем поля, привязанные к выбранному тарифу
-  const activeDeps = new Set(_selectedTariff?.dependent_fields || []);
-  document.querySelectorAll('[data-tariff-dep]').forEach(el => {
-    const slug = el.querySelector('[id^="f-"]')?.id?.replace('f-', '');
-    el.style.display = (slug && activeDeps.has(slug)) ? '' : 'none';
+  const checkDynamic = () => {
+    let matched = null;
+    for (const t of dynamicTariffs) {
+      const slug = t.condition_field;
+      // Multiselect: хотя бы один из выбранных чекбоксов совпадает
+      const multiChecks = document.querySelectorAll(`[data-multi="${slug}"]:checked`);
+      if (multiChecks.length) {
+        if (Array.from(multiChecks).some(c => c.value === t.condition_value)) { matched = t; break; }
+        continue;
+      }
+      // Select / radio
+      const el = document.getElementById('f-' + slug);
+      if (el && el.value === t.condition_value) { matched = t; break; }
+    }
+
+    const banner = document.getElementById('dynamic-tariff-banner');
+    if (matched && matched.current_price != null) {
+      _selectedTariff = matched;
+      document.getElementById('dynamic-tariff-name').textContent = matched.name;
+      document.getElementById('dynamic-tariff-price').textContent = matched.current_price + ' ₽';
+      if (banner) banner.style.display = '';
+      const errEl = document.getElementById('tariff-err');
+      if (errEl) errEl.style.display = 'none';
+    } else {
+      if (_selectedTariff?.condition_field) _selectedTariff = null;
+      if (banner) banner.style.display = 'none';
+    }
+  };
+
+  const conditionSlugs = [...new Set(dynamicTariffs.map(t => t.condition_field))];
+  conditionSlugs.forEach(slug => {
+    document.getElementById('f-' + slug)?.addEventListener('change', checkDynamic);
+    document.querySelectorAll(`[data-multi="${slug}"]`).forEach(cb => cb.addEventListener('change', checkDynamic));
   });
+
+  checkDynamic();
 }
 
 async function submitForm() {
@@ -247,9 +287,8 @@ async function submitForm() {
   for (const f of _event.fields) {
     const el  = document.getElementById('f-' + f.slug);
     if (!el) continue;
-    // Пропускаем скрытые зависимые поля
-    const fieldWrap = el.closest('[data-tariff-dep]');
-    if (fieldWrap && fieldWrap.style.display === 'none') continue;
+    // Пропускаем скрытые поля (зависимость поле→поле)
+    if (el.closest('[data-dep-field]')?.style.display === 'none') continue;
     let val;
     if (f.field_type === 'checkbox') {
       val = el.checked ? 'Да' : '';
@@ -272,21 +311,14 @@ async function submitForm() {
   }
 
   // Тариф
-  let selectedOption = null;
   if (_event.payments_enabled) {
     if (!_selectedTariff || _selectedTariff.current_price == null) {
-      document.getElementById('tariff-err').style.display = '';
+      const errEl = document.getElementById('tariff-err');
+      if (errEl) errEl.style.display = '';
       valid = false;
     } else {
-      document.getElementById('tariff-err').style.display = 'none';
-      if (_selectedTariff.has_options) {
-        selectedOption = document.getElementById('tariff-option')?.value || '';
-        if (!selectedOption) {
-          const e = document.getElementById('err-tariff-option');
-          if (e) { e.textContent = 'Выберите вариант'; e.style.display = ''; }
-          valid = false;
-        }
-      }
+      const errEl = document.getElementById('tariff-err');
+      if (errEl) errEl.style.display = 'none';
     }
   }
 
@@ -298,11 +330,10 @@ async function submitForm() {
   try {
     const body = {
       phone,
-      tg_user_id:      _tgId,
-      max_user_id:     _maxId,
-      fields_data:     fieldsData,
-      tariff_id:       _selectedTariff?.id || null,
-      selected_option: selectedOption,
+      tg_user_id:  _tgId,
+      max_user_id: _maxId,
+      fields_data: fieldsData,
+      tariff_id:   _selectedTariff?.id || null,
     };
 
     const res  = await fetch(`/api/events/${_slug}/register`, {
