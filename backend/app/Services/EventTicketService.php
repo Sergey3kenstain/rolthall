@@ -89,7 +89,9 @@ class EventTicketService
             : '';
         $fieldsLine  = '';
         if (!empty($reg->fields_data)) {
-            foreach ($reg->fields_data as $label => $value) {
+            $fieldLabels = $event->fields->keyBy('slug')->map(fn($f) => $f->label);
+            foreach ($reg->fields_data as $slug => $value) {
+                $label = $fieldLabels[$slug] ?? $slug;
                 $fieldsLine .= "\n• <b>{$label}:</b> {$value}";
             }
         }
@@ -279,10 +281,14 @@ class EventTicketService
             $displayName = array_values($reg->fields_data)[0] ?? '';
         }
 
-        return str_replace(
-            ['{name}', '{phone}', '{event}', '{date}', '{tariff}', '{option}', '{reg_id}', '{code}'],
-            [$displayName, $reg->phone, $event->title, $dateStr, $tariffName, $option, $reg->id, '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT)],
-            $template
-        );
+        $searches = ['{name}', '{phone}', '{event}', '{date}', '{tariff}', '{option}', '{reg_id}', '{code}'];
+        $replaces = [$displayName, $reg->phone, $event->title, $dateStr, $tariffName, $option, $reg->id, '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT)];
+
+        foreach ($reg->fields_data ?? [] as $slug => $value) {
+            $searches[] = '{cf_' . $slug . '}';
+            $replaces[] = $value ?? '';
+        }
+
+        return str_replace($searches, $replaces, $template);
     }
 }

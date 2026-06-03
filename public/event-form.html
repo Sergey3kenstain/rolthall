@@ -265,7 +265,7 @@ async function submitForm() {
       if (errEl) errEl.style.display = 'none';
       el.classList?.remove('error');
     }
-    if (val) fieldsData[f.label] = val;
+    if (val) fieldsData[f.slug] = val;
   }
 
   // Тариф
