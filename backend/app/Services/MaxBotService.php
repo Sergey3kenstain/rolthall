@@ -90,16 +90,18 @@ class MaxBotService
                 return false;
             }
 
-            $token = $upload->json('token');
-            if (!$token) {
-                Log::error('Max sendPhoto: no token in upload response', ['body' => $upload->body()]);
+            $uploadData = $upload->json();
+            // Max API возвращает url при type=image
+            $imageUrl = $uploadData['url'] ?? null;
+            if (!$imageUrl) {
+                Log::error('Max sendPhoto: no url in upload response', ['body' => $upload->body()]);
                 return false;
             }
 
             $body = [
                 'text'        => $caption,
                 'format'      => 'html',
-                'attachments' => [['type' => 'image', 'payload' => ['token' => $token]]],
+                'attachments' => [['type' => 'image', 'payload' => ['url' => $imageUrl]]],
             ];
             if (!empty($buttons)) {
                 $body['attachments'][] = $this->buildKeyboard($buttons)[0];
