@@ -627,6 +627,39 @@ button{font-family:var(--font);}
         </div>
       </div>
 
+      <!-- Нумерация билетов -->
+      <div class="block-card" style="margin-bottom:16px;">
+        <div class="block-title" style="margin-bottom:8px;">Нумерация билетов</div>
+        <p style="font-size:.72rem;color:var(--text-m);margin-bottom:12px;">Ограничьте количество билетов. Начальное — сдвиг (0 → первый билет №1). При исчерпании форма покажет сообщение.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px;">
+          <div>
+            <div style="font-size:.6rem;color:var(--text-d);margin-bottom:3px;">Начальное</div>
+            <input type="number" class="inp" id="num-start" min="0" placeholder="0" style="width:90px;"
+              oninput="getNumCfg().start=+this.value">
+          </div>
+          <div>
+            <div style="font-size:.6rem;color:var(--text-d);margin-bottom:3px;">Конечное</div>
+            <input type="number" class="inp" id="num-end" min="1" placeholder="100" style="width:90px;"
+              oninput="getNumCfg().end=+this.value">
+          </div>
+          <div>
+            <div style="font-size:.6rem;color:var(--text-d);margin-bottom:3px;">Формат</div>
+            <select class="sel" id="num-pad" onchange="getNumCfg().pad=+this.value" style="width:110px;">
+              <option value="0">1, 2, 100…</option>
+              <option value="2">01, 02, 99…</option>
+              <option value="3">001, 002…</option>
+              <option value="4">0001, 0002…</option>
+              <option value="6">000001…</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.6rem;color:var(--text-d);margin-bottom:3px;">Ссылка на администратора (показывается когда билеты закончились)</div>
+          <input type="url" class="inp" id="num-admin-url" placeholder="https://t.me/admin или https://…" style="width:100%;"
+            oninput="getNumCfg().admin_url=this.value">
+        </div>
+      </div>
+
       <div id="ticket-editor-area" style="display:none;">
         <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;">
 
@@ -1633,9 +1666,23 @@ async function deleteTicketTemplate() {
   applyTicketTemplate(null);
 }
 
+function getNumCfg() {
+  if (!_ticketCfg.numbering) _ticketCfg.numbering = {};
+  return _ticketCfg.numbering;
+}
+
 function renderTicketTab() {
   applyTicketTemplate(_ticketCfg.template_url || null);
   renderTicketZones();
+  const n = _ticketCfg.numbering || {};
+  const si = document.getElementById('num-start');
+  const ei = document.getElementById('num-end');
+  const pi = document.getElementById('num-pad');
+  const ai = document.getElementById('num-admin-url');
+  if (si) si.value = n.start != null ? n.start : '';
+  if (ei) ei.value = n.end   != null ? n.end   : '';
+  if (pi) pi.value = n.pad   != null ? n.pad   : 0;
+  if (ai) ai.value = n.admin_url || '';
 }
 
 function addTicketZone() {

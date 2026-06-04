@@ -75,6 +75,7 @@ async function loadEvent() {
     const data = await res.json();
     if (!data.ok) { renderError('Ошибка загрузки'); return; }
     _event = data;
+    if (data.tickets_exhausted) { renderNoTickets(data.admin_url); return; }
     render();
   } catch(e) { renderError('Ошибка соединения'); }
 }
@@ -349,10 +350,8 @@ async function submitForm() {
     const data = await res.json();
 
     if (!data.ok) {
-      if (data.error === 'already_registered') {
-        renderAlreadyRegistered();
-        return;
-      }
+      if (data.error === 'already_registered') { renderAlreadyRegistered(); return; }
+      if (data.error === 'no_tickets')         { renderNoTickets(data.admin_url); return; }
       document.getElementById('form-err').textContent = data.error || 'Ошибка регистрации';
       document.getElementById('form-err').style.display = '';
       btn.disabled = false;
@@ -371,6 +370,21 @@ async function submitForm() {
     btn.disabled = false;
     btn.innerHTML = _event.payments_enabled ? 'Далее к оплате' : 'Зарегистрироваться';
   }
+}
+
+function renderNoTickets(adminUrl) {
+  const btn = adminUrl
+    ? `<a href="${adminUrl}" target="_blank" rel="noopener" class="btn btn-primary" style="display:inline-block;margin-top:20px;text-decoration:none;">Написать администратору</a>`
+    : '';
+  document.getElementById('app').innerHTML = `
+    <div class="container">
+      <div class="card" style="text-align:center;padding:40px 20px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" width="48" height="48" style="margin:0 auto 16px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div style="font-size:.95rem;font-weight:700;margin-bottom:8px;">К сожалению, билетов больше нет</div>
+        <div style="font-size:.78rem;color:var(--text-m);">Все места уже заняты. Обратитесь к администратору — возможно, появятся дополнительные билеты.</div>
+        ${btn}
+      </div>
+    </div>`;
 }
 
 function renderAlreadyRegistered() {

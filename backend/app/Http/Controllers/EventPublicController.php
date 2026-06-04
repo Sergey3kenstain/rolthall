@@ -44,6 +44,25 @@ class EventPublicController extends Controller
             ]),
         ]);
 
+        // Нумерация билетов
+        $ms        = $event->messenger_settings ?? [];
+        $numbering = $ms['ticket']['numbering'] ?? null;
+        $ticketsExhausted = false;
+        $ticketsRemaining = null;
+        $adminUrl         = null;
+
+        if ($numbering && !empty($numbering['end'])) {
+            $start    = (int) ($numbering['start'] ?? 0);
+            $end      = (int)  $numbering['end'];
+            $capacity = $end - $start;
+            $sold     = $event->payments_enabled
+                ? EventRegistration::where('event_id', $event->id)->where('payment_status', 'paid')->count()
+                : EventRegistration::where('event_id', $event->id)->count();
+            $ticketsExhausted = $sold >= $capacity;
+            $ticketsRemaining = max(0, $capacity - $sold);
+            $adminUrl         = $numbering['admin_url'] ?? null;
+        }
+
         return response()->json([
             'ok'          => true,
             'id'          => $event->id,
@@ -56,6 +75,9 @@ class EventPublicController extends Controller
             'allow_multiple_registrations' => $event->allow_multiple_registrations,
             'fields'      => $event->fields,
             'tariffs'     => $tariffs,
+            'tickets_exhausted' => $ticketsExhausted,
+            'tickets_remaining' => $ticketsRemaining,
+            'admin_url'         => $adminUrl,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -94,6 +116,25 @@ class EventPublicController extends Controller
                 return response()->json([
                     'ok'    => false,
                     'error' => 'already_registered',
+                ], 422, [], JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        // Проверка наличия билетов
+        $ms        = $event->messenger_settings ?? [];
+        $numbering = $ms['ticket']['numbering'] ?? null;
+        if ($numbering && !empty($numbering['end'])) {
+            $start    = (int) ($numbering['start'] ?? 0);
+            $end      = (int)  $numbering['end'];
+            $capacity = $end - $start;
+            $sold     = $event->payments_enabled
+                ? EventRegistration::where('event_id', $event->id)->where('payment_status', 'paid')->count()
+                : EventRegistration::where('event_id', $event->id)->count();
+            if ($sold >= $capacity) {
+                return response()->json([
+                    'ok'        => false,
+                    'error'     => 'no_tickets',
+                    'admin_url' => $numbering['admin_url'] ?? null,
                 ], 422, [], JSON_UNESCAPED_UNICODE);
             }
         }

@@ -268,13 +268,28 @@ class EventTicketService
 
     private function resolveTicketFieldValues(EventRegistration $reg, Event $event): array
     {
+        // Нумерация билетов
+        $ms        = $event->messenger_settings ?? [];
+        $numbering = $ms['ticket']['numbering'] ?? null;
+        if ($numbering && !empty($numbering['end'])) {
+            $start  = (int) ($numbering['start'] ?? 0);
+            $sold   = $event->payments_enabled
+                ? EventRegistration::where('event_id', $event->id)->where('payment_status', 'paid')->count()
+                : EventRegistration::where('event_id', $event->id)->count();
+            $ticketNum = $start + $sold;
+            $pad    = (int) ($numbering['pad'] ?? 0);
+            $ticketId = $pad > 0 ? str_pad($ticketNum, $pad, '0', STR_PAD_LEFT) : (string) $ticketNum;
+        } else {
+            $ticketId = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
+        }
+
         $values = [
             '__tariff__'    => $reg->tariff?->name ?? '',
             '__price__'     => $reg->payment_amount ? $reg->payment_amount . ' ₽' : '',
             '__paid_at__'   => $reg->paid_at?->format('d.m.Y H:i') ?? '',
             '__reg_date__'  => $reg->created_at->format('d.m.Y H:i'),
             '__tbank_id__'  => $reg->tbank_payment_id ?? '',
-            '__ticket_id__' => '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT),
+            '__ticket_id__' => $ticketId,
             '__phone__'     => $reg->phone ?? '',
         ];
         foreach ($reg->fields_data ?? [] as $slug => $value) {
