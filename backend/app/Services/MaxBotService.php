@@ -83,7 +83,7 @@ class MaxBotService
             // Загружаем фото в Max API, получаем токен
             $upload = Http::withHeaders(['Authorization' => $this->token])
                 ->attach('data', fopen($photoPath, 'r'), basename($photoPath))
-                ->post("{$this->baseUrl}/uploads?type=photo");
+                ->post("{$this->baseUrl}/uploads?type=image");
 
             if (!$upload->successful()) {
                 Log::error('Max sendPhoto upload error', ['status' => $upload->status(), 'body' => $upload->body()]);

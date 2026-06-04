@@ -119,7 +119,7 @@ class EventTicketService
             if ($ticketPath) {
                 $this->telegram->sendPhoto([
                     'chat_id'      => $chatId,
-                    'photo'        => new \CURLFile($ticketPath),
+                    'photo'        => \Telegram\Bot\FileUpload\InputFile::create($ticketPath, basename($ticketPath)),
                     'caption'      => $userText,
                     'parse_mode'   => 'HTML',
                     'reply_markup' => json_encode(['inline_keyboard' => [[
