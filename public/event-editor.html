@@ -1563,15 +1563,32 @@ function toggleSection(id, show) {
    TICKET BUILDER
 ═══════════════════════════════ */
 
+// Полный список — используется для резолва label в маркерах
 const TICKET_SYSTEM_FIELDS = [
-  { slug: '__tariff__',    label: 'Тариф' },
-  { slug: '__price__',     label: 'Сумма оплаты' },
-  { slug: '__paid_at__',   label: 'Дата/время оплаты' },
-  { slug: '__reg_date__',  label: 'Дата/время регистрации' },
-  { slug: '__tbank_id__',  label: 'ID транзакции TBank' },
   { slug: '__ticket_id__', label: 'Номер билета' },
   { slug: '__phone__',     label: 'Телефон' },
+  { slug: '__reg_date__',  label: 'Дата регистрации' },
+  { slug: '__tariff__',    label: 'Тариф' },
+  { slug: '__price__',     label: 'Сумма оплаты' },
+  { slug: '__paid_at__',   label: 'Дата оплаты' },
+  { slug: '__tbank_id__',  label: 'ID транзакции TBank' },
 ];
+
+// Только поля, актуальные для текущего события
+function getTicketFields() {
+  const paid    = document.getElementById('cfg-payments')?.checked;
+  const tariffs = _tariffs.length > 0;
+  const fields  = [
+    { slug: '__ticket_id__', label: 'Номер билета' },
+    { slug: '__phone__',     label: 'Телефон' },
+    { slug: '__reg_date__',  label: 'Дата регистрации' },
+  ];
+  if (tariffs) fields.push({ slug: '__tariff__',    label: 'Тариф' });
+  if (paid)    fields.push({ slug: '__price__',     label: 'Сумма оплаты' });
+  if (paid)    fields.push({ slug: '__paid_at__',   label: 'Дата оплаты' });
+  if (paid)    fields.push({ slug: '__tbank_id__',  label: 'ID транзакции TBank' });
+  return fields;
+}
 
 function applyTicketTemplate(url) {
   if (url) {
@@ -1623,7 +1640,7 @@ function renderTicketTab() {
 
 function addTicketZone() {
   const id = 'z' + Date.now();
-  _ticketZones.push({ id, field: TICKET_SYSTEM_FIELDS[0].slug, x: 0.1, y: 0.5, size: 18, bold: false, color: '000000', test_value: '' });
+  _ticketZones.push({ id, field: getTicketFields()[0]?.slug || '__ticket_id__', x: 0.1, y: 0.5, size: 18, color: '000000', test_value: '' });
   _activeZone = id;
   renderTicketZones();
 }
@@ -1651,11 +1668,9 @@ function handleTicketPreviewClick(e) {
 }
 
 function renderTicketZones() {
-  // Zones list
   const allFields = [
-    ...TICKET_SYSTEM_FIELDS,
-    ..._fields.filter(f => f.slug && f.slug !== 'phone').map(f => ({ slug: f.slug, label: f.label || f.slug })),
-    { slug: 'phone', label: 'Телефон (форм)' },
+    ...getTicketFields(),
+    ..._fields.filter(f => f.slug).map(f => ({ slug: f.slug, label: f.label || f.slug })),
   ];
 
   const list = document.getElementById('ticket-zones-list');
@@ -1688,9 +1703,6 @@ function renderTicketZones() {
           <label style="font-size:.6rem;color:var(--text-d);">Размер</label>
           <input type="number" class="inp" value="${zone.size}" min="6" max="120" style="width:60px;"
             oninput="_ticketZones.find(z=>z.id==='${zone.id}').size=+this.value;renderTicketMarkers()">
-          <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;cursor:pointer;">
-            <input type="checkbox" ${zone.bold ? 'checked' : ''} onchange="_ticketZones.find(z=>z.id==='${zone.id}').bold=this.checked"> Bold
-          </label>
           <label style="font-size:.6rem;color:var(--text-d);">Цвет</label>
           <input type="color" value="#${zone.color}" style="width:32px;height:26px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg-deep);cursor:pointer;"
             oninput="_ticketZones.find(z=>z.id==='${zone.id}').color=this.value.slice(1);renderTicketMarkers()">
