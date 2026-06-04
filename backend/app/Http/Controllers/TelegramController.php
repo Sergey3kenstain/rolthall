@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -70,6 +71,19 @@ class TelegramController extends Controller
             $this->notifications->refreshAvatar($user);
         }
 
+        // Ключевые слова событий
+        $trimmed = trim($text);
+        if ($trimmed && !str_starts_with($trimmed, '/')) {
+            $events = Event::where('status', 'active')->get();
+            foreach ($events as $event) {
+                $kw = trim($event->messenger_settings['tg']['bot_keyword'] ?? '');
+                if ($kw && mb_strtolower($trimmed) === mb_strtolower($kw)) {
+                    $this->sendEventWelcomeTg($chatId, $event);
+                    return;
+                }
+            }
+        }
+
         match (true) {
             str_starts_with($text, '/start')   => $this->sendStart($chatId, $firstName, $user),
             str_starts_with($text, '/booking') => $this->sendBooking($chatId),
@@ -81,6 +95,32 @@ class TelegramController extends Controller
             ),
             default => null,
         };
+    }
+
+    private function sendEventWelcomeTg(int|string $chatId, Event $event): void
+    {
+        $ms      = $event->messenger_settings ?? [];
+        $tg      = $ms['tg'] ?? [];
+        $default = "🎉 <b>{event}</b>\n\n📅 {date}\n\nЗарегистрируйтесь, чтобы забронировать место!";
+        $text    = $tg['bot_welcome'] ?? $default;
+        $btnText = $tg['bot_button']  ?? 'Зарегистрироваться →';
+
+        $dateStr = $event->event_date?->format('d.m.Y') ?? '';
+        $text    = str_replace(['{event}', '{date}'], [$event->title, $dateStr], $text);
+
+        $url = config('app.url') . '/event/' . $event->slug;
+        try {
+            $this->telegram->sendMessage([
+                'chat_id'      => $chatId,
+                'text'         => $text,
+                'parse_mode'   => 'HTML',
+                'reply_markup' => json_encode(['inline_keyboard' => [[
+                    ['text' => $btnText, 'web_app' => ['url' => $url]],
+                ]]]),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('TG sendEventWelcome', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Models\User;
 use App\Services\MaxBotService;
 use App\Services\NotificationService;
@@ -62,7 +63,37 @@ class MaxController extends Controller
             $this->sendBooking($userId);
         } elseif (str_starts_with($text, '/lk')) {
             $this->sendLk($userId, $name);
+        } else {
+            // Ключевые слова событий
+            $trimmed = trim($text);
+            if ($trimmed) {
+                $events = Event::where('status', 'active')->get();
+                foreach ($events as $event) {
+                    $kw = trim($event->messenger_settings['max']['bot_keyword'] ?? '');
+                    if ($kw && mb_strtolower($trimmed) === mb_strtolower($kw)) {
+                        $this->sendEventWelcomeMax($userId, $event);
+                        return;
+                    }
+                }
+            }
         }
+    }
+
+    private function sendEventWelcomeMax(string $chatId, Event $event): void
+    {
+        $ms      = $event->messenger_settings ?? [];
+        $maxCfg  = $ms['max'] ?? [];
+        $default = "🎉 <b>{event}</b>\n\n📅 {date}\n\nЗарегистрируйтесь, чтобы забронировать место!";
+        $text    = $maxCfg['bot_welcome'] ?? $default;
+        $btnText = $maxCfg['bot_button']  ?? 'Зарегистрироваться →';
+
+        $dateStr = $event->event_date?->format('d.m.Y') ?? '';
+        $text    = str_replace(['{event}', '{date}'], [$event->title, $dateStr], $text);
+
+        $url = config('app.url') . '/event/' . $event->slug . '?via=max&max_id=' . $chatId;
+        $this->max->sendMessage($chatId, $text, [[
+            ['type' => 'link', 'text' => $btnText, 'url' => $url],
+        ]]);
     }
 
     private function sendStart(string $chatId, ?string $name, ?User $user): void

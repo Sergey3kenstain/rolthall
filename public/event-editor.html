@@ -581,6 +581,21 @@ button{font-family:var(--font);}
             <label class="label">Шаблон уведомления участнику</label>
             <textarea class="ta" id="ms-tg-user-tpl" rows="5" style="font-family:monospace;font-size:.7rem;" placeholder="✅ Вы зарегистрированы на «{event}»&#10;&#10;Дата: {date}&#10;Ваш код: {code}"></textarea>
           </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:.68rem;font-weight:700;color:var(--text-d);text-transform:uppercase;letter-spacing:.05em;">Кнопка регистрации в боте</div>
+            <div class="form-group">
+              <label class="label">Ключевое слово (бот отвечает на это сообщение)</label>
+              <input type="text" class="inp" id="ms-tg-keyword" placeholder="test_mk">
+            </div>
+            <div class="form-group">
+              <label class="label">Приветственное сообщение <span style="color:var(--text-d);font-weight:400;">· {event} {date}</span></label>
+              <textarea class="ta" id="ms-tg-welcome" rows="4" style="font-family:monospace;font-size:.7rem;" placeholder="🎉 &lt;b&gt;{event}&lt;/b&gt;&#10;&#10;📅 {date}&#10;&#10;Зарегистрируйтесь, чтобы забронировать место!"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="label">Текст кнопки</label>
+              <input type="text" class="inp" id="ms-tg-btn" placeholder="Зарегистрироваться →">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -603,6 +618,21 @@ button{font-family:var(--font);}
           <div class="form-group">
             <label class="label">Шаблон уведомления участнику</label>
             <textarea class="ta" id="ms-max-user-tpl" rows="4" style="font-family:monospace;font-size:.7rem;" placeholder="✅ Вы зарегистрированы на «{event}»&#10;&#10;Дата: {date}&#10;Ваш код: {code}"></textarea>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:.68rem;font-weight:700;color:var(--text-d);text-transform:uppercase;letter-spacing:.05em;">Кнопка регистрации в боте</div>
+            <div class="form-group">
+              <label class="label">Ключевое слово</label>
+              <input type="text" class="inp" id="ms-max-keyword" placeholder="test_mk">
+            </div>
+            <div class="form-group">
+              <label class="label">Приветственное сообщение <span style="color:var(--text-d);font-weight:400;">· {event} {date}</span></label>
+              <textarea class="ta" id="ms-max-welcome" rows="4" style="font-family:monospace;font-size:.7rem;" placeholder="🎉 &lt;b&gt;{event}&lt;/b&gt;&#10;&#10;📅 {date}&#10;&#10;Зарегистрируйтесь, чтобы забронировать место!"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="label">Текст кнопки</label>
+              <input type="text" class="inp" id="ms-max-btn" placeholder="Зарегистрироваться →">
+            </div>
           </div>
         </div>
       </div>
@@ -903,6 +933,9 @@ async function loadEvent(id) {
   document.getElementById('ms-tg-thread').value    = ms.tg?.admin_thread_id || '';
   document.getElementById('ms-tg-admin-tpl').value = ms.tg?.admin_template  || '';
   document.getElementById('ms-tg-user-tpl').value  = ms.tg?.user_template   || '';
+  document.getElementById('ms-tg-keyword').value   = ms.tg?.bot_keyword     || '';
+  document.getElementById('ms-tg-welcome').value   = ms.tg?.bot_welcome     || '';
+  document.getElementById('ms-tg-btn').value       = ms.tg?.bot_button      || '';
 
   if (ms.max?.enabled) {
     document.getElementById('ms-max-enabled').checked = true;
@@ -911,6 +944,9 @@ async function loadEvent(id) {
   document.getElementById('ms-max-chat').value     = ms.max?.admin_chat_id   || '';
   document.getElementById('ms-max-admin-tpl').value= ms.max?.admin_template  || '';
   document.getElementById('ms-max-user-tpl').value = ms.max?.user_template   || '';
+  document.getElementById('ms-max-keyword').value  = ms.max?.bot_keyword     || '';
+  document.getElementById('ms-max-welcome').value  = ms.max?.bot_welcome     || '';
+  document.getElementById('ms-max-btn').value      = ms.max?.bot_button      || '';
 
   // Ticket
   _ticketCfg   = ms.ticket || {};
@@ -947,12 +983,18 @@ async function saveEvent() {
         admin_thread_id: document.getElementById('ms-tg-thread').value.trim() || null,
         admin_template:  document.getElementById('ms-tg-admin-tpl').value.trim() || null,
         user_template:   document.getElementById('ms-tg-user-tpl').value.trim()  || null,
+        bot_keyword:     document.getElementById('ms-tg-keyword').value.trim()   || null,
+        bot_welcome:     document.getElementById('ms-tg-welcome').value.trim()   || null,
+        bot_button:      document.getElementById('ms-tg-btn').value.trim()       || null,
       },
       max: {
         enabled:        document.getElementById('ms-max-enabled').checked,
         admin_chat_id:  document.getElementById('ms-max-chat').value.trim()      || null,
         admin_template: document.getElementById('ms-max-admin-tpl').value.trim() || null,
         user_template:  document.getElementById('ms-max-user-tpl').value.trim()  || null,
+        bot_keyword:    document.getElementById('ms-max-keyword').value.trim()   || null,
+        bot_welcome:    document.getElementById('ms-max-welcome').value.trim()   || null,
+        bot_button:     document.getElementById('ms-max-btn').value.trim()       || null,
       },
       ticket: { ..._ticketCfg, zones: _ticketZones.map(({test_value, ...z}) => z) },
     },
