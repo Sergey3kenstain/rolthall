@@ -120,9 +120,14 @@ function render() {
         tariffsHtml += `<div id="tariff-err" class="err-msg" style="display:none;margin-bottom:8px;">Выберите вариант выше</div>`;
       }
       tariffsHtml += `
-        <div id="dynamic-tariff-banner" style="display:none;margin-bottom:14px;padding:12px;border:1.5px solid var(--accent);border-radius:var(--r);background:rgba(55,111,255,.08);">
-          <div class="tariff-name" id="dynamic-tariff-name"></div>
-          <div class="tariff-price" id="dynamic-tariff-price" style="margin-top:4px;"></div>
+        <div id="dynamic-tariff-banner" style="display:none;margin-bottom:14px;padding:12px 14px;border:1.5px solid var(--accent);border-radius:var(--r);background:rgba(55,111,255,.08);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div>
+              <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-d);margin-bottom:3px;">Тариф</div>
+              <div style="font-size:.85rem;font-weight:700;" id="dynamic-tariff-name"></div>
+            </div>
+            <div style="font-size:1rem;font-weight:800;color:var(--accent);white-space:nowrap;" id="dynamic-tariff-price"></div>
+          </div>
         </div>
       `;
     }
