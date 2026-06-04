@@ -881,7 +881,7 @@ async function loadEvent(id) {
 
   // Ticket
   _ticketCfg   = ms.ticket || {};
-  _ticketZones = (_ticketCfg.zones || []).map(z => ({...z}));
+  _ticketZones = (_ticketCfg.zones || []).map(z => ({ test_value: '', ...z }));
   delete _ticketCfg.zones;
   applyTicketTemplate(_ticketCfg.template_url || null);
 
@@ -921,7 +921,7 @@ async function saveEvent() {
         admin_template: document.getElementById('ms-max-admin-tpl').value.trim() || null,
         user_template:  document.getElementById('ms-max-user-tpl').value.trim()  || null,
       },
-      ticket: { ..._ticketCfg, zones: _ticketZones },
+      ticket: { ..._ticketCfg, zones: _ticketZones.map(({test_value, ...z}) => z) },
     },
   };
 
@@ -1566,7 +1566,9 @@ function toggleSection(id, show) {
 const TICKET_SYSTEM_FIELDS = [
   { slug: '__tariff__',    label: 'Тариф' },
   { slug: '__price__',     label: 'Сумма оплаты' },
-  { slug: '__paid_at__',   label: 'Дата и время оплаты' },
+  { slug: '__paid_at__',   label: 'Дата/время оплаты' },
+  { slug: '__reg_date__',  label: 'Дата/время регистрации' },
+  { slug: '__tbank_id__',  label: 'ID транзакции TBank' },
   { slug: '__ticket_id__', label: 'Номер билета' },
   { slug: '__phone__',     label: 'Телефон' },
 ];
@@ -1621,7 +1623,7 @@ function renderTicketTab() {
 
 function addTicketZone() {
   const id = 'z' + Date.now();
-  _ticketZones.push({ id, field: TICKET_SYSTEM_FIELDS[0].slug, x: 0.1, y: 0.5, size: 18, bold: false, color: '000000' });
+  _ticketZones.push({ id, field: TICKET_SYSTEM_FIELDS[0].slug, x: 0.1, y: 0.5, size: 18, bold: false, color: '000000', test_value: '' });
   _activeZone = id;
   renderTicketZones();
 }
@@ -1701,6 +1703,11 @@ function renderTicketZones() {
           <input type="number" class="inp" value="${Math.round(zone.y*1000)/10}" min="0" max="100" step="0.1" style="width:70px;"
             oninput="_ticketZones.find(z=>z.id==='${zone.id}').y=+this.value/100;renderTicketMarkers()">
         </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <label style="font-size:.6rem;color:var(--text-d);white-space:nowrap;">Тест. значение</label>
+          <input type="text" class="inp" value="${esc(zone.test_value||'')}" placeholder="Текст для превью…" style="flex:1;"
+            oninput="_ticketZones.find(z=>z.id==='${zone.id}').test_value=this.value;renderTicketMarkers()">
+        </div>
       </div>` : ''}
     `;
     list.appendChild(div);
@@ -1718,14 +1725,45 @@ function renderTicketMarkers() {
   const img  = document.getElementById('ticket-preview-img');
   if (!wrap || !img) return;
 
+  const previewW  = img.clientWidth  || img.naturalWidth  || 1;
+  const templateW = _ticketCfg.width || 1080;
+  const scale     = previewW / templateW;
+
+  const allFieldLabels = [...TICKET_SYSTEM_FIELDS, ..._fields.map(f=>({slug:f.slug,label:f.label||f.slug}))];
+
   wrap.innerHTML = _ticketZones.map(zone => {
-    const isActive = zone.id === _activeZone;
-    const fieldLabel = [...TICKET_SYSTEM_FIELDS, ..._fields.map(f=>({slug:f.slug,label:f.label||f.slug}))]
-      .find(f => f.slug === zone.field)?.label || zone.field;
+    const isActive   = zone.id === _activeZone;
+    const fieldLabel = allFieldLabels.find(f => f.slug === zone.field)?.label || zone.field;
+    const text       = zone.test_value || '';
+    const fontSize   = Math.max(6, Math.round(zone.size * scale));
+    const color      = '#' + (zone.color || '000000');
+    const fw         = zone.bold ? 700 : 400;
+
+    if (text) {
+      return `<div style="
+        position:absolute;
+        left:${zone.x * 100}%;top:${zone.y * 100}%;
+        transform:translate(0,-0.85em);
+        pointer-events:none;
+        ${isActive ? 'outline:1.5px dashed var(--accent);outline-offset:2px;' : ''}
+      ">
+        <span style="
+          font-family:'Unbounded',sans-serif;
+          font-size:${fontSize}px;
+          font-weight:${fw};
+          color:${color};
+          white-space:nowrap;
+          line-height:1;
+          display:block;
+          text-shadow:0 1px 3px rgba(0,0,0,.35);
+        ">${esc(text)}</span>
+      </div>`;
+    }
+
     return `<div style="
       position:absolute;
       left:${zone.x * 100}%;top:${zone.y * 100}%;
-      transform:translate(0,-50%);
+      transform:translate(-50%,-50%);
       pointer-events:none;
       display:flex;align-items:center;gap:3px;
     ">

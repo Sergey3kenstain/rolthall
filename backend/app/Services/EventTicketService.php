@@ -272,6 +272,8 @@ class EventTicketService
             '__tariff__'    => $reg->tariff?->name ?? '',
             '__price__'     => $reg->payment_amount ? $reg->payment_amount . ' ₽' : '',
             '__paid_at__'   => $reg->paid_at?->format('d.m.Y H:i') ?? '',
+            '__reg_date__'  => $reg->created_at->format('d.m.Y H:i'),
+            '__tbank_id__'  => $reg->tbank_payment_id ?? '',
             '__ticket_id__' => '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT),
             '__phone__'     => $reg->phone ?? '',
         ];
