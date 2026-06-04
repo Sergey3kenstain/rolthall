@@ -425,6 +425,7 @@ button{font-family:var(--font);}
     <button class="ed-tab" onclick="switchEdTab('fields',this)">Форма</button>
     <button class="ed-tab" onclick="switchEdTab('tariffs',this)">Тарифы</button>
     <button class="ed-tab" onclick="switchEdTab('messenger',this)">Мессенджеры</button>
+    <button class="ed-tab" onclick="switchEdTab('ticket',this)">Билет</button>
   </div>
 
   <!-- ══ BODY ══ -->
@@ -607,6 +608,55 @@ button{font-family:var(--font);}
       </div>
     </div>
 
+    <!-- ── TAB: БИЛЕТ ── -->
+    <div class="ed-pane" id="ed-ticket">
+      <div class="block-card" style="margin-bottom:16px;">
+        <div class="block-title" style="margin-bottom:12px;">Шаблон билета</div>
+        <div id="ticket-no-template">
+          <p style="font-size:.72rem;color:var(--text-m);margin-bottom:10px;">Загрузите пустой шаблон билета (PNG/JPG). Поверх него будут рендериться данные участника в указанных зонах.</p>
+          <input type="file" id="ticket-tpl-input" accept="image/png,image/jpeg" style="display:none" onchange="uploadTicketTemplate(this)">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ticket-tpl-input').click()">Загрузить шаблон</button>
+        </div>
+        <div id="ticket-has-template" style="display:none;">
+          <img id="ticket-tpl-thumb" style="max-width:220px;border-radius:6px;display:block;margin-bottom:8px;">
+          <div style="display:flex;gap:8px;">
+            <input type="file" id="ticket-tpl-replace" accept="image/png,image/jpeg" style="display:none" onchange="uploadTicketTemplate(this)">
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ticket-tpl-replace').click()">Заменить</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteTicketTemplate()">Удалить</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ticket-editor-area" style="display:none;">
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;">
+
+          <!-- Zones list -->
+          <div>
+            <div class="block-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div class="block-title">Зоны текста</div>
+                <button class="btn btn-ghost btn-sm" onclick="addTicketZone()">+ Добавить</button>
+              </div>
+              <div id="ticket-zones-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+              <p style="font-size:.62rem;color:var(--text-d);margin-top:10px;">Кликни по зоне → кликни на превью чтобы поставить</p>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div>
+            <div class="block-card" style="padding:12px;">
+              <div class="block-title" style="margin-bottom:8px;">Превью</div>
+              <div id="ticket-preview-wrap" style="position:relative;display:inline-block;cursor:crosshair;max-width:100%;" onclick="handleTicketPreviewClick(event)">
+                <img id="ticket-preview-img" style="max-width:100%;display:block;border-radius:6px;user-select:none;">
+                <div id="ticket-preview-markers" style="position:absolute;inset:0;pointer-events:none;"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
   </div><!-- /ed-body -->
 </main>
 
@@ -639,8 +689,11 @@ button{font-family:var(--font);}
 const API   = '/api';
 let _token  = localStorage.getItem('rh_token') || '';
 let _evId   = new URLSearchParams(location.search).get('id') || null;
-let _fields  = [];
-let _tariffs = [];
+let _fields      = [];
+let _tariffs     = [];
+let _ticketCfg   = {};   // { template_path, template_url, width, height }
+let _ticketZones = [];   // [{ id, field, x, y, size, bold, color }]
+let _activeZone  = null; // id выбранной зоны
 let _fldCnt  = 0;
 
 /* ═══════════════════════════════
@@ -826,6 +879,12 @@ async function loadEvent(id) {
   document.getElementById('ms-max-admin-tpl').value= ms.max?.admin_template  || '';
   document.getElementById('ms-max-user-tpl').value = ms.max?.user_template   || '';
 
+  // Ticket
+  _ticketCfg   = ms.ticket || {};
+  _ticketZones = (_ticketCfg.zones || []).map(z => ({...z}));
+  delete _ticketCfg.zones;
+  applyTicketTemplate(_ticketCfg.template_url || null);
+
   updatePhList();
 }
 
@@ -862,6 +921,7 @@ async function saveEvent() {
         admin_template: document.getElementById('ms-max-admin-tpl').value.trim() || null,
         user_template:  document.getElementById('ms-max-user-tpl').value.trim()  || null,
       },
+      ticket: { ..._ticketCfg, zones: _ticketZones },
     },
   };
 
@@ -1487,6 +1547,7 @@ function switchEdTab(id, btn) {
   if (id === 'participants') loadParticipants();
   if (id === 'tariffs') renderAllTariffs();
   if (id === 'messenger') updatePhList();
+  if (id === 'ticket') renderTicketTab();
 }
 
 function onPaymentsToggle(on) {
@@ -1496,6 +1557,191 @@ function onPaymentsToggle(on) {
 function toggleSection(id, show) {
   const el = document.getElementById(id);
   if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+/* ═══════════════════════════════
+   TICKET BUILDER
+═══════════════════════════════ */
+
+const TICKET_SYSTEM_FIELDS = [
+  { slug: '__tariff__',    label: 'Тариф' },
+  { slug: '__price__',     label: 'Сумма оплаты' },
+  { slug: '__paid_at__',   label: 'Дата и время оплаты' },
+  { slug: '__ticket_id__', label: 'Номер билета' },
+  { slug: '__phone__',     label: 'Телефон' },
+];
+
+function applyTicketTemplate(url) {
+  if (url) {
+    document.getElementById('ticket-no-template').style.display = 'none';
+    document.getElementById('ticket-has-template').style.display = '';
+    document.getElementById('ticket-tpl-thumb').src = url;
+    document.getElementById('ticket-preview-img').src = url;
+    document.getElementById('ticket-editor-area').style.display = '';
+  } else {
+    document.getElementById('ticket-no-template').style.display = '';
+    document.getElementById('ticket-has-template').style.display = 'none';
+    document.getElementById('ticket-editor-area').style.display = 'none';
+  }
+}
+
+async function uploadTicketTemplate(input) {
+  if (!input.files[0] || !_evId) return;
+  const fd = new FormData();
+  fd.append('template', input.files[0]);
+  const res = await fetch(`${API}/admin/events/${_evId}/ticket-template`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + _token },
+    body: fd,
+  });
+  const data = await res.json();
+  if (!data.ok) { showToast('Ошибка загрузки шаблона', true); return; }
+  _ticketCfg = { ...(_ticketCfg || {}), ...data.ticket };
+  delete _ticketCfg.zones;
+  applyTicketTemplate(data.ticket.template_url);
+  renderTicketZones();
+  showToast('Шаблон загружен ✓');
+  input.value = '';
+}
+
+async function deleteTicketTemplate() {
+  if (!_evId) return;
+  await api(`/admin/events/${_evId}/ticket-template`, { method: 'DELETE' });
+  delete _ticketCfg.template_path;
+  delete _ticketCfg.template_url;
+  delete _ticketCfg.width;
+  delete _ticketCfg.height;
+  applyTicketTemplate(null);
+}
+
+function renderTicketTab() {
+  applyTicketTemplate(_ticketCfg.template_url || null);
+  renderTicketZones();
+}
+
+function addTicketZone() {
+  const id = 'z' + Date.now();
+  _ticketZones.push({ id, field: TICKET_SYSTEM_FIELDS[0].slug, x: 0.1, y: 0.5, size: 18, bold: false, color: '000000' });
+  _activeZone = id;
+  renderTicketZones();
+}
+
+function removeTicketZone(id) {
+  _ticketZones = _ticketZones.filter(z => z.id !== id);
+  if (_activeZone === id) _activeZone = null;
+  renderTicketZones();
+}
+
+function selectTicketZone(id) {
+  _activeZone = (_activeZone === id) ? null : id;
+  renderTicketZones();
+}
+
+function handleTicketPreviewClick(e) {
+  if (!_activeZone) return;
+  const zone = _ticketZones.find(z => z.id === _activeZone);
+  if (!zone) return;
+  const img  = document.getElementById('ticket-preview-img');
+  const rect = img.getBoundingClientRect();
+  zone.x = Math.max(0, Math.min(1, (e.clientX - rect.left)  / rect.width));
+  zone.y = Math.max(0, Math.min(1, (e.clientY - rect.top)   / rect.height));
+  renderTicketZones();
+}
+
+function renderTicketZones() {
+  // Zones list
+  const allFields = [
+    ...TICKET_SYSTEM_FIELDS,
+    ..._fields.filter(f => f.slug && f.slug !== 'phone').map(f => ({ slug: f.slug, label: f.label || f.slug })),
+    { slug: 'phone', label: 'Телефон (форм)' },
+  ];
+
+  const list = document.getElementById('ticket-zones-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  _ticketZones.forEach(zone => {
+    const isActive = zone.id === _activeZone;
+    const fieldLabel = allFields.find(f => f.slug === zone.field)?.label || zone.field;
+    const fieldOpts  = allFields.map(f =>
+      `<option value="${esc(f.slug)}" ${zone.field === f.slug ? 'selected' : ''}>${esc(f.label)}</option>`
+    ).join('');
+
+    const div = document.createElement('div');
+    div.style.cssText = `border:1px solid ${isActive ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:8px 10px;cursor:pointer;background:${isActive ? 'rgba(55,111,255,.07)' : ''};`;
+    div.onclick = (e) => { if (!e.target.closest('input,select,button')) selectTicketZone(zone.id); };
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+        <span style="font-size:.72rem;font-weight:700;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(fieldLabel)}</span>
+        <button class="btn-icon danger" onclick="removeTicketZone('${zone.id}');event.stopPropagation()" style="flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      ${isActive ? `
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;" onclick="event.stopPropagation()">
+        <select class="sel" onchange="_ticketZones.find(z=>z.id==='${zone.id}').field=this.value;renderTicketZones()">
+          ${fieldOpts}
+        </select>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <label style="font-size:.6rem;color:var(--text-d);">Размер</label>
+          <input type="number" class="inp" value="${zone.size}" min="6" max="120" style="width:60px;"
+            oninput="_ticketZones.find(z=>z.id==='${zone.id}').size=+this.value;renderTicketMarkers()">
+          <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;cursor:pointer;">
+            <input type="checkbox" ${zone.bold ? 'checked' : ''} onchange="_ticketZones.find(z=>z.id==='${zone.id}').bold=this.checked"> Bold
+          </label>
+          <label style="font-size:.6rem;color:var(--text-d);">Цвет</label>
+          <input type="color" value="#${zone.color}" style="width:32px;height:26px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg-deep);cursor:pointer;"
+            oninput="_ticketZones.find(z=>z.id==='${zone.id}').color=this.value.slice(1);renderTicketMarkers()">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <label style="font-size:.6rem;color:var(--text-d);">X%</label>
+          <input type="number" class="inp" value="${Math.round(zone.x*1000)/10}" min="0" max="100" step="0.1" style="width:70px;"
+            oninput="_ticketZones.find(z=>z.id==='${zone.id}').x=+this.value/100;renderTicketMarkers()">
+          <label style="font-size:.6rem;color:var(--text-d);">Y%</label>
+          <input type="number" class="inp" value="${Math.round(zone.y*1000)/10}" min="0" max="100" step="0.1" style="width:70px;"
+            oninput="_ticketZones.find(z=>z.id==='${zone.id}').y=+this.value/100;renderTicketMarkers()">
+        </div>
+      </div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  if (!_ticketZones.length) {
+    list.innerHTML = '<p style="font-size:.7rem;color:var(--text-d);text-align:center;padding:16px 0;">Нет зон. Нажмите «+ Добавить»</p>';
+  }
+
+  renderTicketMarkers();
+}
+
+function renderTicketMarkers() {
+  const wrap = document.getElementById('ticket-preview-markers');
+  const img  = document.getElementById('ticket-preview-img');
+  if (!wrap || !img) return;
+
+  wrap.innerHTML = _ticketZones.map(zone => {
+    const isActive = zone.id === _activeZone;
+    const fieldLabel = [...TICKET_SYSTEM_FIELDS, ..._fields.map(f=>({slug:f.slug,label:f.label||f.slug}))]
+      .find(f => f.slug === zone.field)?.label || zone.field;
+    return `<div style="
+      position:absolute;
+      left:${zone.x * 100}%;top:${zone.y * 100}%;
+      transform:translate(0,-50%);
+      pointer-events:none;
+      display:flex;align-items:center;gap:3px;
+    ">
+      <div style="
+        width:8px;height:8px;border-radius:50%;flex-shrink:0;
+        background:${isActive ? 'var(--accent)' : '#ff6b6b'};
+        box-shadow:0 0 0 2px ${isActive ? 'rgba(55,111,255,.4)' : 'rgba(255,107,107,.4)'};
+      "></div>
+      <span style="
+        font-size:9px;font-weight:700;white-space:nowrap;
+        background:rgba(0,0,0,.7);color:#fff;
+        padding:1px 4px;border-radius:3px;
+        font-family:var(--font);
+      ">${esc(fieldLabel)}</span>
+    </div>`;
+  }).join('');
 }
 
 function goBack() { location.href = '/admin#events'; }

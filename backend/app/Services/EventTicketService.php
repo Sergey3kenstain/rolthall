@@ -108,47 +108,27 @@ class EventTicketService
 
     private function sendTicketTg(EventRegistration $reg, Event $event): void
     {
-        $ms       = $event->messenger_settings ?? [];
-        $tgEnabled = !empty($ms['tg']['enabled']);
-        if (!$tgEnabled) return;
+        $ms = $event->messenger_settings ?? [];
+        if (empty($ms['tg']['enabled'])) return;
 
         $chatId   = $reg->tg_user_id;
-        $userText = $this->renderTemplate(
-            $ms['tg']['user_template'] ?? null,
-            $this->defaultUserTemplate($reg, $event),
-            $reg,
-            $event
-        );
+        $userText = $this->renderTemplate($ms['tg']['user_template'] ?? null, $this->defaultUserTemplate($reg, $event), $reg, $event);
 
         try {
-            // Отправляем афишу с подписью если она есть
-            $posterPath = $event->poster_path
-                ? storage_path('app/public/' . $event->poster_path)
-                : null;
-
-            if ($posterPath && file_exists($posterPath)) {
-                // Генерируем билет: афиша + текст участника
-                $ticketPath = $this->generateTicketImage($posterPath, $reg, $event);
-
+            $ticketPath = $this->generateTicketImage($reg, $event);
+            if ($ticketPath) {
                 $this->telegram->sendPhoto([
-                    'chat_id'    => $chatId,
-                    'photo'      => new \CURLFile($ticketPath),
-                    'caption'    => $userText,
-                    'parse_mode' => 'HTML',
-                    'reply_markup' => json_encode([
-                        'inline_keyboard' => [[
-                            ['text' => '👤 Личный кабинет', 'web_app' => ['url' => 'https://hall.roltworld.com/profile']],
-                        ]],
-                    ]),
+                    'chat_id'      => $chatId,
+                    'photo'        => new \CURLFile($ticketPath),
+                    'caption'      => $userText,
+                    'parse_mode'   => 'HTML',
+                    'reply_markup' => json_encode(['inline_keyboard' => [[
+                        ['text' => '👤 Личный кабинет', 'web_app' => ['url' => 'https://hall.roltworld.com/profile']],
+                    ]]]),
                 ]);
-
                 @unlink($ticketPath);
             } else {
-                $this->telegram->sendMessage([
-                    'chat_id'    => $chatId,
-                    'text'       => $userText,
-                    'parse_mode' => 'HTML',
-                ]);
+                $this->telegram->sendMessage(['chat_id' => $chatId, 'text' => $userText, 'parse_mode' => 'HTML']);
             }
         } catch (\Throwable $e) {
             Log::error('Event ticket TG send', ['reg_id' => $reg->id, 'error' => $e->getMessage()]);
@@ -157,34 +137,19 @@ class EventTicketService
 
     private function sendTicketMax(EventRegistration $reg, Event $event): void
     {
-        $ms        = $event->messenger_settings ?? [];
-        $maxEnabled = !empty($ms['max']['enabled']);
-        if (!$maxEnabled) return;
+        $ms = $event->messenger_settings ?? [];
+        if (empty($ms['max']['enabled'])) return;
 
         $userId   = $reg->max_user_id;
-        $userText = $this->renderTemplate(
-            $ms['max']['user_template'] ?? null,
-            $this->defaultUserTemplate($reg, $event),
-            $reg,
-            $event
-        );
+        $userText = $this->renderTemplate($ms['max']['user_template'] ?? null, $this->defaultUserTemplate($reg, $event), $reg, $event);
+        $buttons  = [[['type' => 'link', 'text' => '👤 Личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max']]];
 
-        $buttons = [[
-            ['type' => 'link', 'text' => '👤 Личный кабинет', 'url' => 'https://hall.roltworld.com/profile?via=max'],
-        ]];
-
-        $posterPath = $event->poster_path
-            ? storage_path('app/public/' . $event->poster_path)
-            : null;
-
-        if ($posterPath && file_exists($posterPath)) {
-            $ticketPath = $this->generateTicketImage($posterPath, $reg, $event);
+        $ticketPath = $this->generateTicketImage($reg, $event);
+        if ($ticketPath) {
             $sent = $this->max->sendPhoto($userId, $ticketPath, $userText, $buttons);
-            if ($ticketPath !== $posterPath) @unlink($ticketPath);
+            @unlink($ticketPath);
             if ($sent) return;
         }
-
-        // Fallback: только текст
         $this->max->sendMessage($userId, $userText, $buttons);
     }
 
@@ -205,87 +170,115 @@ class EventTicketService
 
     // ── GD ticket generation ──────────────────────────────────────────────
 
-    private function generateTicketImage(string $posterPath, EventRegistration $reg, Event $event): string
+    private function generateTicketImage(EventRegistration $reg, Event $event): ?string
     {
-        $ext = strtolower(pathinfo($posterPath, PATHINFO_EXTENSION));
-        $src = $ext === 'png' ? @imagecreatefrompng($posterPath) : @imagecreatefromjpeg($posterPath);
-        if (!$src) return $posterPath;
+        $ms        = $event->messenger_settings ?? [];
+        $ticketCfg = $ms['ticket'] ?? [];
+        $zones     = $ticketCfg['zones'] ?? [];
+
+        // Источник: сначала шаблон билета, потом афиша
+        $srcPath = null;
+        if (!empty($ticketCfg['template_path'])) {
+            $tp = storage_path('app/public/' . $ticketCfg['template_path']);
+            if (file_exists($tp)) $srcPath = $tp;
+        }
+        if (!$srcPath && $event->poster_path) {
+            $pp = storage_path('app/public/' . $event->poster_path);
+            if (file_exists($pp)) $srcPath = $pp;
+        }
+        if (!$srcPath) return null;
+
+        $ext = strtolower(pathinfo($srcPath, PATHINFO_EXTENSION));
+        $src = $ext === 'png' ? @imagecreatefrompng($srcPath) : @imagecreatefromjpeg($srcPath);
+        if (!$src) return null;
 
         $w = imagesx($src);
         $h = imagesy($src);
-
-        // Полоса снизу — 24% высоты
-        $barH = (int)($h * 0.24);
-        $barY = $h - $barH;
 
         $img = imagecreatetruecolor($w, $h);
         imagealphablending($img, true);
         imagecopy($img, $src, 0, 0, 0, 0, $w, $h);
         imagedestroy($src);
 
-        // Тёмный оверлей полосы
-        $overlay = imagecreatetruecolor($w, $barH);
-        $bg = imagecolorallocate($overlay, 14, 13, 18);
-        imagefilledrectangle($overlay, 0, 0, $w, $barH, $bg);
-        imagecopymerge($img, $overlay, 0, $barY, 0, 0, $w, $barH, 88);
-        imagedestroy($overlay);
-
-        // Шрифты
         $fontDir  = storage_path('app/fonts/');
         $fontReg  = $fontDir . 'Unbounded-Regular.ttf';
         $fontBold = $fontDir . 'Unbounded-Bold.ttf';
         $hasTtf   = file_exists($fontReg) && file_exists($fontBold) && function_exists('imagettftext');
 
-        $white  = imagecolorallocate($img, 255, 255, 255);
-        $gray   = imagecolorallocate($img, 160, 158, 172);
-        $accent = imagecolorallocate($img, 55, 111, 255);
-
-        $pad  = (int)($w * 0.045);
-        $sTitle = max(11, (int)($w / 52));  // размер заголовка
-        $sSub   = max(8,  (int)($w / 72));  // размер подписи
-
-        if ($hasTtf) {
-            $lineH = (int)($sTitle * 1.75);
-            $y = $barY + (int)($barH * 0.22) + $sTitle;
-
-            // Название события (bold)
-            $title = mb_substr($event->title, 0, 45);
-            imagettftext($img, $sTitle, 0, $pad, $y, $white, $fontBold, $title);
-            $y += $lineH;
-
-            // Дата + тариф (regular)
-            $dateStr = $event->event_date?->format('d.m.Y') ?? '';
-            $sub = $dateStr;
-            if ($reg->tariff) {
-                $sub .= ($sub ? '  ·  ' : '') . $reg->tariff->name;
-                if ($reg->selected_option) $sub .= ' · ' . $reg->selected_option;
+        if (!empty($zones) && $hasTtf) {
+            // ── Кастомные зоны ────────────────────────────────────────────
+            $values = $this->resolveTicketFieldValues($reg, $event);
+            foreach ($zones as $zone) {
+                $text = $values[$zone['field'] ?? ''] ?? '';
+                if ($text === '') continue;
+                $x     = (int) round(($zone['x'] ?? 0) * $w);
+                $y     = (int) round(($zone['y'] ?? 0) * $h);
+                $size  = (float) ($zone['size'] ?? 16);
+                $bold  = !empty($zone['bold']);
+                $font  = $bold ? $fontBold : $fontReg;
+                $hex   = ltrim($zone['color'] ?? '000000', '#');
+                $color = imagecolorallocate($img, hexdec(substr($hex,0,2)), hexdec(substr($hex,2,2)), hexdec(substr($hex,4,2)));
+                imagettftext($img, $size, 0, $x, $y, $color, $font, $text);
             }
-            if ($sub) {
-                imagettftext($img, $sSub, 0, $pad, $y, $gray, $fontReg, $sub);
-            }
-
-            // Номер билета — справа, bold
-            $code  = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
-            $bbox  = imagettfbbox($sTitle, 0, $fontBold, $code);
-            $codeW = abs($bbox[4] - $bbox[0]);
-            $codeY = $barY + (int)($barH * 0.22) + $sTitle;
-            imagettftext($img, $sTitle, 0, $w - $pad - $codeW, $codeY, $accent, $fontBold, $code);
         } else {
-            // Fallback без TTF — встроенный шрифт
-            $y = $barY + (int)($barH * 0.15);
-            imagestring($img, 5, $pad, $y, mb_substr($event->title, 0, 40), $white);
-            $y += 22;
-            $dateStr = $event->event_date?->format('d.m.Y') ?? '';
-            if ($dateStr) imagestring($img, 3, $pad, $y, $dateStr, $gray);
-            $code = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
-            imagestring($img, 5, $w - strlen($code) * imagefontwidth(5) - $pad, $barY + (int)($barH * 0.15), $code, $accent);
+            // ── Дефолтный оверлей (полоса снизу) ─────────────────────────
+            $barH = (int)($h * 0.24);
+            $barY = $h - $barH;
+
+            $overlay = imagecreatetruecolor($w, $barH);
+            $bg = imagecolorallocate($overlay, 14, 13, 18);
+            imagefilledrectangle($overlay, 0, 0, $w, $barH, $bg);
+            imagecopymerge($img, $overlay, 0, $barY, 0, 0, $w, $barH, 88);
+            imagedestroy($overlay);
+
+            $white  = imagecolorallocate($img, 255, 255, 255);
+            $gray   = imagecolorallocate($img, 160, 158, 172);
+            $accent = imagecolorallocate($img, 55, 111, 255);
+            $pad    = (int)($w * 0.045);
+            $sTitle = max(11, (int)($w / 52));
+            $sSub   = max(8,  (int)($w / 72));
+
+            if ($hasTtf) {
+                $y = $barY + (int)($barH * 0.22) + $sTitle;
+                imagettftext($img, $sTitle, 0, $pad, $y, $white, $fontBold, mb_substr($event->title, 0, 45));
+                $y += (int)($sTitle * 1.75);
+                $dateStr = $event->event_date?->format('d.m.Y') ?? '';
+                $sub = $dateStr . ($reg->tariff ? ($dateStr ? '  ·  ' : '') . $reg->tariff->name : '');
+                if ($sub) imagettftext($img, $sSub, 0, $pad, $y, $gray, $fontReg, $sub);
+                $code  = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
+                $bbox  = imagettfbbox($sTitle, 0, $fontBold, $code);
+                $codeW = abs($bbox[4] - $bbox[0]);
+                imagettftext($img, $sTitle, 0, $w - $pad - $codeW, $barY + (int)($barH * 0.22) + $sTitle, $accent, $fontBold, $code);
+            } else {
+                $white  = imagecolorallocate($img, 255, 255, 255);
+                $accent = imagecolorallocate($img, 55, 111, 255);
+                $pad    = (int)($w * 0.045);
+                $y = $h - (int)($h * 0.24) + (int)($h * 0.24 * 0.15);
+                imagestring($img, 5, $pad, $y, mb_substr($event->title, 0, 40), $white);
+                $code = '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT);
+                imagestring($img, 5, $w - strlen($code) * imagefontwidth(5) - $pad, $y, $code, $accent);
+            }
         }
 
         $tmpPath = sys_get_temp_dir() . '/ticket_' . $reg->id . '_' . time() . '.jpg';
         imagejpeg($img, $tmpPath, 92);
         imagedestroy($img);
-
         return $tmpPath;
+    }
+
+    private function resolveTicketFieldValues(EventRegistration $reg, Event $event): array
+    {
+        $values = [
+            '__tariff__'    => $reg->tariff?->name ?? '',
+            '__price__'     => $reg->payment_amount ? $reg->payment_amount . ' ₽' : '',
+            '__paid_at__'   => $reg->paid_at?->format('d.m.Y H:i') ?? '',
+            '__ticket_id__' => '#' . str_pad($reg->id, 6, '0', STR_PAD_LEFT),
+            '__phone__'     => $reg->phone ?? '',
+        ];
+        foreach ($reg->fields_data ?? [] as $slug => $value) {
+            $values[$slug] = is_array($value) ? implode(', ', $value) : (string) $value;
+        }
+        return $values;
     }
 
     // ── Template renderer ─────────────────────────────────────────────────

@@ -217,6 +217,49 @@ class EventAdminController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    public function uploadTicketTemplate(Request $request, int $id): JsonResponse
+    {
+        $event = Event::findOrFail($id);
+        $request->validate(['template' => 'required|image|mimes:jpg,jpeg,png|max:5120']);
+
+        $ms = $event->messenger_settings ?? [];
+
+        if ($old = ($ms['ticket']['template_path'] ?? null)) {
+            $abs = storage_path('app/public/' . $old);
+            if (file_exists($abs)) unlink($abs);
+        }
+
+        $path     = $request->file('template')->store('events/tickets', 'public');
+        $fullPath = storage_path('app/public/' . $path);
+        [$w, $h]  = @getimagesize($fullPath) ?: [0, 0];
+
+        $ms['ticket'] = array_merge($ms['ticket'] ?? [], [
+            'template_path' => $path,
+            'template_url'  => asset('storage/' . $path),
+            'width'         => $w,
+            'height'        => $h,
+        ]);
+        $event->update(['messenger_settings' => $ms]);
+
+        return response()->json(['ok' => true, 'ticket' => $ms['ticket']], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function deleteTicketTemplate(Request $request, int $id): JsonResponse
+    {
+        $event = Event::findOrFail($id);
+        $ms = $event->messenger_settings ?? [];
+
+        if ($path = ($ms['ticket']['template_path'] ?? null)) {
+            $abs = storage_path('app/public/' . $path);
+            if (file_exists($abs)) unlink($abs);
+        }
+
+        unset($ms['ticket']['template_path'], $ms['ticket']['template_url'], $ms['ticket']['width'], $ms['ticket']['height']);
+        $event->update(['messenger_settings' => $ms]);
+
+        return response()->json(['ok' => true]);
+    }
+
     // ── Registrations ─────────────────────────────────────────────────────
 
     public function registrations(Request $request, int $id): JsonResponse
