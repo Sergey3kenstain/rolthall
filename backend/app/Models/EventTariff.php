@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EventTariff extends Model
 {
-    protected $fillable = ['event_id', 'name', 'has_options', 'options', 'dependent_fields', 'sort_order'];
+    protected $fillable = ['event_id', 'name', 'has_options', 'options', 'dependent_fields', 'sort_order', 'condition_field', 'condition_value'];
 
     protected $casts = [
         'has_options'       => 'boolean',
@@ -23,7 +23,7 @@ class EventTariff extends Model
 
     public function tiers(): HasMany
     {
-        return $this->hasMany(EventTariffTier::class)->orderBy('from_date');
+        return $this->hasMany(EventTariffTier::class, 'tariff_id')->orderBy('from_date');
     }
 
     /** Текущая цена по дате (null если нет активного тира) */
