@@ -708,7 +708,10 @@ button{font-family:var(--font);}
           <!-- Preview -->
           <div>
             <div class="block-card" style="padding:12px;">
-              <div class="block-title" style="margin-bottom:8px;">Превью</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div class="block-title">Превью</div>
+                <button class="btn btn-ghost btn-sm" id="btn-render-preview" onclick="renderServerPreview()">Рендер-превью</button>
+              </div>
               <div id="ticket-preview-wrap" style="position:relative;display:inline-block;cursor:crosshair;max-width:100%;" onclick="handleTicketPreviewClick(event)">
                 <img id="ticket-preview-img" style="max-width:100%;display:block;border-radius:6px;user-select:none;">
                 <div id="ticket-preview-markers" style="position:absolute;inset:0;pointer-events:none;"></div>
@@ -722,6 +725,20 @@ button{font-family:var(--font);}
 
   </div><!-- /ed-body -->
 </main>
+
+<!-- ══ RENDER PREVIEW MODAL ══ -->
+<div id="render-preview-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeRenderPreview()">
+  <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r-lg);max-width:700px;width:100%;max-height:90vh;overflow:auto;padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-weight:700;font-size:.9rem;">Предпросмотр рендера</div>
+      <button class="btn-icon" onclick="closeRenderPreview()">×</button>
+    </div>
+    <div id="render-preview-body" style="text-align:center;">
+      <div class="spinner" style="margin:40px auto;"></div>
+    </div>
+    <p style="font-size:.65rem;color:var(--text-d);margin-top:10px;text-align:center;">Это точная копия картинки, которая уйдёт в мессенджер</p>
+  </div>
+</div>
 
 <!-- ══ DEP POPUP OVERLAY ══ -->
 <div class="dep-popup-overlay" id="depPopupOverlay" onclick="if(event.target===this)closeDepPopup()">
@@ -1711,6 +1728,48 @@ async function deleteTicketTemplate() {
 function getNumCfg() {
   if (!_ticketCfg.numbering) _ticketCfg.numbering = {};
   return _ticketCfg.numbering;
+}
+
+async function renderServerPreview() {
+  if (!_evId) { alert('Сначала сохраните событие'); return; }
+  const btn = document.getElementById('btn-render-preview');
+  btn.disabled = true;
+  btn.textContent = '…';
+  const modal = document.getElementById('render-preview-modal');
+  const body  = document.getElementById('render-preview-body');
+  body.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
+  modal.style.display = 'flex';
+
+  const ticketPayload = {
+    ..._ticketCfg,
+    zones: _ticketZones,
+  };
+
+  try {
+    const res = await fetch(`${API}/admin/events/${_evId}/ticket-preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + _token },
+      body: JSON.stringify({ ticket: ticketPayload }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      body.innerHTML = `<p style="color:var(--red);padding:20px;">${err.error === 'no_template' ? 'Нет шаблона или афиши — нечего рендерить' : 'Ошибка генерации'}</p>`;
+      return;
+    }
+    const blob   = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    body.innerHTML = `<img src="${objUrl}" style="max-width:100%;border-radius:6px;"><br>
+      <a href="${objUrl}" download="ticket-preview.jpg" class="btn btn-ghost btn-sm" style="margin-top:10px;display:inline-block;">⬇ Скачать</a>`;
+  } catch(e) {
+    body.innerHTML = '<p style="color:var(--red);padding:20px;">Ошибка соединения</p>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Рендер-превью';
+  }
+}
+
+function closeRenderPreview() {
+  document.getElementById('render-preview-modal').style.display = 'none';
 }
 
 function renderTicketTab() {

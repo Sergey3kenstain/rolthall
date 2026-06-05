@@ -260,6 +260,29 @@ class EventAdminController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /**
+     * Серверный предпросмотр билета с тестовыми значениями
+     * POST /api/admin/events/{id}/ticket-preview
+     */
+    public function ticketPreview(Request $request, int $id): \Illuminate\Http\Response|JsonResponse
+    {
+        $event     = Event::findOrFail($id);
+        $ticketCfg = $request->input('ticket', []);
+
+        $path = (new \App\Services\EventTicketService())->generatePreviewImage($event, $ticketCfg);
+        if (!$path) {
+            return response()->json(['ok' => false, 'error' => 'no_template'], 422);
+        }
+
+        $content = file_get_contents($path);
+        @unlink($path);
+
+        return response($content, 200, [
+            'Content-Type'  => 'image/jpeg',
+            'Cache-Control' => 'no-cache',
+        ]);
+    }
+
     // ── Registrations ─────────────────────────────────────────────────────
 
     public function registrations(Request $request, int $id): JsonResponse

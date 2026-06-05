@@ -143,6 +143,7 @@ Route::middleware('auth:sanctum')->prefix('admin/events')->group(function () {
     Route::delete('/{id}/poster',               [EventAdminController::class, 'deletePoster']);
     Route::post('/{id}/ticket-template',         [EventAdminController::class, 'uploadTicketTemplate']);
     Route::delete('/{id}/ticket-template',       [EventAdminController::class, 'deleteTicketTemplate']);
+    Route::post('/{id}/ticket-preview',          [EventAdminController::class, 'ticketPreview']);
     Route::get('/{id}/registrations',            [EventAdminController::class, 'registrations']);
     Route::get('/{id}/registrations/{regId}',    [EventAdminController::class, 'registrationDetail']);
 });
@@ -150,6 +151,7 @@ Route::middleware('auth:sanctum')->prefix('admin/events')->group(function () {
 // ── Events (public form) ──────────────────────────────────────────────
 Route::get('/events/{slug}',                     [EventPublicController::class, 'show'])->middleware('throttle:60,1');
 Route::post('/events/{slug}/register',           [EventPublicController::class, 'register'])->middleware('throttle:10,1');
+Route::get('/events/{slug}/ticket/{regId}',      [EventPublicController::class, 'ticketImage'])->middleware('throttle:30,1');
 Route::post('/events/payment-webhook',           [EventPublicController::class, 'paymentWebhook']);
 
 // ── Max Bot ───────────────────────────────────────────────────────────

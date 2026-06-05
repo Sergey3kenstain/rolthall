@@ -240,6 +240,30 @@ class EventPublicController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /**
+     * Генерирует и возвращает картинку билета для конкретной регистрации
+     * GET /api/events/{slug}/ticket/{regId}
+     */
+    public function ticketImage(string $slug, int $regId): \Illuminate\Http\Response
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+        $reg   = EventRegistration::with(['tariff'])->where('id', $regId)->where('event_id', $event->id)->firstOrFail();
+
+        $path = $this->tickets->generatePublicTicketImage($reg, $event);
+        if (!$path) {
+            abort(404);
+        }
+
+        $content = file_get_contents($path);
+        @unlink($path);
+
+        return response($content, 200, [
+            'Content-Type'        => 'image/jpeg',
+            'Content-Disposition' => 'inline; filename="ticket-' . $regId . '.jpg"',
+            'Cache-Control'       => 'no-store',
+        ]);
+    }
+
     // ── Private ───────────────────────────────────────────────────────────
 
     private function resolveClientId(string $phone, ?string $eventTag): ?int

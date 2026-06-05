@@ -170,7 +170,37 @@ class EventTicketService
 
     // ── GD ticket generation ──────────────────────────────────────────────
 
-    private function generateTicketImage(EventRegistration $reg, Event $event): ?string
+    public function generatePublicTicketImage(EventRegistration $reg, Event $event): ?string
+    {
+        return $this->generateTicketImage($reg, $event);
+    }
+
+    public function generatePreviewImage(Event $event, array $ticketCfg): ?string
+    {
+        $zones = $ticketCfg['zones'] ?? [];
+        $testValues = [];
+        foreach ($zones as $zone) {
+            $field = $zone['field'] ?? '';
+            $tv    = $zone['test_value'] ?? '';
+            if ($field !== '' && $tv !== '') {
+                $testValues[$field] = $tv;
+            }
+        }
+
+        $orig = $event->messenger_settings ?? [];
+        $event->messenger_settings = array_merge($orig, ['ticket' => $ticketCfg]);
+
+        $reg = new EventRegistration();
+        $reg->id = 1;
+        $reg->phone = '+79001234567';
+        $reg->fields_data = [];
+        $reg->payment_amount = null;
+        $reg->tbank_payment_id = null;
+
+        return $this->generateTicketImage($reg, $event, $testValues);
+    }
+
+    private function generateTicketImage(EventRegistration $reg, Event $event, array $overrideValues = []): ?string
     {
         $ms        = $event->messenger_settings ?? [];
         $ticketCfg = $ms['ticket'] ?? [];
@@ -207,7 +237,7 @@ class EventTicketService
 
         if (!empty($zones) && $hasTtf) {
             // ── Кастомные зоны ────────────────────────────────────────────
-            $values = $this->resolveTicketFieldValues($reg, $event);
+            $values = empty($overrideValues) ? $this->resolveTicketFieldValues($reg, $event) : $overrideValues;
             foreach ($zones as $zone) {
                 $text = $values[$zone['field'] ?? ''] ?? '';
                 if ($text === '') continue;

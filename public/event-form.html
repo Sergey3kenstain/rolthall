@@ -362,7 +362,7 @@ async function submitForm() {
     if (data.payment_url) {
       location.href = data.payment_url;
     } else {
-      location.href = `/event-success.html?reg=${data.reg_id}&event=${encodeURIComponent(_event.title)}`;
+      location.href = `/event-success.html?reg=${data.reg_id}&event=${encodeURIComponent(_event.title)}&slug=${_slug}`;
     }
   } catch(e) {
     document.getElementById('form-err').textContent = 'Ошибка соединения. Попробуйте ещё раз.';

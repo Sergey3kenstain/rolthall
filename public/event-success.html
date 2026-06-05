@@ -15,14 +15,20 @@
     --r:8px;--r-lg:14px;--font:'Inter',sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--white);font-family:var(--font);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px 24px;max-width:420px;width:100%;text-align:center;}
+  body{background:var(--bg);color:var(--white);font-family:var(--font);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px;}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px 24px;max-width:440px;width:100%;text-align:center;margin:auto;}
   .icon-wrap{width:72px;height:72px;border-radius:50%;background:rgba(76,175,130,.12);border:1.5px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
   h1{font-size:1.05rem;font-weight:800;margin-bottom:8px;}
   .sub{font-size:.78rem;color:var(--text-m);line-height:1.6;margin-bottom:20px;}
-  .reg-code{display:inline-block;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--r);padding:10px 20px;font-size:1rem;font-weight:800;font-family:monospace;letter-spacing:.1em;color:var(--accent);margin-bottom:24px;}
-  .notice{background:rgba(55,111,255,.08);border:1px solid rgba(55,111,255,.2);border-radius:var(--r);padding:12px 14px;font-size:.72rem;color:var(--text-m);line-height:1.6;}
-  .btn{display:block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r);padding:13px 24px;font-size:.85rem;font-weight:700;font-family:var(--font);cursor:pointer;text-decoration:none;margin-top:16px;width:100%;}
+  .reg-code{display:inline-block;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--r);padding:10px 20px;font-size:1rem;font-weight:800;font-family:monospace;letter-spacing:.1em;color:var(--accent);margin-bottom:20px;}
+  .notice{background:rgba(55,111,255,.08);border:1px solid rgba(55,111,255,.2);border-radius:var(--r);padding:12px 14px;font-size:.72rem;color:var(--text-m);line-height:1.6;margin-bottom:20px;}
+  .ticket-wrap{margin-bottom:16px;display:none;}
+  .ticket-wrap img{width:100%;border-radius:var(--r);display:block;}
+  .btn{display:block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r);padding:13px 24px;font-size:.85rem;font-weight:700;font-family:var(--font);cursor:pointer;text-decoration:none;margin-top:12px;width:100%;text-align:center;}
+  .btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--white);}
+  .btn-outline:hover{border-color:rgba(255,255,255,.35);}
+  .spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -36,15 +42,21 @@
   <h1>Регистрация принята!</h1>
   <p class="sub" id="ev-name">Ваша заявка успешно оформлена.</p>
   <div class="reg-code" id="ev-code">—</div>
-  <p class="sub">Билет и подтверждение будут отправлены в мессенджер.</p>
   <div class="notice" id="ev-notice">
     Если вы пришли через Telegram или Max — уведомление уже отправлено в чат с ботом.
   </div>
+
+  <div class="ticket-wrap" id="ticket-wrap">
+    <img id="ticket-img" src="" alt="Билет">
+  </div>
+
+  <a id="btn-download" href="#" download class="btn btn-outline" style="display:none;">⬇ Скачать билет</a>
   <a href="/" class="btn">На главную</a>
 </div>
 <script>
-  const p    = new URLSearchParams(location.search);
-  const regId = p.get('reg');
+  const p      = new URLSearchParams(location.search);
+  const regId  = p.get('reg');
+  const slug   = p.get('slug');
   const evName = decodeURIComponent(p.get('event') || '');
 
   if (evName) {
@@ -58,7 +70,30 @@
   if (tg?.initDataUnsafe?.user) {
     document.getElementById('ev-notice').textContent =
       'Подтверждение и билет отправлены в чат с ботом.';
-    setTimeout(() => tg.close(), 4000);
+    tg.ready();
+    tg.expand();
+  }
+
+  if (slug && regId) {
+    const imgEl  = document.getElementById('ticket-img');
+    const wrap   = document.getElementById('ticket-wrap');
+    const dlBtn  = document.getElementById('btn-download');
+    const ticketUrl = `/api/events/${slug}/ticket/${regId}`;
+
+    fetch(ticketUrl)
+      .then(r => {
+        if (!r.ok) throw new Error('no ticket');
+        return r.blob();
+      })
+      .then(blob => {
+        const objUrl    = URL.createObjectURL(blob);
+        imgEl.src       = objUrl;
+        wrap.style.display = 'block';
+        dlBtn.href      = objUrl;
+        dlBtn.download  = `ticket-${regId}.jpg`;
+        dlBtn.style.display = 'block';
+      })
+      .catch(() => {});
   }
 </script>
 </body>
