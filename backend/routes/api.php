@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\EventAdminController;
 use App\Http\Controllers\EventPublicController;
+use App\Http\Controllers\EventTemplateController;
 use App\Http\Controllers\HallController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\MaxController;
@@ -129,6 +130,15 @@ Route::post('/telegram/webhook',      [TelegramController::class, 'webhook']);
 Route::get('/telegram/set-webhook',   [TelegramController::class, 'setWebhook']);
 Route::get('/telegram/webhook-info',  [TelegramController::class, 'webhookInfo']);
 Route::get('/telegram/test',          [TelegramController::class, 'test']);
+
+// ── Event templates ───────────────────────────────────────────────────
+Route::middleware('auth:sanctum')->prefix('admin/event-templates')->group(function () {
+    Route::get('/',      [EventTemplateController::class, 'index']);
+    Route::post('/',     [EventTemplateController::class, 'store']);
+    Route::get('/{id}',  [EventTemplateController::class, 'show']);
+    Route::put('/{id}',  [EventTemplateController::class, 'update']);
+    Route::delete('/{id}', [EventTemplateController::class, 'destroy']);
+});
 
 // ── Events (admin) ────────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->prefix('admin/events')->group(function () {
