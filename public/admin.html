@@ -590,6 +590,10 @@ select.inp option{background:var(--bg-card);}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
       Debug Log
     </button>
+    <button class="nav-item" data-tab="templates" id="nav-templates" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M13 8h4M13 12h4M13 16h4"/></svg>
+      Шаблоны форм
+    </button>
   </nav>
   <div class="sidebar-footer">
     <button class="btn-logout" onclick="doLogout()">
@@ -667,6 +671,10 @@ select.inp option{background:var(--bg-card);}
     <button class="mob-nav-item" data-tab="debug" id="mob-nav-debug" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
       Debug
+    </button>
+    <button class="mob-nav-item" data-tab="templates" id="mob-nav-templates" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M13 8h4M13 12h4M13 16h4"/></svg>
+      Шаблоны
     </button>
   </div>
 </nav>
@@ -1659,7 +1667,48 @@ select.inp option{background:var(--bg-card);}
     <pre id="dbg-frontend-log" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;font-size:.6rem;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow-y:auto;color:var(--text-m);">Загрузка…</pre>
   </div>
 
+  <!-- ══ ШАБЛОНЫ ФОРМ ══ -->
+  <div class="tab-pane" id="tab-templates">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:.9rem;font-weight:700;">Шаблоны форм</div>
+        <div style="font-size:.65rem;color:var(--text-d);margin-top:2px;">Только для разработчика</div>
+      </div>
+      <button class="btn btn-w btn-md" onclick="openCreateTemplateModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Новый шаблон
+      </button>
+    </div>
+    <div id="tpl-list-wrap"></div>
+  </div>
+
 </main>
+
+<!-- MODAL: ШАБЛОН ФОРМЫ -->
+<div class="modal-ov" id="tpl-modal" onclick="if(event.target===this)closeTplModal()">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title" id="tpl-modal-title">Новый шаблон</div>
+      <button class="modal-close" onclick="closeTplModal()">×</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label class="lbl">Название *</label>
+        <input id="tpl-name" type="text" class="inp" placeholder="Например: Танцевальный мастер-класс" maxlength="191">
+      </div>
+      <div>
+        <label class="lbl">Описание</label>
+        <textarea id="tpl-desc" class="inp" rows="2" placeholder="Краткое описание" maxlength="1000" style="resize:vertical;"></textarea>
+      </div>
+      <p style="font-size:.68rem;color:var(--text-d);" id="tpl-modal-hint">Шаблон создаётся без полей — заполните его в редакторе события.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeTplModal()">Отмена</button>
+      <button class="btn btn-w btn-sm" onclick="submitTplModal()">Сохранить</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL: КЛИЕНТ -->
 <div class="modal-ov" id="client-modal" onclick="if(event.target===this)closeClientModal()">
@@ -2086,6 +2135,10 @@ async function initUser() {
     const mns = document.getElementById('mob-nav-seo');
     if (ns)  ns.style.display  = 'flex';
     if (mns) mns.style.display = 'flex';
+    const nt = document.getElementById('nav-templates');
+    const mnt = document.getElementById('mob-nav-templates');
+    if (nt)  nt.style.display  = 'flex';
+    if (mnt) mnt.style.display = 'flex';
   }
   if (r!=='developer') {
     const ts=document.getElementById('tg-technical-settings'); if(ts) ts.style.display='none';
@@ -4314,6 +4367,101 @@ async function evUploadPoster(input) {
     document.getElementById('evs-poster-preview').style.display = '';
     showToast('Афиша загружена');
   }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ШАБЛОНЫ ФОРМ
+// ══════════════════════════════════════════════════════════════════════
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let _tplEditId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('[data-tab="templates"]')?.addEventListener('click', loadTemplatesList);
+});
+
+async function loadTemplatesList() {
+  const wrap = document.getElementById('tpl-list-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
+  const data = await api('/admin/event-templates');
+  if (!data?.ok) { wrap.innerHTML = '<p style="color:var(--text-d);font-size:.8rem;text-align:center;padding:32px 0;">Ошибка загрузки</p>'; return; }
+  if (!data.templates?.length) {
+    wrap.innerHTML = '<p style="color:var(--text-d);font-size:.8rem;text-align:center;padding:32px 0;">Шаблонов пока нет</p>';
+    return;
+  }
+  wrap.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);">
+          <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Название</th>
+          <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Описание</th>
+          <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Дата</th>
+          <th style="width:80px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.templates.map(t => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 12px;font-weight:600;">${esc(t.name)}</td>
+            <td style="padding:10px 12px;color:var(--text-d);">${t.description ? esc(t.description) : '—'}</td>
+            <td style="padding:10px 12px;color:var(--text-d);white-space:nowrap;">${new Date(t.created_at).toLocaleDateString('ru-RU')}</td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex;gap:6px;justify-content:flex-end;">
+                <button class="btn btn-ghost btn-sm" onclick="openEditTemplateModal(${t.id},'${esc(t.name)}','${(t.description||'').replace(/'/g,"\\'")}')">Изм.</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteTpl(${t.id},'${esc(t.name)}')">Удал.</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function openCreateTemplateModal() {
+  _tplEditId = null;
+  document.getElementById('tpl-modal-title').textContent = 'Новый шаблон';
+  document.getElementById('tpl-modal-hint').style.display = '';
+  document.getElementById('tpl-name').value = '';
+  document.getElementById('tpl-desc').value = '';
+  document.getElementById('tpl-modal').classList.add('open');
+  setTimeout(() => document.getElementById('tpl-name').focus(), 100);
+}
+
+function openEditTemplateModal(id, name, desc) {
+  _tplEditId = id;
+  document.getElementById('tpl-modal-title').textContent = 'Редактировать шаблон';
+  document.getElementById('tpl-modal-hint').style.display = 'none';
+  document.getElementById('tpl-name').value = name;
+  document.getElementById('tpl-desc').value = desc;
+  document.getElementById('tpl-modal').classList.add('open');
+  setTimeout(() => document.getElementById('tpl-name').focus(), 100);
+}
+
+function closeTplModal() {
+  document.getElementById('tpl-modal').classList.remove('open');
+}
+
+async function submitTplModal() {
+  const name = document.getElementById('tpl-name').value.trim();
+  if (!name) { showToast('Введите название', true); return; }
+  const desc = document.getElementById('tpl-desc').value.trim();
+  const payload = { name, description: desc || null };
+  const url    = _tplEditId ? `/admin/event-templates/${_tplEditId}` : '/admin/event-templates';
+  const method = _tplEditId ? 'PUT' : 'POST';
+  const data = await api(url, { method, body: JSON.stringify(payload) });
+  if (!data?.ok) { showToast(data?.message || 'Ошибка', true); return; }
+  closeTplModal();
+  showToast(_tplEditId ? 'Шаблон обновлён' : 'Шаблон создан');
+  loadTemplatesList();
+}
+
+async function deleteTpl(id, name) {
+  if (!confirm(`Удалить шаблон «${name}»?`)) return;
+  const data = await api(`/admin/event-templates/${id}`, { method:'DELETE' });
+  if (!data?.ok) { showToast('Ошибка удаления', true); return; }
+  showToast('Шаблон удалён');
+  loadTemplatesList();
 }
 </script>
 </body>

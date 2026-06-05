@@ -417,6 +417,12 @@ button{font-family:var(--font);}
       <button class="btn btn-ghost btn-sm" onclick="previewEvent()" title="Предпросмотр">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
+      <button class="btn btn-ghost btn-sm" id="btn-apply-tpl" onclick="openApplyTemplateModal()" title="Применить шаблон">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M13 8h4M13 12h4M13 16h4"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" id="btn-save-tpl" onclick="openSaveAsTemplateModal()" title="Сохранить как шаблон" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+      </button>
       <button class="btn btn-w btn-sm" onclick="saveEvent()" title="Сохранить">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
       </button>
@@ -732,6 +738,53 @@ button{font-family:var(--font);}
 </main>
 
 <!-- ══ RENDER PREVIEW MODAL ══ -->
+<!-- ══ APPLY TEMPLATE MODAL ══ -->
+<div id="apply-tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1200;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeApplyTemplateModal()">
+  <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r-lg);max-width:540px;width:100%;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-weight:700;font-size:.9rem;">Применить шаблон</div>
+      <button class="btn-icon" onclick="closeApplyTemplateModal()">×</button>
+    </div>
+    <div id="apply-tpl-warning" style="display:none;margin:14px 20px 0;padding:10px 14px;background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:var(--r);font-size:.72rem;color:#E74C3C;">
+      ⚠ Текущие поля, тарифы и настройки мессенджеров будут заменены данными из шаблона. Настройки самого события (название, дата, постер) не изменятся.
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:14px 20px;" id="apply-tpl-list">
+      <div class="spinner" style="margin:40px auto;"></div>
+    </div>
+    <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" onclick="closeApplyTemplateModal()">Отмена</button>
+      <button class="btn btn-w btn-sm" id="apply-tpl-confirm" onclick="confirmApplyTemplate()" disabled>Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SAVE AS TEMPLATE MODAL ══ -->
+<div id="save-tpl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1200;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeSaveAsTemplateModal()">
+  <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r-lg);max-width:480px;width:100%;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-weight:700;font-size:.9rem;">Сохранить как шаблон</div>
+      <button class="btn-icon" onclick="closeSaveAsTemplateModal()">×</button>
+    </div>
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label class="lbl">Название шаблона *</label>
+        <input id="save-tpl-name" type="text" class="inp" placeholder="Например: Танцевальный мастер-класс" maxlength="191">
+      </div>
+      <div>
+        <label class="lbl">Описание</label>
+        <textarea id="save-tpl-desc" class="inp" rows="2" placeholder="Краткое описание шаблона" maxlength="1000" style="resize:vertical;"></textarea>
+      </div>
+      <div style="font-size:.68rem;color:var(--text-d);">
+        В шаблон будут сохранены: CSS формы, поля, тарифы, настройки мессенджеров.
+      </div>
+    </div>
+    <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" onclick="closeSaveAsTemplateModal()">Отмена</button>
+      <button class="btn btn-w btn-sm" onclick="saveAsTemplate()">Сохранить шаблон</button>
+    </div>
+  </div>
+</div>
+
 <div id="render-preview-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeRenderPreview()">
   <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r-lg);max-width:700px;width:100%;max-height:90vh;overflow:auto;padding:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -846,6 +899,8 @@ async function init() {
     const _mnd = document.getElementById('mob-nav-debug');
     if (_nd)  _nd.style.display  = 'flex';
     if (_mnd) _mnd.style.display = 'flex';
+    const _st = document.getElementById('btn-save-tpl');
+    if (_st) _st.style.display = '';
   }
 
   renderAddButtons();
@@ -1995,6 +2050,196 @@ async function api(path, opts = {}) {
     if (res.status === 401) { doLogout(); return null; }
     return res.json();
   } catch(e) { return null; }
+}
+
+/* ═══════════════════════════════
+   TEMPLATES
+═══════════════════════════════ */
+let _selectedTplId = null;
+
+async function openApplyTemplateModal() {
+  _selectedTplId = null;
+  document.getElementById('apply-tpl-confirm').disabled = true;
+  const hasData = _fields.filter(f => f.slug !== 'phone').length > 0 || _tariffs.length > 0;
+  document.getElementById('apply-tpl-warning').style.display = hasData ? '' : 'none';
+  document.getElementById('apply-tpl-modal').style.display = 'flex';
+  document.getElementById('apply-tpl-list').innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
+
+  const data = await api('/admin/event-templates');
+  if (!data?.ok) {
+    document.getElementById('apply-tpl-list').innerHTML = '<p style="color:var(--text-d);font-size:.78rem;text-align:center;padding:32px 0;">Ошибка загрузки шаблонов</p>';
+    return;
+  }
+  if (!data.templates?.length) {
+    document.getElementById('apply-tpl-list').innerHTML = '<p style="color:var(--text-d);font-size:.78rem;text-align:center;padding:32px 0;">Шаблонов пока нет</p>';
+    return;
+  }
+  document.getElementById('apply-tpl-list').innerHTML = data.templates.map(t => `
+    <div class="tpl-item" id="tpl-item-${t.id}" onclick="selectTplItem(${t.id})" style="padding:10px 12px;border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:background .15s,border-color .15s;">
+      <div style="font-size:.8rem;font-weight:600;">${esc(t.name)}</div>
+      ${t.description ? `<div style="font-size:.68rem;color:var(--text-d);margin-top:3px;">${esc(t.description)}</div>` : ''}
+      <div style="font-size:.62rem;color:var(--text-d);margin-top:4px;">${new Date(t.created_at).toLocaleDateString('ru-RU')}</div>
+    </div>
+  `).join('');
+}
+
+function selectTplItem(id) {
+  _selectedTplId = id;
+  document.querySelectorAll('.tpl-item').forEach(el => {
+    el.style.background = '';
+    el.style.borderColor = 'var(--border)';
+  });
+  const sel = document.getElementById('tpl-item-' + id);
+  if (sel) { sel.style.background = 'rgba(255,255,255,.06)'; sel.style.borderColor = 'rgba(255,255,255,.35)'; }
+  document.getElementById('apply-tpl-confirm').disabled = false;
+}
+
+function closeApplyTemplateModal() {
+  document.getElementById('apply-tpl-modal').style.display = 'none';
+}
+
+async function confirmApplyTemplate() {
+  if (!_selectedTplId) return;
+  const data = await api(`/admin/event-templates/${_selectedTplId}`);
+  if (!data?.ok) { showToast('Ошибка загрузки шаблона', true); return; }
+  const tpl = data.template;
+
+  if (tpl.form_css != null) document.getElementById('cfg-css').value = tpl.form_css;
+
+  if (tpl.fields?.length) {
+    _fields = [];
+    tpl.fields.forEach(f => {
+      _fields.push({
+        id: ++_fldCnt,
+        type: f.field_type || f.type || 'text',
+        slug: f.slug || '',
+        label: f.label || '',
+        placeholder: f.placeholder || '',
+        required: !!f.is_required,
+        options: f.options || [],
+        has_mask: !!f.has_mask,
+        mask_pattern: f.mask_pattern || '',
+        dep_field: f.dep_field || '',
+        dep_value: f.dep_value || '',
+      });
+    });
+    if (!_fields.some(f => f.slug === 'phone')) {
+      _fields.unshift({ id: ++_fldCnt, type:'phone', slug:'phone', label:'Введите контактный телефон', placeholder:'+7 (999) 999-99-99', required:true, options:[], has_mask:false, mask_pattern:'', dep_field:'', dep_value:'' });
+    }
+    renderAllFields();
+    updateDepSelects();
+  }
+
+  if (tpl.tariffs?.length) {
+    _tariffs = tpl.tariffs.map(t => ({
+      dbId: null,
+      name: t.name || '',
+      condition_field: t.condition_field || null,
+      condition_value: t.condition_value || '',
+      tiers: (t.tiers || []).map(tier => ({...tier})),
+    }));
+    renderAllTariffs();
+  }
+
+  const ms = tpl.messenger_settings;
+  if (ms) {
+    if (ms.tg) {
+      document.getElementById('ms-tg-enabled').checked = !!ms.tg.enabled;
+      toggleSection('ms-tg-cfg', !!ms.tg.enabled);
+      document.getElementById('ms-tg-chat').value       = ms.tg.admin_chat_id   || '';
+      document.getElementById('ms-tg-thread').value     = ms.tg.admin_thread_id || '';
+      document.getElementById('ms-tg-admin-tpl').value  = ms.tg.admin_template  || '';
+      document.getElementById('ms-tg-user-tpl').value   = ms.tg.user_template   || '';
+      document.getElementById('ms-tg-keyword').value    = ms.tg.bot_keyword     || '';
+      document.getElementById('ms-tg-welcome').value    = ms.tg.bot_welcome     || '';
+      document.getElementById('ms-tg-btn').value        = ms.tg.bot_button      || '';
+    }
+    if (ms.max) {
+      document.getElementById('ms-max-enabled').checked = !!ms.max.enabled;
+      toggleSection('ms-max-cfg', !!ms.max.enabled);
+      document.getElementById('ms-max-chat').value      = ms.max.admin_chat_id   || '';
+      document.getElementById('ms-max-admin-tpl').value = ms.max.admin_template  || '';
+      document.getElementById('ms-max-user-tpl').value  = ms.max.user_template   || '';
+      document.getElementById('ms-max-keyword').value   = ms.max.bot_keyword     || '';
+      document.getElementById('ms-max-welcome').value   = ms.max.bot_welcome     || '';
+      document.getElementById('ms-max-btn').value       = ms.max.bot_button      || '';
+    }
+    if (ms.ticket) {
+      _ticketZones = (ms.ticket.zones || []).map(z => ({ test_value: '', ...z }));
+      _ticketCfg   = { ...ms.ticket };
+      delete _ticketCfg.zones;
+      applyTicketTemplate(_ticketCfg.template_url || null);
+      renderTicketTab();
+    }
+  }
+
+  closeApplyTemplateModal();
+  showToast('Шаблон применён. Не забудьте сохранить событие.');
+}
+
+function openSaveAsTemplateModal() {
+  document.getElementById('save-tpl-name').value = '';
+  document.getElementById('save-tpl-desc').value = '';
+  document.getElementById('save-tpl-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('save-tpl-name').focus(), 50);
+}
+
+function closeSaveAsTemplateModal() {
+  document.getElementById('save-tpl-modal').style.display = 'none';
+}
+
+async function saveAsTemplate() {
+  const name = document.getElementById('save-tpl-name').value.trim();
+  if (!name) { showToast('Введите название шаблона', true); return; }
+  const desc = document.getElementById('save-tpl-desc').value.trim();
+
+  const fieldsPayload = _fields.map((f, i) => ({
+    label: f.label, placeholder: f.placeholder || null, field_type: f.type,
+    slug: f.slug, has_mask: f.has_mask, mask_pattern: f.mask_pattern || null,
+    is_required: f.required, options: f.options, sort_order: i,
+    dep_field: f.dep_field || null, dep_value: f.dep_value || null,
+  }));
+
+  const tariffsPayload = _tariffs.map(t => ({
+    name: t.name, condition_field: t.condition_field || null,
+    condition_value: t.condition_value || '', tiers: t.tiers,
+  }));
+
+  const msPayload = {
+    tg: {
+      enabled:         document.getElementById('ms-tg-enabled').checked,
+      admin_chat_id:   document.getElementById('ms-tg-chat').value.trim()      || null,
+      admin_thread_id: document.getElementById('ms-tg-thread').value.trim()    || null,
+      admin_template:  document.getElementById('ms-tg-admin-tpl').value.trim() || null,
+      user_template:   document.getElementById('ms-tg-user-tpl').value.trim()  || null,
+      bot_keyword:     document.getElementById('ms-tg-keyword').value.trim()   || null,
+      bot_welcome:     document.getElementById('ms-tg-welcome').value.trim()   || null,
+      bot_button:      document.getElementById('ms-tg-btn').value.trim()       || null,
+    },
+    max: {
+      enabled:        document.getElementById('ms-max-enabled').checked,
+      admin_chat_id:  document.getElementById('ms-max-chat').value.trim()      || null,
+      admin_template: document.getElementById('ms-max-admin-tpl').value.trim() || null,
+      user_template:  document.getElementById('ms-max-user-tpl').value.trim()  || null,
+      bot_keyword:    document.getElementById('ms-max-keyword').value.trim()   || null,
+      bot_welcome:    document.getElementById('ms-max-welcome').value.trim()   || null,
+      bot_button:     document.getElementById('ms-max-btn').value.trim()       || null,
+    },
+    ticket: { ..._ticketCfg, zones: _ticketZones.map(({test_value, ...z}) => z) },
+  };
+
+  const payload = {
+    name, description: desc || null,
+    form_css:           document.getElementById('cfg-css').value.trim() || null,
+    fields:             fieldsPayload,
+    tariffs:            tariffsPayload,
+    messenger_settings: msPayload,
+  };
+
+  const data = await api('/admin/event-templates', { method:'POST', body: JSON.stringify(payload) });
+  if (!data?.ok) { showToast(data?.message || 'Ошибка сохранения шаблона', true); return; }
+  closeSaveAsTemplateModal();
+  showToast('Шаблон «' + name + '» сохранён');
 }
 
 init();
