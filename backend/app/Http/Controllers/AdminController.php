@@ -457,7 +457,7 @@ class AdminController extends Controller
         $request->validate(['file' => "required|file|image|max:{$maxKb}"]);
 
         $file = $request->file('file');
-        $dir  = public_path('uploads/halls');
+        $dir  = rtrim(config('cms.public_dir', public_path()), '/') . '/uploads/halls';
         if (!is_dir($dir)) mkdir($dir, 0755, true);
 
         $name = uniqid($type.'_', true) . '.' . $file->getClientOriginalExtension();
