@@ -75,21 +75,23 @@ function dbg(msg) {
   const el = document.getElementById('tg-debug-log');
   if (el) el.textContent = _dbgLines.join('\n');
 }
+const _dbgPanelH = 170; // px — высота панели для отступа снизу
 if (_tg) {
-  // Рендерим панель как только страница немного загрузится
   document.addEventListener('DOMContentLoaded', () => {
     const panel = document.createElement('div');
     panel.id = 'tg-debug';
-    panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;border-top:2px solid #376FFF;padding:10px 12px;z-index:9999;font-family:monospace;font-size:11px;color:#ccc;max-height:40vh;overflow:auto;';
-    panel.innerHTML = `<div style="font-weight:bold;color:#376FFF;margin-bottom:4px;">🔍 TG Debug</div>
-<div>platform: <b>${_tg.platform || '?'}</b> | version: <b>${_tg.version || '?'}</b></div>
-<div>initData: <b>${_tg.initData ? '✅ ' + _tg.initData.length + ' chars' : '❌ EMPTY'}</b></div>
-<div>tg_user_id (_tgId): <b>${_tgId || '❌ null'}</b></div>
-<div>max_id (_maxId): <b>${_maxId || 'null'}</b></div>
-<div>slug: <b>${_slug || '?'}</b></div>
-<div style="margin-top:6px;border-top:1px solid rgba(255,255,255,.1);padding-top:6px;white-space:pre-wrap;" id="tg-debug-log"></div>`;
+    panel.style.cssText = `position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;border-top:2px solid #376FFF;padding:8px 12px;z-index:9999;font-family:monospace;font-size:10px;color:#ccc;max-height:${_dbgPanelH}px;overflow:auto;`;
+    panel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+  <b style="color:#376FFF;">🔍 TG Debug</b>
+  <button onclick="this.closest('#tg-debug').style.display='none';document.getElementById('app').style.paddingBottom=''" style="background:none;border:none;color:#888;cursor:pointer;font-size:14px;">×</button>
+</div>
+<div>platform: <b>${_tg.platform||'?'}</b> | ver: <b>${_tg.version||'?'}</b> | initData: <b>${_tg.initData ? '✅'+_tg.initData.length+'ch' : '❌ EMPTY'}</b></div>
+<div>tgId: <b>${_tgId||'❌ null'}</b> | slug: <b>${_slug||'?'}</b></div>
+<div style="margin-top:4px;border-top:1px solid rgba(255,255,255,.1);padding-top:4px;white-space:pre-wrap;line-height:1.4;" id="tg-debug-log"></div>`;
     document.body.appendChild(panel);
-    dbg('Panel mounted');
+    // Отступ снизу чтобы не перекрывать кнопку
+    document.getElementById('app').style.paddingBottom = _dbgPanelH + 'px';
+    dbg('Panel ready');
   });
 }
 
@@ -188,6 +190,7 @@ function render() {
   `;
 
   ev.fields.forEach(f => {
+    if (f.slug === 'phone') return; // телефон всегда через applyPhoneMask
     if (f.has_mask && f.mask_pattern && f.field_type !== 'select') {
       const el = document.getElementById('f-' + f.slug);
       if (el) applyMask(el, f.mask_pattern);
