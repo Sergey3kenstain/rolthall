@@ -108,14 +108,15 @@ class EventPublicController extends Controller
 
         // Проверка повторной регистрации
         if (!$event->allow_multiple_registrations && $data['tg_user_id']) {
-            $exists = EventRegistration::where('event_id', $event->id)
+            $existing = EventRegistration::where('event_id', $event->id)
                 ->where('tg_user_id', $data['tg_user_id'])
                 ->whereIn('payment_status', ['free', 'pending', 'paid'])
-                ->exists();
-            if ($exists) {
+                ->first();
+            if ($existing) {
                 return response()->json([
-                    'ok'    => false,
-                    'error' => 'already_registered',
+                    'ok'     => false,
+                    'error'  => 'already_registered',
+                    'reg_id' => $existing->id,
                 ], 422, [], JSON_UNESCAPED_UNICODE);
             }
         }

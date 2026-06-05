@@ -385,7 +385,14 @@ async function submitForm() {
     dbg('response=' + JSON.stringify(data).slice(0,120));
 
     if (!data.ok) {
-      if (data.error === 'already_registered') { renderAlreadyRegistered(); return; }
+      if (data.error === 'already_registered') {
+        if (data.reg_id) {
+          location.href = `/event-success.html?reg=${data.reg_id}&event=${encodeURIComponent(_event?.title||'')}&slug=${_slug}`;
+        } else {
+          renderAlreadyRegistered();
+        }
+        return;
+      }
       if (data.error === 'no_tickets')         { renderNoTickets(data.admin_url); return; }
       document.getElementById('form-err').textContent = data.error || 'Ошибка регистрации';
       document.getElementById('form-err').style.display = '';
