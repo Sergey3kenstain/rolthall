@@ -4592,6 +4592,7 @@ async function openAddBookingModal() {
     ? hallArr.map(h => `<option value="${h.id}">${h.name}</option>`).join('')
     : '<option value="">Нет залов</option>';
 
+  nameMask(document.getElementById('ab-name'));
   phoneMask(document.getElementById('ab-phone'));
   emailMask(document.getElementById('ab-email'));
   telegramMask(document.getElementById('ab-telegram'));
@@ -4704,6 +4705,7 @@ function openAddClientModal() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  nameMask(document.getElementById('ac-name'));
   phoneMask(document.getElementById('ac-phone'));
   emailMask(document.getElementById('ac-email'));
   telegramMask(document.getElementById('ac-telegram'));
@@ -4785,6 +4787,19 @@ function emailMask(el) {
   el.addEventListener('input', function() { this.value = this.value.replace(/\s/g, '').toLowerCase(); });
   el.addEventListener('blur',  function() { this.style.borderColor = (this.value && !RE.test(this.value)) ? 'var(--err,#e53e3e)' : ''; });
   el.addEventListener('focus', function() { this.style.borderColor = ''; });
+}
+function nameMask(el) {
+  if (!el || el._nameMasked) return;
+  el._nameMasked = true;
+  const clean = v => v.replace(/[^а-яА-ЯёЁa-zA-Z\s\-]/g, '').replace(/\s{2,}/g, ' ');
+  const capitalize = v => v.replace(/(^|\s|-)(\S)/g, (_, p, c) => p + c.toUpperCase());
+  el.addEventListener('input', function() {
+    const pos = this.selectionStart;
+    const prev = this.value;
+    this.value = capitalize(clean(this.value));
+    const diff = this.value.length - prev.length;
+    this.setSelectionRange(pos + diff, pos + diff);
+  });
 }
 let _tplEditId = null;
 
