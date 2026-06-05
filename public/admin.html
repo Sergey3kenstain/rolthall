@@ -1030,16 +1030,18 @@ select.inp option{background:var(--bg-card);}
 
   <!-- КЛИЕНТЫ -->
   <div class="tab-pane" id="tab-users">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
-      <div style="font-size:.9rem;font-weight:700;">Клиенты</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input type="search" class="inp" id="clients-search" placeholder="Поиск по имени, телефону, TG…" style="font-size:.72rem;padding:7px 12px;width:220px;" oninput="onClientsSearch(this.value)">
-        <button id="csv-btn" class="btn btn-ghost btn-sm" onclick="downloadClientsCSV()" style="display:none;white-space:nowrap;">Скачать CSV</button>
-        <button class="btn btn-w btn-sm" onclick="openAddClientModal()" style="white-space:nowrap;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Добавить
-        </button>
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+        <div style="font-size:.9rem;font-weight:700;">Клиенты</div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button id="csv-btn" class="btn btn-ghost btn-sm" onclick="downloadClientsCSV()" style="display:none;white-space:nowrap;">Скачать CSV</button>
+          <button class="btn btn-w btn-sm" onclick="openAddClientModal()" style="white-space:nowrap;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Добавить
+          </button>
+        </div>
       </div>
+      <input type="search" class="inp" id="clients-search" placeholder="Поиск по имени, телефону, TG…" style="font-size:.72rem;padding:7px 12px;width:100%;" oninput="onClientsSearch(this.value)">
     </div>
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
       <div id="clients-list"></div>
@@ -1762,53 +1764,51 @@ select.inp option{background:var(--bg-card);}
           <input type="time" class="inp" id="ab-time-end" min="11:00" max="23:00" step="3600">
         </div>
       </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:0;">
       <!-- КЛИЕНТ с поиском -->
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
-        <div class="form-group" style="position:relative;">
-          <label class="form-lbl">Поиск клиента</label>
-          <input type="search" class="inp" id="ab-client-q" placeholder="Введите имя, телефон или TG…" oninput="abClientSearch(this.value)" autocomplete="off">
-          <div class="ab-search-dd" id="ab-client-dd"></div>
-        </div>
-        <!-- Карточка выбранного клиента -->
-        <div id="ab-client-card" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;display:none;align-items:center;justify-content:space-between;gap:8px;">
-          <div>
-            <div id="ab-client-card-name" style="font-size:.82rem;font-weight:600;"></div>
-            <div id="ab-client-card-phone" style="font-size:.7rem;color:var(--text-d);margin-top:2px;"></div>
-          </div>
-          <button type="button" class="btn-icon" onclick="abClearClient()" title="Сбросить">×</button>
-        </div>
-        <div id="ab-new-client-fields" style="display:flex;flex-direction:column;gap:10px;">
-          <div class="form-group">
-            <label class="form-lbl">Имя *</label>
-            <input type="text" class="inp" id="ab-name" placeholder="Иван Иванов" maxlength="191">
-          </div>
-          <div class="form-group">
-            <label class="form-lbl">Телефон *</label>
-            <input type="tel" class="inp" id="ab-phone" placeholder="+7 (999) 999-99-99" maxlength="30">
-          </div>
-          <div style="display:flex;gap:10px;">
-            <div class="form-group" style="flex:1;">
-              <label class="form-lbl">Email</label>
-              <input type="email" class="inp" id="ab-email" placeholder="email@example.com">
-            </div>
-            <div class="form-group" style="flex:1;">
-              <label class="form-lbl">Telegram</label>
-              <input type="text" class="inp" id="ab-telegram" placeholder="@username">
-            </div>
-          </div>
-        </div>
-        <div class="form-group" style="margin-top:4px;">
-          <label class="form-lbl">Примечание</label>
-          <input type="text" class="inp" id="ab-notes" placeholder="Необязательно" maxlength="1000">
-        </div>
+      <div class="form-group" style="position:relative;">
+        <label class="form-lbl">Поиск клиента</label>
+        <input type="search" class="inp" id="ab-client-q" placeholder="Введите имя, телефон или TG…" oninput="abClientSearch(this.value)" autocomplete="off">
+        <div class="ab-search-dd" id="ab-client-dd"></div>
       </div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+      <!-- Карточка выбранного клиента -->
+      <div id="ab-client-card" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);border-radius:var(--r);padding:10px 12px;align-items:center;justify-content:space-between;gap:8px;">
+        <div>
+          <div id="ab-client-card-name" style="font-size:.82rem;font-weight:600;"></div>
+          <div id="ab-client-card-phone" style="font-size:.7rem;color:var(--text-d);margin-top:2px;"></div>
+        </div>
+        <button type="button" class="btn-icon" onclick="abClearClient()" title="Сбросить">×</button>
+      </div>
+      <div id="ab-new-client-fields" style="display:flex;flex-direction:column;gap:14px;">
         <div class="form-group">
-          <label class="form-lbl">Сумма оплачена, ₽</label>
-          <input type="number" class="inp" id="ab-paid" placeholder="0" min="0" step="100" value="0" style="font-size:.9rem;font-weight:600;">
+          <label class="form-lbl">Имя *</label>
+          <input type="text" class="inp" id="ab-name" placeholder="Иван Иванов" maxlength="191">
         </div>
-        <div style="font-size:.65rem;color:var(--text-d);margin-top:-4px;">Введите 0 если оплата ещё не поступила. Статус брони будет «Подтверждена».</div>
+        <div class="form-group">
+          <label class="form-lbl">Телефон *</label>
+          <input type="tel" class="inp" id="ab-phone" placeholder="+7 (999) 999-99-99" maxlength="30">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-lbl">Email</label>
+            <input type="email" class="inp" id="ab-email" placeholder="email@example.com">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-lbl">Telegram</label>
+            <input type="text" class="inp" id="ab-telegram" placeholder="@username">
+          </div>
+        </div>
       </div>
+      <div class="form-group">
+        <label class="form-lbl">Примечание</label>
+        <input type="text" class="inp" id="ab-notes" placeholder="Необязательно" maxlength="1000">
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:0;">
+      <div class="form-group">
+        <label class="form-lbl">Сумма оплачена, ₽</label>
+        <input type="number" class="inp" id="ab-paid" placeholder="0" min="0" step="100" value="0" style="font-size:.9rem;font-weight:600;">
+      </div>
+      <div style="font-size:.65rem;color:var(--text-d);margin-top:-8px;">Введите 0 если оплата ещё не поступила. Статус брони будет «Подтверждена».</div>
     </div>
     <div class="modal-foot" style="justify-content:space-between;">
       <button class="btn btn-ghost btn-sm" onclick="closeAddBookingModal()">Отмена</button>
@@ -4576,6 +4576,7 @@ async function openAddBookingModal() {
     ? hallArr.map(h => `<option value="${h.id}">${h.name}</option>`).join('')
     : '<option value="">Нет залов</option>';
 
+  phoneMask(document.getElementById('ab-phone'));
   document.getElementById('add-booking-modal').classList.add('open');
   setTimeout(() => document.getElementById('ab-client-q').focus(), 100);
 }
@@ -4685,6 +4686,7 @@ function openAddClientModal() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  phoneMask(document.getElementById('ac-phone'));
   document.getElementById('add-client-modal').classList.add('open');
   setTimeout(() => document.getElementById('ac-name').focus(), 100);
 }
@@ -4717,6 +4719,25 @@ async function submitAddClient() {
 // ШАБЛОНЫ ФОРМ
 // ══════════════════════════════════════════════════════════════════════
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function phoneMask(el) {
+  if (!el || el._phoneMasked) return;
+  el._phoneMasked = true;
+  el.addEventListener('input', function() {
+    let d = this.value.replace(/\D/g,'');
+    if (d.startsWith('8') || d.startsWith('7')) d = d.slice(1);
+    d = d.slice(0, 10);
+    if (!d.length) { this.value = ''; return; }
+    let r = '+7 (';
+    if (d.length < 3)  { this.value = r + d; return; }
+    r += d.slice(0,3) + ') ';
+    if (d.length < 6)  { this.value = r + d.slice(3); return; }
+    r += d.slice(3,6) + '-';
+    if (d.length < 8)  { this.value = r + d.slice(6); return; }
+    r += d.slice(6,8) + '-';
+    this.value = r + d.slice(8);
+  });
+}
 let _tplEditId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
