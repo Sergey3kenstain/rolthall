@@ -16,12 +16,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
     public function __construct(
-        private BookingService $bookings,
-        private TBankService   $tbank,
+        private BookingService      $bookings,
+        private TBankService        $tbank,
+        private NotificationService $notify,
     ) {}
 
     private function isOwner(Request $r): bool
@@ -588,30 +590,85 @@ class AdminController extends Controller
 
     public function createBooking(Request $request): JsonResponse
     {
+        $format = $request->input('format', 'hourly');
+
         $data = $request->validate([
-            'hall_id'    => 'required|integer|exists:halls,id',
-            'date'       => 'required|date',
-            'time_start' => 'required|regex:/^\d{2}:\d{2}$/',
-            'time_end'   => 'required|regex:/^\d{2}:\d{2}$/',
-            'name'       => 'required|string|max:191',
-            'phone'      => 'required|string|max:30',
-            'email'      => 'nullable|email|max:191',
-            'telegram'   => 'nullable|string|max:100',
-            'notes'      => 'nullable|string|max:1000',
-            'paid'       => 'boolean',
+            'hall_id'     => 'required|integer|exists:halls,id',
+            'date'        => 'required|date',
+            'format'      => 'sometimes|in:hourly,event,allday',
+            'time_start'  => $format === 'allday' ? 'nullable' : 'required|regex:/^\d{2}:\d{2}$/',
+            'time_end'    => $format === 'allday' ? 'nullable' : 'required|regex:/^\d{2}:\d{2}$/',
+            'name'        => 'required|string|max:191',
+            'phone'       => 'required|string|max:30',
+            'email'       => 'nullable|email|max:191',
+            'telegram'    => 'nullable|string|max:100',
+            'notes'       => 'nullable|string|max:1000',
+            'paid_amount' => 'nullable|integer|min:0',
         ]);
 
-        $data['consent_offer'] = true;
+        $data['consent_offer']  = true;
         $data['consent_policy'] = true;
         $data['consent_refund'] = true;
 
         $booking = $this->bookings->createHold($data);
 
-        if (!empty($data['paid'])) {
-            $booking->update(['status' => Booking::STATUS_PAID]);
+        $paidAmount = (int) ($data['paid_amount'] ?? 0);
+        $booking->update([
+            'status'            => Booking::STATUS_CONFIRMED,
+            'prepayment_amount' => $paidAmount,
+        ]);
+        $booking->load(['hall', 'client.user']);
+
+        // Уведомление клиенту если привязан бот
+        $clientChatId = $booking->client->user->telegram_chat_id ?? null;
+        $maxChatId    = $booking->client->user->max_chat_id       ?? null;
+        if ($clientChatId || $maxChatId) {
+            $this->notify->notifyClientConfirmedDual($clientChatId, $maxChatId, [
+                'hall_name'   => $booking->hall->name,
+                'date'        => $booking->getDateFormatted(),
+                'time_start'  => substr($booking->time_start, 0, 5),
+                'time_end'    => substr($booking->time_end,   0, 5),
+                'prepayment'  => $paidAmount,
+                'guest_count' => $booking->guest_count,
+            ]);
         }
 
         return response()->json(['ok' => true, 'booking' => $booking->id], 201, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function createClient(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name'     => 'required|string|max:191',
+            'phone'    => 'required|string|max:30',
+            'email'    => 'nullable|email|max:191',
+            'telegram' => 'nullable|string|max:100',
+            'note'     => 'nullable|string|max:1000',
+        ]);
+
+        $user = User::where('phone', $data['phone'])->first();
+        if (!$user) {
+            $user = User::create([
+                'name'              => $data['name'],
+                'email'             => $data['email'] ?? ($data['phone'] . '@guest.rolthall.ru'),
+                'phone'             => $data['phone'],
+                'telegram_username' => $data['telegram'] ?? null,
+                'password'          => bcrypt(\Illuminate\Support\Str::random(16)),
+            ]);
+        }
+
+        $client = Client::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name'              => $data['name'],
+                'phone'             => $data['phone'],
+                'email'             => $data['email']    ?? null,
+                'telegram_username' => $data['telegram'] ?? null,
+                'admin_note'        => $data['note']     ?? null,
+            ]
+        );
+
+        return response()->json(['ok' => true, 'client' => ['id' => $client->id, 'name' => $client->name]], 201, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function bookingDetail(int $id): JsonResponse

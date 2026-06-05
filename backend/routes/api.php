@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/clients/{id}',             [AdminController::class, 'client']);
     Route::put('/clients/{id}',             [AdminController::class, 'updateClient']);
     Route::delete('/clients/{id}',          [AdminController::class, 'deleteClient']);
+    Route::post('/clients',                     [AdminController::class, 'createClient']);
     Route::post('/clients/{id}/note',           [AdminController::class, 'updateClientNote']);
     Route::post('/clients/{id}/reset-password', [AdminController::class, 'resetClientPassword']);
     Route::get('/users',                    [AdminController::class, 'users']);

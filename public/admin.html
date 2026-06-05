@@ -337,6 +337,7 @@ select.inp option{background:var(--bg-card);}
 .btn-w{background:var(--white);color:var(--bg);} .btn-w:hover{opacity:.88;}
 .btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);}
 .btn-ghost:hover{background:rgba(255,255,255,.09);}
+.btn-ghost.active{background:var(--white);color:var(--bg);border-color:var(--white);}
 .btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(231,76,60,.2);}
 .btn-full{width:100%;}
 
@@ -820,9 +821,13 @@ select.inp option{background:var(--bg-card);}
         <div style="font-size:.82rem;font-weight:700;" id="book-date-lbl"></div>
         <div style="font-size:.66rem;color:var(--text-d);margin-top:2px;" id="book-count"></div>
       </div>
-      <div style="display:flex;gap:6px;">
+      <div style="display:flex;gap:6px;align-items:center;">
         <span class="badge bdg-ok" id="book-stat-ok" style="display:none;"></span>
         <span class="badge bdg-warn" id="book-stat-pend" style="display:none;"></span>
+        <button class="btn btn-w btn-sm" onclick="openAddBookingModal()" style="white-space:nowrap;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Добавить бронь
+        </button>
       </div>
     </div>
     <div class="booking-cards-grid" id="book-list"></div>
@@ -1021,6 +1026,10 @@ select.inp option{background:var(--bg-card);}
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="search" class="inp" id="clients-search" placeholder="Поиск по имени, телефону, TG…" style="font-size:.72rem;padding:7px 12px;width:220px;" oninput="onClientsSearch(this.value)">
         <button id="csv-btn" class="btn btn-ghost btn-sm" onclick="downloadClientsCSV()" style="display:none;white-space:nowrap;">Скачать CSV</button>
+        <button class="btn btn-w btn-sm" onclick="openAddClientModal()" style="white-space:nowrap;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Добавить
+        </button>
       </div>
     </div>
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
@@ -1683,6 +1692,117 @@ select.inp option{background:var(--bg-card);}
   </div>
 
 </main>
+
+<!-- MODAL: ДОБАВИТЬ БРОНЬ -->
+<div class="modal-ov" id="add-booking-modal" onclick="if(event.target===this)closeAddBookingModal()">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title">Добавить бронь</div>
+      <button class="modal-close" onclick="closeAddBookingModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-lbl">Зал *</label>
+        <select class="inp" id="ab-hall" style="font-size:.78rem;"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Формат *</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="ab-format-btns">
+          <button type="button" class="btn btn-ghost btn-sm ab-fmt active" data-fmt="hourly" onclick="selectAbFormat('hourly')">Почасово</button>
+          <button type="button" class="btn btn-ghost btn-sm ab-fmt" data-fmt="event" onclick="selectAbFormat('event')">Мероприятие</button>
+          <button type="button" class="btn btn-ghost btn-sm ab-fmt" data-fmt="allday" onclick="selectAbFormat('allday')">Весь день</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Дата *</label>
+        <input type="date" class="inp" id="ab-date" min="2024-01-01">
+      </div>
+      <div id="ab-time-row" style="display:flex;gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label class="form-lbl">Начало *</label>
+          <input type="time" class="inp" id="ab-time-start" min="10:00" max="22:00" step="3600">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-lbl">Конец *</label>
+          <input type="time" class="inp" id="ab-time-end" min="11:00" max="23:00" step="3600">
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;display:flex;flex-direction:column;gap:10px;">
+        <div class="form-group">
+          <label class="form-lbl">Имя клиента *</label>
+          <input type="text" class="inp" id="ab-name" placeholder="Иван Иванов" maxlength="191">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Телефон *</label>
+          <input type="tel" class="inp" id="ab-phone" placeholder="+7 (999) 999-99-99" maxlength="30">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-lbl">Email</label>
+            <input type="email" class="inp" id="ab-email" placeholder="email@example.com">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-lbl">Telegram</label>
+            <input type="text" class="inp" id="ab-telegram" placeholder="@username">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Примечание</label>
+          <input type="text" class="inp" id="ab-notes" placeholder="Необязательно" maxlength="1000">
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+        <div class="form-group">
+          <label class="form-lbl">Сумма оплачена, ₽</label>
+          <input type="number" class="inp" id="ab-paid" placeholder="0" min="0" step="100" value="0" style="font-size:.9rem;font-weight:600;">
+        </div>
+        <div style="font-size:.65rem;color:var(--text-d);margin-top:-4px;">Введите 0 если оплата ещё не поступила. Статус брони будет «Подтверждена».</div>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between;">
+      <button class="btn btn-ghost btn-sm" onclick="closeAddBookingModal()">Отмена</button>
+      <button class="btn btn-w btn-sm" onclick="submitAddBooking()">Создать бронь</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ДОБАВИТЬ КЛИЕНТА -->
+<div class="modal-ov" id="add-client-modal" onclick="if(event.target===this)closeAddClientModal()">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title">Добавить клиента</div>
+      <button class="modal-close" onclick="closeAddClientModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-lbl">Имя *</label>
+        <input type="text" class="inp" id="ac-name" placeholder="Иван Иванов" maxlength="191">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Телефон *</label>
+        <input type="tel" class="inp" id="ac-phone" placeholder="+7 (999) 999-99-99" maxlength="30">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Email</label>
+        <input type="email" class="inp" id="ac-email" placeholder="email@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Telegram</label>
+        <input type="text" class="inp" id="ac-telegram" placeholder="@username" maxlength="100">
+      </div>
+      <div class="form-group">
+        <label class="form-lbl">Заметка</label>
+        <textarea class="inp" id="ac-note" rows="2" placeholder="Необязательно" maxlength="1000" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between;">
+      <button class="btn btn-ghost btn-sm" onclick="closeAddClientModal()">Отмена</button>
+      <button class="btn btn-w btn-sm" onclick="submitAddClient()">Сохранить</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL: ШАБЛОН ФОРМЫ -->
 <div class="modal-ov" id="tpl-modal" onclick="if(event.target===this)closeTplModal()">
@@ -4367,6 +4487,123 @@ async function evUploadPoster(input) {
     document.getElementById('evs-poster-preview').style.display = '';
     showToast('Афиша загружена');
   }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ДОБАВИТЬ БРОНЬ (admin)
+// ══════════════════════════════════════════════════════════════════════
+let _abFormat = 'hourly';
+
+async function openAddBookingModal() {
+  _abFormat = 'hourly';
+  document.querySelectorAll('.ab-fmt').forEach(b => b.classList.toggle('active', b.dataset.fmt === 'hourly'));
+  document.getElementById('ab-time-row').style.display = 'flex';
+  document.getElementById('ab-name').value     = '';
+  document.getElementById('ab-phone').value    = '';
+  document.getElementById('ab-email').value    = '';
+  document.getElementById('ab-telegram').value = '';
+  document.getElementById('ab-notes').value    = '';
+  document.getElementById('ab-paid').value     = '0';
+  document.getElementById('ab-date').value     = new Date().toISOString().slice(0,10);
+  document.getElementById('ab-time-start').value = '10:00';
+  document.getElementById('ab-time-end').value   = '12:00';
+
+  // Загружаем залы
+  const hallSel = document.getElementById('ab-hall');
+  hallSel.innerHTML = '<option value="">Загрузка…</option>';
+  const data = await api('/halls');
+  const halls = data?.data || [];
+  hallSel.innerHTML = halls.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
+
+  document.getElementById('add-booking-modal').classList.add('open');
+  setTimeout(() => document.getElementById('ab-name').focus(), 100);
+}
+
+function closeAddBookingModal() {
+  document.getElementById('add-booking-modal').classList.remove('open');
+}
+
+function selectAbFormat(fmt) {
+  _abFormat = fmt;
+  document.querySelectorAll('.ab-fmt').forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
+  document.getElementById('ab-time-row').style.display = fmt === 'allday' ? 'none' : 'flex';
+}
+
+async function submitAddBooking() {
+  const hallId = document.getElementById('ab-hall').value;
+  const date   = document.getElementById('ab-date').value;
+  const name   = document.getElementById('ab-name').value.trim();
+  const phone  = document.getElementById('ab-phone').value.trim();
+
+  if (!hallId)  { showToast('Выберите зал', true); return; }
+  if (!date)    { showToast('Укажите дату', true); return; }
+  if (!name)    { showToast('Введите имя клиента', true); return; }
+  if (!phone)   { showToast('Введите телефон', true); return; }
+
+  if (_abFormat !== 'allday') {
+    const ts = document.getElementById('ab-time-start').value;
+    const te = document.getElementById('ab-time-end').value;
+    if (!ts || !te)           { showToast('Укажите время', true); return; }
+    if (ts >= te)             { showToast('Время конца должно быть позже начала', true); return; }
+  }
+
+  const payload = {
+    hall_id:     parseInt(hallId),
+    date,
+    format:      _abFormat,
+    name, phone,
+    email:       document.getElementById('ab-email').value.trim()    || null,
+    telegram:    document.getElementById('ab-telegram').value.trim() || null,
+    notes:       document.getElementById('ab-notes').value.trim()    || null,
+    paid_amount: parseInt(document.getElementById('ab-paid').value) || 0,
+  };
+  if (_abFormat !== 'allday') {
+    payload.time_start = document.getElementById('ab-time-start').value;
+    payload.time_end   = document.getElementById('ab-time-end').value;
+  }
+
+  const data = await api('/admin/bookings', { method:'POST', body: JSON.stringify(payload) });
+  if (!data?.ok) { showToast(data?.message || 'Ошибка создания брони', true); return; }
+  closeAddBookingModal();
+  showToast('Бронь создана');
+  if (_bookDateStr) loadBookings(_bookDateStr);
+  loadAllBookings();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ДОБАВИТЬ КЛИЕНТА (admin)
+// ══════════════════════════════════════════════════════════════════════
+function openAddClientModal() {
+  ['ac-name','ac-phone','ac-email','ac-telegram','ac-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('add-client-modal').classList.add('open');
+  setTimeout(() => document.getElementById('ac-name').focus(), 100);
+}
+
+function closeAddClientModal() {
+  document.getElementById('add-client-modal').classList.remove('open');
+}
+
+async function submitAddClient() {
+  const name  = document.getElementById('ac-name').value.trim();
+  const phone = document.getElementById('ac-phone').value.trim();
+  if (!name)  { showToast('Введите имя', true); return; }
+  if (!phone) { showToast('Введите телефон', true); return; }
+
+  const payload = {
+    name, phone,
+    email:    document.getElementById('ac-email').value.trim()    || null,
+    telegram: document.getElementById('ac-telegram').value.trim() || null,
+    note:     document.getElementById('ac-note').value.trim()     || null,
+  };
+
+  const data = await api('/admin/clients', { method:'POST', body: JSON.stringify(payload) });
+  if (!data?.ok) { showToast(data?.message || 'Ошибка создания клиента', true); return; }
+  closeAddClientModal();
+  showToast('Клиент добавлен');
+  loadClientsWidget();
 }
 
 // ══════════════════════════════════════════════════════════════════════
