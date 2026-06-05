@@ -479,6 +479,15 @@ select.inp option{background:var(--bg-card);}
 }
 /* ── Event cards ─────────────────────────────────────────────────── */
 .ec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.ev-sub-tabs{display:flex;gap:4px;margin-bottom:20px;padding:3px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);width:fit-content;}
+.ev-sub-tab{padding:6px 18px;border-radius:calc(var(--r-lg) - 2px);font-size:.75rem;font-weight:600;border:none;background:transparent;color:var(--text-d);cursor:pointer;transition:all .15s;}
+.ev-sub-tab.active{background:var(--white);color:var(--bg);}
+.ab-search-dd{position:absolute;top:100%;left:0;right:0;z-index:300;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--r);max-height:200px;overflow-y:auto;margin-top:2px;display:none;}
+.ab-search-dd.open{display:block;}
+.ab-search-item{padding:8px 12px;cursor:pointer;font-size:.78rem;transition:background .12s;}
+.ab-search-item:hover{background:rgba(255,255,255,.06);}
+.ab-search-item-name{font-weight:600;}
+.ab-search-item-sub{font-size:.66rem;color:var(--text-d);margin-top:1px;}
 .ec-card{position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px 20px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:190px;cursor:pointer;transition:border-color .15s,transform .12s;}
 .ec-card:hover{border-color:rgba(255,255,255,.18);}
 .ec-card:active{transform:scale(.98);}
@@ -1399,6 +1408,14 @@ select.inp option{background:var(--bg-card);}
 
   <!-- СОБЫТИЯ -->
   <div class="tab-pane" id="tab-events">
+    <!-- Sub-tabs -->
+    <div class="ev-sub-tabs">
+      <button class="ev-sub-tab active" onclick="switchEvSubTab('events',this)">Ивенты</button>
+      <button class="ev-sub-tab" onclick="switchEvSubTab('templates',this)">Шаблоны</button>
+    </div>
+
+    <!-- ── Ивенты ── -->
+    <div id="ev-sub-events">
     <!-- Список событий -->
     <div id="ev-list-view">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
@@ -1571,7 +1588,24 @@ select.inp option{background:var(--bg-card);}
         </div>
       </div>
     </div>
-  </div>
+    </div><!-- /ev-sub-events -->
+
+    <!-- ── Шаблоны ── -->
+    <div id="ev-sub-templates" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:.9rem;font-weight:700;">Шаблоны форм</div>
+          <div style="font-size:.65rem;color:var(--text-d);margin-top:2px;">Только для разработчика</div>
+        </div>
+        <button class="btn btn-w btn-md" onclick="openCreateTemplateModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Новый шаблон
+        </button>
+      </div>
+      <div id="tpl-list-wrap2"></div>
+    </div><!-- /ev-sub-templates -->
+
+  </div><!-- /tab-events -->
 
   <!-- DEBUG LOG -->
   <div class="tab-pane" id="tab-seo">
@@ -1704,11 +1738,11 @@ select.inp option{background:var(--bg-card);}
     <div class="modal-body">
       <div class="form-group">
         <label class="form-lbl">Зал *</label>
-        <select class="inp" id="ab-hall" style="font-size:.78rem;"></select>
+        <select class="inp" id="ab-hall" style="font-size:.78rem;"><option value="">Загрузка…</option></select>
       </div>
       <div class="form-group">
         <label class="form-lbl">Формат *</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="ab-format-btns">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button type="button" class="btn btn-ghost btn-sm ab-fmt active" data-fmt="hourly" onclick="selectAbFormat('hourly')">Почасово</button>
           <button type="button" class="btn btn-ghost btn-sm ab-fmt" data-fmt="event" onclick="selectAbFormat('event')">Мероприятие</button>
           <button type="button" class="btn btn-ghost btn-sm ab-fmt" data-fmt="allday" onclick="selectAbFormat('allday')">Весь день</button>
@@ -1728,26 +1762,42 @@ select.inp option{background:var(--bg-card);}
           <input type="time" class="inp" id="ab-time-end" min="11:00" max="23:00" step="3600">
         </div>
       </div>
-      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;display:flex;flex-direction:column;gap:10px;">
-        <div class="form-group">
-          <label class="form-lbl">Имя клиента *</label>
-          <input type="text" class="inp" id="ab-name" placeholder="Иван Иванов" maxlength="191">
+      <!-- КЛИЕНТ с поиском -->
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+        <div class="form-group" style="position:relative;">
+          <label class="form-lbl">Поиск клиента</label>
+          <input type="search" class="inp" id="ab-client-q" placeholder="Введите имя, телефон или TG…" oninput="abClientSearch(this.value)" autocomplete="off">
+          <div class="ab-search-dd" id="ab-client-dd"></div>
         </div>
-        <div class="form-group">
-          <label class="form-lbl">Телефон *</label>
-          <input type="tel" class="inp" id="ab-phone" placeholder="+7 (999) 999-99-99" maxlength="30">
-        </div>
-        <div style="display:flex;gap:10px;">
-          <div class="form-group" style="flex:1;">
-            <label class="form-lbl">Email</label>
-            <input type="email" class="inp" id="ab-email" placeholder="email@example.com">
+        <!-- Карточка выбранного клиента -->
+        <div id="ab-client-card" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;display:none;align-items:center;justify-content:space-between;gap:8px;">
+          <div>
+            <div id="ab-client-card-name" style="font-size:.82rem;font-weight:600;"></div>
+            <div id="ab-client-card-phone" style="font-size:.7rem;color:var(--text-d);margin-top:2px;"></div>
           </div>
-          <div class="form-group" style="flex:1;">
-            <label class="form-lbl">Telegram</label>
-            <input type="text" class="inp" id="ab-telegram" placeholder="@username">
+          <button type="button" class="btn-icon" onclick="abClearClient()" title="Сбросить">×</button>
+        </div>
+        <div id="ab-new-client-fields" style="display:flex;flex-direction:column;gap:10px;">
+          <div class="form-group">
+            <label class="form-lbl">Имя *</label>
+            <input type="text" class="inp" id="ab-name" placeholder="Иван Иванов" maxlength="191">
+          </div>
+          <div class="form-group">
+            <label class="form-lbl">Телефон *</label>
+            <input type="tel" class="inp" id="ab-phone" placeholder="+7 (999) 999-99-99" maxlength="30">
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div class="form-group" style="flex:1;">
+              <label class="form-lbl">Email</label>
+              <input type="email" class="inp" id="ab-email" placeholder="email@example.com">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label class="form-lbl">Telegram</label>
+              <input type="text" class="inp" id="ab-telegram" placeholder="@username">
+            </div>
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-top:4px;">
           <label class="form-lbl">Примечание</label>
           <input type="text" class="inp" id="ab-notes" placeholder="Необязательно" maxlength="1000">
         </div>
@@ -2172,6 +2222,7 @@ function switchTab(tab) {
       max: loadMaxTab,
       notifications: loadNotificationsTab,
       debug: loadDebugTab,
+      events: loadEvents,
     };
     loaders[tab]?.();
   }
@@ -2255,10 +2306,7 @@ async function initUser() {
     const mns = document.getElementById('mob-nav-seo');
     if (ns)  ns.style.display  = 'flex';
     if (mns) mns.style.display = 'flex';
-    const nt = document.getElementById('nav-templates');
-    const mnt = document.getElementById('mob-nav-templates');
-    if (nt)  nt.style.display  = 'flex';
-    if (mnt) mnt.style.display = 'flex';
+    // Шаблоны теперь внутри вкладки "События" — отдельный nav-item убран
   }
   if (r!=='developer') {
     const ts=document.getElementById('tg-technical-settings'); if(ts) ts.style.display='none';
@@ -4116,9 +4164,15 @@ async function loadEvents() {
   `).join('');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelector('[data-tab="events"]')?.addEventListener('click', loadEvents);
-});
+let _evSubActive = 'events';
+function switchEvSubTab(name, btn) {
+  _evSubActive = name;
+  document.querySelectorAll('.ev-sub-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ev-sub-events').style.display    = name === 'events'    ? '' : 'none';
+  document.getElementById('ev-sub-templates').style.display = name === 'templates' ? '' : 'none';
+  if (name === 'templates') loadTemplatesInline();
+}
 
 // ── Детали события ────────────────────────────────────────────────────
 async function evOpenDetail(id) {
@@ -4493,11 +4547,16 @@ async function evUploadPoster(input) {
 // ДОБАВИТЬ БРОНЬ (admin)
 // ══════════════════════════════════════════════════════════════════════
 let _abFormat = 'hourly';
+let _abSearchTimer = null;
 
 async function openAddBookingModal() {
   _abFormat = 'hourly';
   document.querySelectorAll('.ab-fmt').forEach(b => b.classList.toggle('active', b.dataset.fmt === 'hourly'));
   document.getElementById('ab-time-row').style.display = 'flex';
+  document.getElementById('ab-client-q').value = '';
+  document.getElementById('ab-client-dd').classList.remove('open');
+  document.getElementById('ab-client-card').style.display = 'none';
+  document.getElementById('ab-new-client-fields').style.display = '';
   document.getElementById('ab-name').value     = '';
   document.getElementById('ab-phone').value    = '';
   document.getElementById('ab-email').value    = '';
@@ -4508,15 +4567,63 @@ async function openAddBookingModal() {
   document.getElementById('ab-time-start').value = '10:00';
   document.getElementById('ab-time-end').value   = '12:00';
 
-  // Загружаем залы
+  // Загружаем залы из admin API
   const hallSel = document.getElementById('ab-hall');
   hallSel.innerHTML = '<option value="">Загрузка…</option>';
-  const data = await api('/halls');
-  const halls = data?.data || [];
-  hallSel.innerHTML = halls.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
+  const halls = await api('/admin/halls');
+  const hallArr = Array.isArray(halls) ? halls : (halls?.data || []);
+  hallSel.innerHTML = hallArr.length
+    ? hallArr.map(h => `<option value="${h.id}">${h.name}</option>`).join('')
+    : '<option value="">Нет залов</option>';
 
   document.getElementById('add-booking-modal').classList.add('open');
-  setTimeout(() => document.getElementById('ab-name').focus(), 100);
+  setTimeout(() => document.getElementById('ab-client-q').focus(), 100);
+}
+
+function abClientSearch(val) {
+  clearTimeout(_abSearchTimer);
+  const dd = document.getElementById('ab-client-dd');
+  if (val.length < 2) { dd.classList.remove('open'); return; }
+  _abSearchTimer = setTimeout(async () => {
+    const data = await api(`/admin/clients?q=${encodeURIComponent(val)}&limit=8`);
+    const clients = data?.clients || [];
+    if (!clients.length) { dd.innerHTML = '<div class="ab-search-item" style="color:var(--text-d);">Не найдено — введите данные вручную</div>'; dd.classList.add('open'); return; }
+    dd._abClients = clients;
+    dd.innerHTML = clients.map((c, i) => `
+      <div class="ab-search-item" onclick="abSelectClient(${i})">
+        <div class="ab-search-item-name">${esc(c.name || '—')}</div>
+        <div class="ab-search-item-sub">${esc(c.phone || '')}${c.telegram_username ? ' · @' + esc(c.telegram_username) : ''}</div>
+      </div>
+    `).join('');
+    dd.classList.add('open');
+  }, 300);
+}
+
+function abSelectClient(idx) {
+  const dd = document.getElementById('ab-client-dd');
+  const c  = dd._abClients?.[idx];
+  if (!c) return;
+  dd.classList.remove('open');
+  document.getElementById('ab-client-q').value = '';
+  document.getElementById('ab-client-card-name').textContent  = c.name  || '—';
+  document.getElementById('ab-client-card-phone').textContent = c.phone || '';
+  document.getElementById('ab-client-card').style.display = 'flex';
+  document.getElementById('ab-new-client-fields').style.display = 'none';
+  document.getElementById('ab-name').value     = c.name  || '';
+  document.getElementById('ab-phone').value    = c.phone || '';
+  document.getElementById('ab-email').value    = c.email || '';
+  document.getElementById('ab-telegram').value = c.telegram_username || '';
+}
+
+function abClearClient() {
+  document.getElementById('ab-client-card').style.display = 'none';
+  document.getElementById('ab-new-client-fields').style.display = '';
+  document.getElementById('ab-name').value  = '';
+  document.getElementById('ab-phone').value = '';
+  document.getElementById('ab-email').value = '';
+  document.getElementById('ab-telegram').value = '';
+  document.getElementById('ab-client-q').value = '';
+  setTimeout(() => document.getElementById('ab-client-q').focus(), 50);
 }
 
 function closeAddBookingModal() {
@@ -4616,43 +4723,46 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('[data-tab="templates"]')?.addEventListener('click', loadTemplatesList);
 });
 
+function _tplTableHtml(templates) {
+  if (!templates?.length) return '<p style="color:var(--text-d);font-size:.8rem;text-align:center;padding:32px 0;">Шаблонов пока нет</p>';
+  return `<table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+    <thead><tr style="border-bottom:1px solid var(--border);">
+      <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Название</th>
+      <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Описание</th>
+      <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Дата</th>
+      <th style="width:80px;"></th>
+    </tr></thead>
+    <tbody>
+      ${templates.map(t => `
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:10px 12px;font-weight:600;">${esc(t.name)}</td>
+          <td style="padding:10px 12px;color:var(--text-d);">${t.description ? esc(t.description) : '—'}</td>
+          <td style="padding:10px 12px;color:var(--text-d);white-space:nowrap;">${new Date(t.created_at).toLocaleDateString('ru-RU')}</td>
+          <td style="padding:10px 12px;"><div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn-ghost btn-sm" onclick="openEditTemplateModal(${t.id},'${esc(t.name)}','${(t.description||'').replace(/'/g,"\\'")}')">Изм.</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteTpl(${t.id},'${esc(t.name)}')">Удал.</button>
+          </div></td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
 async function loadTemplatesList() {
   const wrap = document.getElementById('tpl-list-wrap');
   if (!wrap) return;
   wrap.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
   const data = await api('/admin/event-templates');
   if (!data?.ok) { wrap.innerHTML = '<p style="color:var(--text-d);font-size:.8rem;text-align:center;padding:32px 0;">Ошибка загрузки</p>'; return; }
-  if (!data.templates?.length) {
-    wrap.innerHTML = '<p style="color:var(--text-d);font-size:.8rem;text-align:center;padding:32px 0;">Шаблонов пока нет</p>';
-    return;
-  }
-  wrap.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
-      <thead>
-        <tr style="border-bottom:1px solid var(--border);">
-          <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Название</th>
-          <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Описание</th>
-          <th style="text-align:left;padding:8px 12px;color:var(--text-d);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;">Дата</th>
-          <th style="width:80px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${data.templates.map(t => `
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px 12px;font-weight:600;">${esc(t.name)}</td>
-            <td style="padding:10px 12px;color:var(--text-d);">${t.description ? esc(t.description) : '—'}</td>
-            <td style="padding:10px 12px;color:var(--text-d);white-space:nowrap;">${new Date(t.created_at).toLocaleDateString('ru-RU')}</td>
-            <td style="padding:10px 12px;">
-              <div style="display:flex;gap:6px;justify-content:flex-end;">
-                <button class="btn btn-ghost btn-sm" onclick="openEditTemplateModal(${t.id},'${esc(t.name)}','${(t.description||'').replace(/'/g,"\\'")}')">Изм.</button>
-                <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteTpl(${t.id},'${esc(t.name)}')">Удал.</button>
-              </div>
-            </td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+  wrap.innerHTML = _tplTableHtml(data.templates);
+}
+
+async function loadTemplatesInline() {
+  const wrap = document.getElementById('tpl-list-wrap2');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
+  const data = await api('/admin/event-templates');
+  if (!data?.ok) { wrap.innerHTML = '<p style="color:var(--text-d);font-size:.8rem;text-align:center;padding:32px 0;">Ошибка загрузки</p>'; return; }
+  wrap.innerHTML = _tplTableHtml(data.templates);
 }
 
 function openCreateTemplateModal() {
@@ -4690,7 +4800,7 @@ async function submitTplModal() {
   if (!data?.ok) { showToast(data?.message || 'Ошибка', true); return; }
   closeTplModal();
   showToast(_tplEditId ? 'Шаблон обновлён' : 'Шаблон создан');
-  loadTemplatesList();
+  loadTemplatesList(); loadTemplatesInline();
 }
 
 async function deleteTpl(id, name) {
@@ -4698,7 +4808,7 @@ async function deleteTpl(id, name) {
   const data = await api(`/admin/event-templates/${id}`, { method:'DELETE' });
   if (!data?.ok) { showToast('Ошибка удаления', true); return; }
   showToast('Шаблон удалён');
-  loadTemplatesList();
+  loadTemplatesList(); loadTemplatesInline();
 }
 </script>
 </body>
