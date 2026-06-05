@@ -82,17 +82,18 @@ class BookingService
 
     /**
      * Hold для нескольких почасовых слотов (разные дни) — одна оплата, N броней.
-     * slots: [{date, time_start, time_end, amount}]
+     * slots: [{date, time_start, time_end, paid_amount?}]
+     * Цена каждого слота считается через PricingService.
      * Возвращает ['bookings' => Booking[], 'group_id' => string, 'total' => int]
      */
     public function createMultiHold(array $data): array
     {
-        $hall    = Hall::findOrFail($data['hall_id']);
-        $slots   = $data['slots'];
-        $groupId = (string) Str::uuid();
-        $total   = (int) array_sum(array_column($slots, 'amount'));
+        $hall       = Hall::findOrFail($data['hall_id']);
+        $slots      = $data['slots'];
+        $groupId    = (string) Str::uuid();
+        $guestCount = (int)($data['guest_count'] ?? 1);
 
-        $bookings = DB::transaction(function () use ($data, $hall, $slots, $groupId) {
+        $bookings = DB::transaction(function () use ($data, $hall, $slots, $groupId, $guestCount) {
             $client   = $this->resolveClient($data);
             $bookings = [];
 
@@ -100,6 +101,7 @@ class BookingService
                 $timeStart = $slot['time_start'] . ':00';
                 $timeEnd   = $slot['time_end']   . ':00';
                 $hours     = $this->pricing->calcHours($slot['time_start'], $slot['time_end']);
+                $dayType   = $this->pricing->getDayType($slot['date']);
 
                 $conflict = Booking::where('hall_id', $hall->id)
                     ->where('date', $slot['date'])
@@ -116,6 +118,12 @@ class BookingService
                     throw new \RuntimeException("Слот {$slot['date']} {$slot['time_start']}–{$slot['time_end']} уже занят.");
                 }
 
+                $rule       = $this->pricing->findRule($hall->id, $dayType, 'hourly', $hours, $guestCount);
+                $totalSlot  = $this->pricing->calcTotal($rule, 'hourly', $hours);
+                $prepaySlot = isset($slot['paid_amount'])
+                    ? (int)$slot['paid_amount']
+                    : $this->pricing->calcPrepayment($totalSlot, $rule?->prepayment_percent ?? 100);
+
                 $bookings[] = Booking::create([
                     'client_id'         => $client->id,
                     'hall_id'           => $hall->id,
@@ -126,8 +134,8 @@ class BookingService
                     'duration_hours'    => $hours,
                     'format'            => 'hourly',
                     'status'            => Booking::STATUS_HOLD,
-                    'total_amount'      => (int) $slot['amount'],
-                    'prepayment_amount' => (int) $slot['amount'],
+                    'total_amount'      => $totalSlot,
+                    'prepayment_amount' => $prepaySlot,
                     'hold_expires_at'   => now()->addMinutes(10),
                     'consent_offer'     => $data['consent_offer']  ?? true,
                     'consent_policy'    => $data['consent_policy'] ?? true,
@@ -139,6 +147,7 @@ class BookingService
             return $bookings;
         });
 
+        $total = (int) array_sum(array_map(fn($b) => $b->total_amount, $bookings));
         return ['bookings' => $bookings, 'group_id' => $groupId, 'total' => $total];
     }
 

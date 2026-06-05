@@ -203,7 +203,7 @@ class BookingController extends Controller
             'slots.*.date'       => 'required|date|after_or_equal:today',
             'slots.*.time_start' => 'required|regex:/^\d{2}:\d{2}$/',
             'slots.*.time_end'   => 'required|regex:/^\d{2}:\d{2}$/',
-            'slots.*.amount'     => 'required|integer|min:1',
+            'slots.*.paid_amount' => 'nullable|integer|min:0',
             'name'               => 'required|string|max:191',
             'phone'              => 'required|string|max:30',
             'email'              => 'nullable|email|max:191',

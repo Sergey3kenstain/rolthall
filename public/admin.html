@@ -1781,7 +1781,7 @@ select.inp option{background:var(--bg-card);}
         <div style="display:flex;gap:10px;">
           <div class="form-group" style="flex:1;">
             <label class="form-lbl">Email</label>
-            <input type="email" class="inp" id="ab-email" placeholder="email@example.com">
+            <input type="text" inputmode="email" autocomplete="email" class="inp" id="ab-email" placeholder="email@example.com">
           </div>
           <div class="form-group" style="flex:1;">
             <label class="form-lbl">Telegram</label>
@@ -1794,11 +1794,10 @@ select.inp option{background:var(--bg-card);}
         <input type="text" class="inp" id="ab-notes" placeholder="Необязательно" maxlength="1000">
       </div>
       <hr style="border:none;border-top:1px solid var(--border);margin:0;">
-      <div class="form-group">
-        <label class="form-lbl">Сумма оплачена, ₽</label>
-        <input type="number" class="inp" id="ab-paid" placeholder="0" min="0" step="100" value="0" style="font-size:.9rem;font-weight:600;">
+      <div id="ab-total-row" style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
+        <span style="font-size:.65rem;color:var(--text-d);">Введите 0 если оплата не поступила. Статус — «Подтверждена».</span>
+        <span id="ab-total-display" style="font-size:.85rem;font-weight:600;display:none;">Итого: <span id="ab-total-val">0</span> ₽</span>
       </div>
-      <div style="font-size:.65rem;color:var(--text-d);margin-top:-8px;">Введите 0 если оплата ещё не поступила. Статус брони будет «Подтверждена».</div>
     </div>
     <div class="modal-foot" style="justify-content:space-between;">
       <button class="btn btn-ghost btn-sm" onclick="closeAddBookingModal()">Отмена</button>
@@ -1826,7 +1825,7 @@ select.inp option{background:var(--bg-card);}
       </div>
       <div class="form-group">
         <label class="form-lbl">Email</label>
-        <input type="email" class="inp" id="ac-email" placeholder="email@example.com">
+        <input type="text" inputmode="email" autocomplete="email" class="inp" id="ac-email" placeholder="email@example.com">
       </div>
       <div class="form-group">
         <label class="form-lbl">Telegram</label>
@@ -4558,7 +4557,7 @@ let _abSearchTimer = null;
 async function openAddBookingModal() {
   _abFormat = 'hourly';
   _abFormat = 'hourly';
-  _abSlots  = [{ date: new Date().toISOString().slice(0,10), time_start: '10:00', time_end: '12:00' }];
+  _abSlots  = [{ date: new Date().toISOString().slice(0,10), time_start: '10:00', time_end: '12:00', paid_amount: 0 }];
   document.querySelectorAll('.ab-fmt').forEach(b => b.classList.toggle('active', b.dataset.fmt === 'hourly'));
   document.getElementById('ab-client-q').value = '';
   document.getElementById('ab-client-dd').classList.remove('open');
@@ -4654,8 +4653,10 @@ function abRenderSlots() {
     </div>`;
     return;
   }
+  const multi = _abSlots.length > 1;
+  document.getElementById('ab-total-display').style.display = multi ? '' : 'none';
   wrap.innerHTML = _abSlots.map((s, i) => `
-    <div class="ab-slot-row" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;">
+    <div class="ab-slot-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 90px auto;gap:8px;align-items:end;margin-bottom:8px;">
       <div class="form-group" style="margin:0;">
         ${i === 0 ? '<label class="form-lbl">Дата *</label>' : ''}
         <input type="date" class="inp ab-slot-date" data-idx="${i}" min="2024-01-01" value="${s.date}" onchange="abSlotChange(${i})">
@@ -4668,6 +4669,10 @@ function abRenderSlots() {
         ${i === 0 ? '<label class="form-lbl">Конец *</label>' : ''}
         <input type="time" class="inp ab-slot-te" data-idx="${i}" min="11:00" max="23:00" step="3600" value="${s.time_end}" onchange="abSlotChange(${i})">
       </div>
+      <div class="form-group" style="margin:0;">
+        ${i === 0 ? '<label class="form-lbl">Оплачено ₽</label>' : ''}
+        <input type="number" class="inp ab-slot-paid" data-idx="${i}" min="0" step="100" value="${s.paid_amount || 0}" placeholder="0" oninput="abSlotChange(${i})">
+      </div>
       <div style="${i === 0 ? 'margin-top:18px;' : ''}">
         ${i > 0 ? `<button type="button" class="btn btn-ghost btn-sm" onclick="abRemoveSlot(${i})" style="color:var(--err,#e53e3e);padding:6px 8px;">✕</button>` : '<span style="width:32px;display:block;"></span>'}
       </div>
@@ -4679,13 +4684,30 @@ function abSlotChange(i) {
   const rows = document.querySelectorAll('.ab-slot-row');
   const row  = rows[i];
   if (!row) return;
-  _abSlots[i].date       = row.querySelector('.ab-slot-date').value;
-  _abSlots[i].time_start = row.querySelector('.ab-slot-ts').value;
-  _abSlots[i].time_end   = row.querySelector('.ab-slot-te').value;
+  _abSlots[i].date        = row.querySelector('.ab-slot-date')?.value || '';
+  _abSlots[i].time_start  = row.querySelector('.ab-slot-ts')?.value  || '';
+  _abSlots[i].time_end    = row.querySelector('.ab-slot-te')?.value  || '';
+  _abSlots[i].paid_amount = parseInt(row.querySelector('.ab-slot-paid')?.value) || 0;
+  abUpdateTotal();
+}
+
+function abUpdateTotal() {
+  const total = _abSlots.reduce((s, sl) => s + (sl.paid_amount || 0), 0);
+  const tv = document.getElementById('ab-total-val');
+  if (tv) tv.textContent = total.toLocaleString('ru');
 }
 
 function abAddSlot() {
-  _abSlots.push({ date: '', time_start: '10:00', time_end: '12:00' });
+  // Синхронизируем текущие значения перед добавлением
+  document.querySelectorAll('.ab-slot-row').forEach((row, i) => {
+    if (_abSlots[i]) {
+      _abSlots[i].date        = row.querySelector('.ab-slot-date')?.value  || _abSlots[i].date;
+      _abSlots[i].time_start  = row.querySelector('.ab-slot-ts')?.value    || _abSlots[i].time_start;
+      _abSlots[i].time_end    = row.querySelector('.ab-slot-te')?.value    || _abSlots[i].time_end;
+      _abSlots[i].paid_amount = parseInt(row.querySelector('.ab-slot-paid')?.value) || 0;
+    }
+  });
+  _abSlots.push({ date: '', time_start: '10:00', time_end: '12:00', paid_amount: 0 });
   abRenderSlots();
 }
 
@@ -4710,21 +4732,21 @@ async function submitAddBooking() {
   if (!phone)  { showToast('Введите телефон', true); return; }
 
   const commonFields = {
-    hall_id:     parseInt(hallId),
-    format:      _abFormat,
+    hall_id:  parseInt(hallId),
+    format:   _abFormat,
     name, phone,
-    email:       document.getElementById('ab-email').value.trim()    || null,
-    telegram:    tgUsername(document.getElementById('ab-telegram').value) || null,
-    notes:       document.getElementById('ab-notes').value.trim()    || null,
-    paid_amount: parseInt(document.getElementById('ab-paid').value)  || 0,
+    email:    document.getElementById('ab-email').value.trim()    || null,
+    telegram: tgUsername(document.getElementById('ab-telegram').value) || null,
+    notes:    document.getElementById('ab-notes').value.trim()    || null,
   };
 
   // Синхронизируем последние значения из DOM
   document.querySelectorAll('.ab-slot-row').forEach((row, i) => {
     if (_abSlots[i]) {
-      _abSlots[i].date       = row.querySelector('.ab-slot-date')?.value || _abSlots[i].date;
-      _abSlots[i].time_start = row.querySelector('.ab-slot-ts')?.value   || _abSlots[i].time_start;
-      _abSlots[i].time_end   = row.querySelector('.ab-slot-te')?.value   || _abSlots[i].time_end;
+      _abSlots[i].date        = row.querySelector('.ab-slot-date')?.value  || _abSlots[i].date;
+      _abSlots[i].time_start  = row.querySelector('.ab-slot-ts')?.value    || _abSlots[i].time_start;
+      _abSlots[i].time_end    = row.querySelector('.ab-slot-te')?.value    || _abSlots[i].time_end;
+      _abSlots[i].paid_amount = parseInt(row.querySelector('.ab-slot-paid')?.value) || 0;
     }
   });
 
@@ -4744,6 +4766,7 @@ async function submitAddBooking() {
     }
     payload = { ...commonFields, slots: _abSlots.map(s => ({
       date: s.date, time_start: s.time_start, time_end: s.time_end,
+      paid_amount: s.paid_amount || 0,
     }))};
 
   } else {
@@ -4752,7 +4775,8 @@ async function submitAddBooking() {
     if (!s.date)                       { showToast('Укажите дату', true); return; }
     if (!s.time_start || !s.time_end)  { showToast('Укажите время', true); return; }
     if (s.time_start >= s.time_end)    { showToast('Конец должен быть позже начала', true); return; }
-    payload = { ...commonFields, date: s.date, time_start: s.time_start, time_end: s.time_end };
+    payload = { ...commonFields, date: s.date, time_start: s.time_start, time_end: s.time_end,
+                paid_amount: s.paid_amount || 0 };
   }
 
   const data = await api('/admin/bookings', { method:'POST', body: JSON.stringify(payload) });
@@ -4849,8 +4873,13 @@ function tgUsername(raw) {
 function emailMask(el) {
   if (!el || el._emailMasked) return;
   el._emailMasked = true;
-  const RE = /^[-\w.]+@([\w-]+\.)+[a-z]{2,}$/i;
-  el.addEventListener('input', function() { this.value = this.value.replace(/\s/g, '').toLowerCase(); });
+  const RE  = /^[-\w.]+@([\w-]+\.)+[a-z]{2,}$/i;
+  const fmt = v => v.replace(/[^a-zA-Z0-9.@_+\-]/g, '').toLowerCase();
+  el.addEventListener('input', function() {
+    const pos = this.selectionStart, prev = this.value;
+    this.value = fmt(this.value);
+    this.setSelectionRange(pos + this.value.length - prev.length, pos + this.value.length - prev.length);
+  });
   el.addEventListener('blur',  function() { this.style.borderColor = (this.value && !RE.test(this.value)) ? 'var(--err,#e53e3e)' : ''; });
   el.addEventListener('focus', function() { this.style.borderColor = ''; });
 }

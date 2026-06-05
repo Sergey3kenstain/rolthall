@@ -596,17 +596,17 @@ class AdminController extends Controller
         if ($isMulti) {
             // Несколько слотов (разные дни) — создаём N подтверждённых броней без оплаты
             $data = $request->validate([
-                'hall_id'            => 'required|integer|exists:halls,id',
-                'slots'              => 'required|array|min:2',
-                'slots.*.date'       => 'required|date',
-                'slots.*.time_start' => 'required|regex:/^\d{2}:\d{2}$/',
-                'slots.*.time_end'   => 'required|regex:/^\d{2}:\d{2}$/',
-                'name'               => 'required|string|max:191',
-                'phone'              => 'required|string|max:30',
-                'email'              => 'nullable|email|max:191',
-                'telegram'           => 'nullable|string|max:100',
-                'notes'              => 'nullable|string|max:1000',
-                'paid_amount'        => 'nullable|integer|min:0',
+                'hall_id'                 => 'required|integer|exists:halls,id',
+                'slots'                   => 'required|array|min:2',
+                'slots.*.date'            => 'required|date',
+                'slots.*.time_start'      => 'required|regex:/^\d{2}:\d{2}$/',
+                'slots.*.time_end'        => 'required|regex:/^\d{2}:\d{2}$/',
+                'slots.*.paid_amount'     => 'nullable|integer|min:0',
+                'name'                    => 'required|string|max:191',
+                'phone'                   => 'required|string|max:30',
+                'email'                   => 'nullable|email|max:191',
+                'telegram'                => 'nullable|string|max:100',
+                'notes'                   => 'nullable|string|max:1000',
             ]);
 
             $data['consent_offer']  = true;
@@ -617,13 +617,13 @@ class AdminController extends Controller
             $result   = $this->bookings->createMultiHold($data);
             $bookings = $result['bookings'];
             $groupId  = $result['group_id'];
-            $paidAmount = (int) ($data['paid_amount'] ?? 0);
+            $totalPaid = 0;
 
-            // Распределяем paid_amount пропорционально между бронями
-            $total = $result['total'] ?: 1;
-            foreach ($bookings as $b) {
-                $share = $total > 0 ? (int) round($paidAmount * $b->total_amount / $total) : 0;
-                $b->update(['status' => Booking::STATUS_CONFIRMED, 'prepayment_amount' => $share]);
+            // Устанавливаем paid_amount из каждого слота; prepayment_amount уже задан в createMultiHold
+            foreach ($bookings as $i => $b) {
+                $slotPaid = (int)($data['slots'][$i]['paid_amount'] ?? 0);
+                $totalPaid += $slotPaid;
+                $b->update(['status' => Booking::STATUS_CONFIRMED, 'prepayment_amount' => $slotPaid]);
             }
 
             $bookings[0]->load(['hall', 'client.user']);
@@ -639,7 +639,7 @@ class AdminController extends Controller
                     'date'        => $dateList,
                     'time_start'  => '',
                     'time_end'    => '',
-                    'prepayment'  => $paidAmount,
+                    'prepayment'  => $totalPaid,
                     'guest_count' => 0,
                 ]);
             }
