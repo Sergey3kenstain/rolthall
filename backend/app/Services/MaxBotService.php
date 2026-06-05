@@ -80,28 +80,48 @@ class MaxBotService
         if (!$this->token) return false;
 
         try {
-            // Загружаем фото в Max API, получаем токен
-            $upload = Http::withHeaders(['Authorization' => $this->token])
+            // Шаг 1: получаем pre-signed upload URL
+            $step1 = Http::withHeaders(['Authorization' => $this->token])
                 ->attach('data', fopen($photoPath, 'r'), basename($photoPath))
                 ->post("{$this->baseUrl}/uploads?type=image");
 
-            if (!$upload->successful()) {
-                Log::error('Max sendPhoto upload error', ['status' => $upload->status(), 'body' => $upload->body()]);
+            if (!$step1->successful()) {
+                Log::error('Max sendPhoto step1 error', ['status' => $step1->status(), 'body' => $step1->body()]);
                 return false;
             }
 
-            $uploadData = $upload->json();
-            // Max API возвращает url при type=image
-            $imageUrl = $uploadData['url'] ?? null;
-            if (!$imageUrl) {
-                Log::error('Max sendPhoto: no url in upload response', ['body' => $upload->body()]);
+            $uploadUrl = $step1->json('url');
+            if (!$uploadUrl) {
+                Log::error('Max sendPhoto: no url in step1 response', ['body' => $step1->body()]);
                 return false;
             }
 
+            // Шаг 2: загружаем файл на pre-signed URL → получаем token
+            $step2 = Http::attach('data', fopen($photoPath, 'r'), basename($photoPath))
+                ->post($uploadUrl);
+
+            if (!$step2->successful()) {
+                Log::error('Max sendPhoto step2 error', ['status' => $step2->status(), 'body' => $step2->body()]);
+                return false;
+            }
+
+            $photos = $step2->json('photos') ?? [];
+            $photoToken = null;
+            foreach ($photos as $photoData) {
+                $photoToken = $photoData['token'] ?? null;
+                if ($photoToken) break;
+            }
+
+            if (!$photoToken) {
+                Log::error('Max sendPhoto: no token in step2 response', ['body' => $step2->body()]);
+                return false;
+            }
+
+            // Шаг 3: отправляем сообщение с токеном фото
             $body = [
                 'text'        => $caption,
                 'format'      => 'html',
-                'attachments' => [['type' => 'image', 'payload' => ['url' => $imageUrl]]],
+                'attachments' => [['type' => 'image', 'payload' => ['token' => $photoToken]]],
             ];
             if (!empty($buttons)) {
                 $body['attachments'][] = $this->buildKeyboard($buttons)[0];
@@ -111,7 +131,7 @@ class MaxBotService
                 ->post("{$this->baseUrl}/messages?user_id={$userId}", $body);
 
             if (!$response->successful()) {
-                Log::error('Max sendPhoto message error', [
+                Log::error('Max sendPhoto step3 error', [
                     'user_id' => $userId,
                     'status'  => $response->status(),
                     'body'    => $response->body(),
