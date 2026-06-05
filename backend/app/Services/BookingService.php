@@ -81,6 +81,68 @@ class BookingService
     }
 
     /**
+     * Hold для нескольких почасовых слотов (разные дни) — одна оплата, N броней.
+     * slots: [{date, time_start, time_end, amount}]
+     * Возвращает ['bookings' => Booking[], 'group_id' => string, 'total' => int]
+     */
+    public function createMultiHold(array $data): array
+    {
+        $hall    = Hall::findOrFail($data['hall_id']);
+        $slots   = $data['slots'];
+        $groupId = (string) Str::uuid();
+        $total   = (int) array_sum(array_column($slots, 'amount'));
+
+        $bookings = DB::transaction(function () use ($data, $hall, $slots, $groupId) {
+            $client   = $this->resolveClient($data);
+            $bookings = [];
+
+            foreach ($slots as $slot) {
+                $timeStart = $slot['time_start'] . ':00';
+                $timeEnd   = $slot['time_end']   . ':00';
+                $hours     = $this->pricing->calcHours($slot['time_start'], $slot['time_end']);
+
+                $conflict = Booking::where('hall_id', $hall->id)
+                    ->where('date', $slot['date'])
+                    ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_DRAFT])
+                    ->where(function ($q) {
+                        $q->where('status', '!=', Booking::STATUS_HOLD)
+                          ->orWhere('hold_expires_at', '>', now());
+                    })
+                    ->where('time_start', '<', $timeEnd)
+                    ->where('time_end',   '>', $timeStart)
+                    ->exists();
+
+                if ($conflict) {
+                    throw new \RuntimeException("Слот {$slot['date']} {$slot['time_start']}–{$slot['time_end']} уже занят.");
+                }
+
+                $bookings[] = Booking::create([
+                    'client_id'         => $client->id,
+                    'hall_id'           => $hall->id,
+                    'group_id'          => $groupId,
+                    'date'              => $slot['date'],
+                    'time_start'        => $timeStart,
+                    'time_end'          => $timeEnd,
+                    'duration_hours'    => $hours,
+                    'format'            => 'hourly',
+                    'status'            => Booking::STATUS_HOLD,
+                    'total_amount'      => (int) $slot['amount'],
+                    'prepayment_amount' => (int) $slot['amount'],
+                    'hold_expires_at'   => now()->addMinutes(10),
+                    'consent_offer'     => $data['consent_offer']  ?? true,
+                    'consent_policy'    => $data['consent_policy'] ?? true,
+                    'consent_refund'    => $data['consent_refund'] ?? true,
+                    'notes'             => $data['notes'] ?? null,
+                ]);
+            }
+
+            return $bookings;
+        });
+
+        return ['bookings' => $bookings, 'group_id' => $groupId, 'total' => $total];
+    }
+
+    /**
      * Hold для мероприятия — цена берётся из pkg_price (не из PricingRule)
      */
     public function createEventHold(array $data): Booking

@@ -188,6 +188,83 @@ class BookingController extends Controller
     }
 
     /**
+     * Hold для нескольких почасовых слотов (разные дни) — одна оплата, N броней.
+     * POST /api/bookings/multi-hold
+     */
+    public function multiHold(Request $request): JsonResponse
+    {
+        if ($request->input('_hp') !== null && $request->input('_hp') !== '') {
+            return response()->json(['ok' => false, 'error' => 'Bad request'], 422);
+        }
+
+        $data = $request->validate([
+            'hall_id'            => 'required|integer|exists:halls,id',
+            'slots'              => 'required|array|min:2',
+            'slots.*.date'       => 'required|date|after_or_equal:today',
+            'slots.*.time_start' => 'required|regex:/^\d{2}:\d{2}$/',
+            'slots.*.time_end'   => 'required|regex:/^\d{2}:\d{2}$/',
+            'slots.*.amount'     => 'required|integer|min:1',
+            'name'               => 'required|string|max:191',
+            'phone'              => 'required|string|max:30',
+            'email'              => 'nullable|email|max:191',
+            'telegram'           => 'nullable|string|max:100',
+            'tg_user_id'         => 'nullable|string|max:50',
+            'max_user_id'        => 'nullable|string|max:50',
+            'notes'              => 'nullable|string|max:1000',
+            'consent_offer'      => 'boolean',
+            'consent_policy'     => 'boolean',
+            'consent_refund'     => 'boolean',
+        ]);
+
+        try {
+            $result   = $this->bookings->createMultiHold($data);
+            $bookings = $result['bookings'];
+            $groupId  = $result['group_id'];
+            $total    = $result['total'];
+
+            foreach ($bookings as $b) {
+                $b->update(['status' => Booking::STATUS_PENDING_PAYMENT]);
+            }
+
+            $slotDesc = count($bookings) . ' ' . (count($bookings) < 5 ? 'слота' : 'слотов');
+            $tbank = $this->tbank->init([
+                'amount'      => $total * 100,
+                'order_id'    => 'group-' . $groupId,
+                'description' => "Аренда зала: {$slotDesc}",
+                'email'       => $data['email'] ?? null,
+                'phone'       => $data['phone'] ?? null,
+            ]);
+
+            if (!$tbank['ok']) {
+                foreach ($bookings as $b) {
+                    $b->update(['status' => Booking::STATUS_CANCELLED]);
+                }
+                return response()->json(['ok' => false, 'error' => $tbank['error']], 422);
+            }
+
+            ActionLog::write('booking.create', null, 'client', Booking::class, $bookings[0]->id, [
+                'name'       => $data['name'],
+                'group_id'   => $groupId,
+                'slots'      => count($bookings),
+                'total'      => $total,
+            ], $request);
+
+            return response()->json([
+                'ok'          => true,
+                'group_id'    => $groupId,
+                'booking_ids' => array_column(array_map(fn($b) => ['id' => $b->id], $bookings), 'id'),
+                'payment_url' => $tbank['PaymentURL'],
+                'expires_at'  => $bookings[0]->hold_expires_at->toISOString(),
+                'total'       => $total,
+                'prepayment'  => $total,
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+
+        } catch (\RuntimeException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
      * Заявка «весь день» без оплаты — создаём черновые брони и уведомляем в TG
      * POST /api/bookings/inquiry
      */

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Booking extends Model
 {
     protected $fillable = [
-        'client_id', 'hall_id',
+        'client_id', 'hall_id', 'group_id',
         'date', 'time_start', 'time_end', 'duration_hours',
         'format', 'pkg_label', 'status',
         'total_amount', 'prepayment_amount',

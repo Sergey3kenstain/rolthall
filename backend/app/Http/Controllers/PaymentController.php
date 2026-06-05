@@ -75,6 +75,69 @@ class PaymentController extends Controller
         if ($status === 'CONFIRMED') {
             Log::info("TBank CONFIRMED: {$orderId}");
 
+            // Группа нескольких слотов: order_id = "group-{uuid}"
+            if (str_starts_with($orderId, 'group-')) {
+                $groupId  = substr($orderId, 6);
+                $bookings = Booking::with(['hall', 'client.user'])
+                    ->where('group_id', $groupId)
+                    ->get();
+
+                foreach ($bookings as $booking) {
+                    $this->bookings->confirmPayment($booking, $paymentId);
+                }
+
+                if ($bookings->isNotEmpty()) {
+                    $first  = $bookings->first();
+                    $client = $first->client;
+                    $dateList = $bookings->map(fn($b) =>
+                        $b->date->format('d.m.Y') . ' ' . substr($b->time_start,0,5) . '–' . substr($b->time_end,0,5)
+                    )->join(', ');
+
+                    ActionLog::write('booking.paid', $client->user_id ?? null, 'client',
+                        Booking::class, $first->id, [
+                            'amount'         => $amount,
+                            'transaction_id' => $paymentId,
+                            'group_id'       => $groupId,
+                            'slots'          => $bookings->count(),
+                        ]);
+
+                    $this->notify->notifyAdminNewBooking([
+                        'format'         => 'hourly',
+                        'pkg_label'      => 'Почасовая · ' . $bookings->count() . ' слота',
+                        'client_name'    => $client->name,
+                        'date'           => $dateList,
+                        'time_start'     => '',
+                        'time_end'       => '',
+                        'hall_name'      => $first->hall->name,
+                        'phone'          => $client->phone,
+                        'email'          => $client->email ?? '—',
+                        'telegram'       => $client->user->telegram_username ?? $client->telegram_username ?? '—',
+                        'prepayment'     => $bookings->sum('prepayment_amount'),
+                        'transaction_id' => $paymentId,
+                        'guest_count'    => 0,
+                    ]);
+
+                    $clientChatId = $client->user->telegram_chat_id ?? null;
+                    $maxChatId    = $client->user->max_chat_id       ?? null;
+                    if ($clientChatId || $maxChatId) {
+                        $this->notify->notifyClientConfirmedDual($clientChatId, $maxChatId, [
+                            'hall_name'   => $first->hall->name,
+                            'date'        => $dateList,
+                            'time_start'  => '',
+                            'time_end'    => '',
+                            'prepayment'  => $bookings->sum('prepayment_amount'),
+                            'guest_count' => 0,
+                        ]);
+
+                        if (!$client->user->client_password) {
+                            $this->notify->sendCredentials($client->user);
+                        }
+                    }
+                }
+
+                return response('OK', 200);
+            }
+
             // Находим бронь по order_id формата "booking-{id}"
             $bookingId = str_replace('booking-', '', $orderId);
             $booking   = Booking::with(['hall', 'client'])->find($bookingId);

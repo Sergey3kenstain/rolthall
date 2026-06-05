@@ -1750,19 +1750,9 @@ select.inp option{background:var(--bg-card);}
           <button type="button" class="btn btn-ghost btn-sm ab-fmt" data-fmt="allday" onclick="selectAbFormat('allday')">Весь день</button>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-lbl">Дата *</label>
-        <input type="date" class="inp" id="ab-date" min="2024-01-01">
-      </div>
-      <div id="ab-time-row" style="display:flex;gap:10px;">
-        <div class="form-group" style="flex:1;">
-          <label class="form-lbl">Начало *</label>
-          <input type="time" class="inp" id="ab-time-start" min="10:00" max="22:00" step="3600">
-        </div>
-        <div class="form-group" style="flex:1;">
-          <label class="form-lbl">Конец *</label>
-          <input type="time" class="inp" id="ab-time-end" min="11:00" max="23:00" step="3600">
-        </div>
+      <div id="ab-slots-wrap"><!-- слоты рендерятся JS --></div>
+      <div id="ab-add-slot-row" style="display:none;margin-bottom:4px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="abAddSlot()" style="width:100%;justify-content:center;">+ Добавить день</button>
       </div>
       <hr style="border:none;border-top:1px solid var(--border);margin:0;">
       <!-- КЛИЕНТ с поиском -->
@@ -4567,8 +4557,9 @@ let _abSearchTimer = null;
 
 async function openAddBookingModal() {
   _abFormat = 'hourly';
+  _abFormat = 'hourly';
+  _abSlots  = [{ date: new Date().toISOString().slice(0,10), time_start: '10:00', time_end: '12:00' }];
   document.querySelectorAll('.ab-fmt').forEach(b => b.classList.toggle('active', b.dataset.fmt === 'hourly'));
-  document.getElementById('ab-time-row').style.display = 'flex';
   document.getElementById('ab-client-q').value = '';
   document.getElementById('ab-client-dd').classList.remove('open');
   document.getElementById('ab-client-card').style.display = 'none';
@@ -4579,9 +4570,7 @@ async function openAddBookingModal() {
   document.getElementById('ab-telegram').value = '';
   document.getElementById('ab-notes').value    = '';
   document.getElementById('ab-paid').value     = '0';
-  document.getElementById('ab-date').value     = new Date().toISOString().slice(0,10);
-  document.getElementById('ab-time-start').value = '10:00';
-  document.getElementById('ab-time-end').value   = '12:00';
+  abRenderSlots();
 
   // Загружаем залы из admin API
   const hallSel = document.getElementById('ab-hall');
@@ -4650,49 +4639,126 @@ function closeAddBookingModal() {
   document.getElementById('add-booking-modal').classList.remove('open');
 }
 
+// ── Слоты (почасовая мульти) ───────────────────────────────────────────
+let _abSlots = [{ date: '', time_start: '10:00', time_end: '12:00' }];
+
+function abRenderSlots() {
+  const wrap = document.getElementById('ab-slots-wrap');
+  const isHourly = _abFormat === 'hourly';
+  document.getElementById('ab-add-slot-row').style.display = isHourly ? '' : 'none';
+  if (!isHourly) {
+    // Для event/allday — один блок даты без времени
+    wrap.innerHTML = `<div class="form-group">
+      <label class="form-lbl">Дата *</label>
+      <input type="date" class="inp ab-slot-date" min="2024-01-01" value="${_abSlots[0]?.date || ''}">
+    </div>`;
+    return;
+  }
+  wrap.innerHTML = _abSlots.map((s, i) => `
+    <div class="ab-slot-row" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;">
+      <div class="form-group" style="margin:0;">
+        ${i === 0 ? '<label class="form-lbl">Дата *</label>' : ''}
+        <input type="date" class="inp ab-slot-date" data-idx="${i}" min="2024-01-01" value="${s.date}" onchange="abSlotChange(${i})">
+      </div>
+      <div class="form-group" style="margin:0;">
+        ${i === 0 ? '<label class="form-lbl">Начало *</label>' : ''}
+        <input type="time" class="inp ab-slot-ts" data-idx="${i}" min="10:00" max="22:00" step="3600" value="${s.time_start}" onchange="abSlotChange(${i})">
+      </div>
+      <div class="form-group" style="margin:0;">
+        ${i === 0 ? '<label class="form-lbl">Конец *</label>' : ''}
+        <input type="time" class="inp ab-slot-te" data-idx="${i}" min="11:00" max="23:00" step="3600" value="${s.time_end}" onchange="abSlotChange(${i})">
+      </div>
+      <div style="${i === 0 ? 'margin-top:18px;' : ''}">
+        ${i > 0 ? `<button type="button" class="btn btn-ghost btn-sm" onclick="abRemoveSlot(${i})" style="color:var(--err,#e53e3e);padding:6px 8px;">✕</button>` : '<span style="width:32px;display:block;"></span>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function abSlotChange(i) {
+  const rows = document.querySelectorAll('.ab-slot-row');
+  const row  = rows[i];
+  if (!row) return;
+  _abSlots[i].date       = row.querySelector('.ab-slot-date').value;
+  _abSlots[i].time_start = row.querySelector('.ab-slot-ts').value;
+  _abSlots[i].time_end   = row.querySelector('.ab-slot-te').value;
+}
+
+function abAddSlot() {
+  _abSlots.push({ date: '', time_start: '10:00', time_end: '12:00' });
+  abRenderSlots();
+}
+
+function abRemoveSlot(i) {
+  _abSlots.splice(i, 1);
+  abRenderSlots();
+}
+
 function selectAbFormat(fmt) {
   _abFormat = fmt;
   document.querySelectorAll('.ab-fmt').forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
-  document.getElementById('ab-time-row').style.display = fmt === 'allday' ? 'none' : 'flex';
+  abRenderSlots();
 }
 
 async function submitAddBooking() {
   const hallId = document.getElementById('ab-hall').value;
-  const date   = document.getElementById('ab-date').value;
   const name   = document.getElementById('ab-name').value.trim();
   const phone  = document.getElementById('ab-phone').value.trim();
 
-  if (!hallId)  { showToast('Выберите зал', true); return; }
-  if (!date)    { showToast('Укажите дату', true); return; }
-  if (!name)    { showToast('Введите имя клиента', true); return; }
-  if (!phone)   { showToast('Введите телефон', true); return; }
+  if (!hallId) { showToast('Выберите зал', true); return; }
+  if (!name)   { showToast('Введите имя клиента', true); return; }
+  if (!phone)  { showToast('Введите телефон', true); return; }
 
-  if (_abFormat !== 'allday') {
-    const ts = document.getElementById('ab-time-start').value;
-    const te = document.getElementById('ab-time-end').value;
-    if (!ts || !te)           { showToast('Укажите время', true); return; }
-    if (ts >= te)             { showToast('Время конца должно быть позже начала', true); return; }
-  }
-
-  const payload = {
+  const commonFields = {
     hall_id:     parseInt(hallId),
-    date,
     format:      _abFormat,
     name, phone,
     email:       document.getElementById('ab-email').value.trim()    || null,
     telegram:    tgUsername(document.getElementById('ab-telegram').value) || null,
     notes:       document.getElementById('ab-notes').value.trim()    || null,
-    paid_amount: parseInt(document.getElementById('ab-paid').value) || 0,
+    paid_amount: parseInt(document.getElementById('ab-paid').value)  || 0,
   };
-  if (_abFormat !== 'allday') {
-    payload.time_start = document.getElementById('ab-time-start').value;
-    payload.time_end   = document.getElementById('ab-time-end').value;
+
+  // Синхронизируем последние значения из DOM
+  document.querySelectorAll('.ab-slot-row').forEach((row, i) => {
+    if (_abSlots[i]) {
+      _abSlots[i].date       = row.querySelector('.ab-slot-date')?.value || _abSlots[i].date;
+      _abSlots[i].time_start = row.querySelector('.ab-slot-ts')?.value   || _abSlots[i].time_start;
+      _abSlots[i].time_end   = row.querySelector('.ab-slot-te')?.value   || _abSlots[i].time_end;
+    }
+  });
+
+  let payload;
+
+  if (_abFormat === 'allday') {
+    const date = document.querySelector('.ab-slot-date')?.value;
+    if (!date) { showToast('Укажите дату', true); return; }
+    payload = { ...commonFields, date };
+
+  } else if (_abSlots.length > 1) {
+    // Несколько слотов
+    for (const s of _abSlots) {
+      if (!s.date)                       { showToast('Укажите дату для каждого слота', true); return; }
+      if (!s.time_start || !s.time_end)  { showToast('Укажите время для каждого слота', true); return; }
+      if (s.time_start >= s.time_end)    { showToast('Конец должен быть позже начала', true); return; }
+    }
+    payload = { ...commonFields, slots: _abSlots.map(s => ({
+      date: s.date, time_start: s.time_start, time_end: s.time_end,
+    }))};
+
+  } else {
+    // Один слот
+    const s = _abSlots[0];
+    if (!s.date)                       { showToast('Укажите дату', true); return; }
+    if (!s.time_start || !s.time_end)  { showToast('Укажите время', true); return; }
+    if (s.time_start >= s.time_end)    { showToast('Конец должен быть позже начала', true); return; }
+    payload = { ...commonFields, date: s.date, time_start: s.time_start, time_end: s.time_end };
   }
 
   const data = await api('/admin/bookings', { method:'POST', body: JSON.stringify(payload) });
-  if (!data?.ok) { showToast(data?.message || 'Ошибка создания брони', true); return; }
+  if (!data?.ok) { showToast(data?.message || data?.error || 'Ошибка создания брони', true); return; }
   closeAddBookingModal();
-  showToast('Бронь создана');
+  showToast(_abSlots.length > 1 ? `Создано ${_abSlots.length} брони` : 'Бронь создана');
   if (_bookDateStr) loadBookings(_bookDateStr);
   loadAllBookings();
 }

@@ -591,7 +591,67 @@ class AdminController extends Controller
     public function createBooking(Request $request): JsonResponse
     {
         $format = $request->input('format', 'hourly');
+        $isMulti = $request->has('slots') && is_array($request->input('slots')) && count($request->input('slots')) > 1;
 
+        if ($isMulti) {
+            // Несколько слотов (разные дни) — создаём N подтверждённых броней без оплаты
+            $data = $request->validate([
+                'hall_id'            => 'required|integer|exists:halls,id',
+                'slots'              => 'required|array|min:2',
+                'slots.*.date'       => 'required|date',
+                'slots.*.time_start' => 'required|regex:/^\d{2}:\d{2}$/',
+                'slots.*.time_end'   => 'required|regex:/^\d{2}:\d{2}$/',
+                'name'               => 'required|string|max:191',
+                'phone'              => 'required|string|max:30',
+                'email'              => 'nullable|email|max:191',
+                'telegram'           => 'nullable|string|max:100',
+                'notes'              => 'nullable|string|max:1000',
+                'paid_amount'        => 'nullable|integer|min:0',
+            ]);
+
+            $data['consent_offer']  = true;
+            $data['consent_policy'] = true;
+            $data['consent_refund'] = true;
+            $data['format']         = 'hourly';
+
+            $result   = $this->bookings->createMultiHold($data);
+            $bookings = $result['bookings'];
+            $groupId  = $result['group_id'];
+            $paidAmount = (int) ($data['paid_amount'] ?? 0);
+
+            // Распределяем paid_amount пропорционально между бронями
+            $total = $result['total'] ?: 1;
+            foreach ($bookings as $b) {
+                $share = $total > 0 ? (int) round($paidAmount * $b->total_amount / $total) : 0;
+                $b->update(['status' => Booking::STATUS_CONFIRMED, 'prepayment_amount' => $share]);
+            }
+
+            $bookings[0]->load(['hall', 'client.user']);
+            $clientChatId = $bookings[0]->client->user->telegram_chat_id ?? null;
+            $maxChatId    = $bookings[0]->client->user->max_chat_id       ?? null;
+            if ($clientChatId || $maxChatId) {
+                $dateList = implode(', ', array_map(
+                    fn($b) => $b->date->format('d.m.Y') . ' ' . substr($b->time_start,0,5) . '–' . substr($b->time_end,0,5),
+                    $bookings
+                ));
+                $this->notify->notifyClientConfirmedDual($clientChatId, $maxChatId, [
+                    'hall_name'   => $bookings[0]->hall->name,
+                    'date'        => $dateList,
+                    'time_start'  => '',
+                    'time_end'    => '',
+                    'prepayment'  => $paidAmount,
+                    'guest_count' => 0,
+                ]);
+            }
+
+            return response()->json([
+                'ok'       => true,
+                'bookings' => array_column(array_map(fn($b) => ['id' => $b->id], $bookings), 'id'),
+                'group_id' => $groupId,
+            ], 201, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // Один слот — прежняя логика
         $data = $request->validate([
             'hall_id'     => 'required|integer|exists:halls,id',
             'date'        => 'required|date',
@@ -619,7 +679,6 @@ class AdminController extends Controller
         ]);
         $booking->load(['hall', 'client.user']);
 
-        // Уведомление клиенту если привязан бот
         $clientChatId = $booking->client->user->telegram_chat_id ?? null;
         $maxChatId    = $booking->client->user->max_chat_id       ?? null;
         if ($clientChatId || $maxChatId) {

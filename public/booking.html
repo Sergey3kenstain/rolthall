@@ -825,6 +825,29 @@ function initBookingPage() {
 
     BOOKING_DATA = { format: 'hourly', hallId, date, timeStart, timeEnd, total, prepay };
 
+  } else if (format === 'hourly_multi') {
+    const slots = (() => { try { return JSON.parse(p.get('bookings') || '[]'); } catch { return []; } })();
+
+    const dateLabels = slots.map(s => {
+      const d = fmtDate(s.date);
+      return `${d} ${s.time_start}–${s.time_end} (${s.hours} ч · ${fmtMoney(s.total)})`;
+    }).join('\n');
+
+    setEl('sumDate',    slots.map(s => fmtDate(s.date)).join(', '));
+    setEl('sumTime',    slots.map(s => `${s.time_start}–${s.time_end}`).join(', '));
+    setEl('sumTariff',  `${slots.length} слота · почасовая`);
+    setEl('sumPrepay',  fmtMoney(prepay));
+    setEl('sumTotal',   '100% оплата при бронировании');
+    setEl('sumPayLabel','К оплате');
+    setEl('mobPrepay',  fmtMoney(prepay));
+    setEl('mobTotal',   '100% оплата при бронировании');
+
+    document.querySelectorAll('#desktopPayBtn, #mobilePayBtn').forEach(b => {
+      b.textContent = `Оплатить ${fmtMoney(prepay)}`;
+    });
+
+    BOOKING_DATA = { format: 'hourly_multi', hallId, slots, total, prepay };
+
   } else if (format === 'event') {
     const dates  = (p.get('dates') || '').split(',').filter(Boolean);
     const pkg    = parseInt(p.get('pkg') || '100000');
@@ -917,7 +940,38 @@ async function submitBooking() {
   allBtns.forEach(b => { b.disabled = true; b.textContent = 'Создаём бронь...'; });
 
   try {
-    if (BOOKING_DATA.format === 'hourly') {
+    if (BOOKING_DATA.format === 'hourly_multi') {
+      const tgStored = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
+      const tgChatId = String(window.Telegram?.WebApp?.initDataUnsafe?.user?.id || tgStored?.id || '') || null;
+
+      const res = await fetch('/api/bookings/multi-hold', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          hall_id:         BOOKING_DATA.hallId,
+          slots:           BOOKING_DATA.slots,
+          name, phone, email,
+          telegram:        telegram || null,
+          tg_user_id:      tgChatId,
+          max_user_id:     document.getElementById('f-max-id')?.value || null,
+          notes,
+          _hp:             document.getElementById('hp-website')?.value || '',
+          consent_offer:   true,
+          consent_policy:  true,
+          consent_refund:  true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        const msg = data?.error || data?.message || `Ошибка сервера (${res.status})`;
+        alert('Ошибка: ' + msg);
+        allBtns.forEach(b => { b.disabled = false; b.textContent = 'Оплатить'; });
+        return;
+      }
+      sessionStorage.removeItem(FORM_STORAGE_KEY);
+      window.location.href = data.payment_url;
+
+    } else if (BOOKING_DATA.format === 'hourly') {
       const tgStored2 = (() => { try { return JSON.parse(sessionStorage.getItem('rh_tg_user') || 'null'); } catch { return null; } })();
       const tgChatId  = String(window.Telegram?.WebApp?.initDataUnsafe?.user?.id || tgStored2?.id || '') || null;
 
