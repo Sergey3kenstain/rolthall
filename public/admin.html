@@ -4593,6 +4593,7 @@ async function openAddBookingModal() {
     : '<option value="">Нет залов</option>';
 
   phoneMask(document.getElementById('ab-phone'));
+  emailMask(document.getElementById('ab-email'));
   telegramMask(document.getElementById('ab-telegram'));
   document.getElementById('add-booking-modal').classList.add('open');
   setTimeout(() => document.getElementById('ab-client-q').focus(), 100);
@@ -4704,6 +4705,7 @@ function openAddClientModal() {
     if (el) el.value = '';
   });
   phoneMask(document.getElementById('ac-phone'));
+  emailMask(document.getElementById('ac-email'));
   telegramMask(document.getElementById('ac-telegram'));
   document.getElementById('add-client-modal').classList.add('open');
   setTimeout(() => document.getElementById('ac-name').focus(), 100);
@@ -4775,6 +4777,14 @@ function telegramMask(el) {
 
 function tgUsername(raw) {
   return (raw || '').replace(/^@+/, '').replace(/^https?:\/\/t\.me\//i, '').trim();
+}
+function emailMask(el) {
+  if (!el || el._emailMasked) return;
+  el._emailMasked = true;
+  const RE = /^[-\w.]+@([\w-]+\.)+[a-z]{2,}$/i;
+  el.addEventListener('input', function() { this.value = this.value.replace(/\s/g, '').toLowerCase(); });
+  el.addEventListener('blur',  function() { this.style.borderColor = (this.value && !RE.test(this.value)) ? 'var(--err,#e53e3e)' : ''; });
+  el.addEventListener('focus', function() { this.style.borderColor = ''; });
 }
 let _tplEditId = null;
 
