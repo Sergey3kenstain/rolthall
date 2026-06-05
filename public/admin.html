@@ -3547,7 +3547,7 @@ function renderClientsList(items) {
     const avImg = c.avatar_url ? `<img src="${c.avatar_url}" alt="" onerror="this.style.display='none'">` : '';
     const avBg  = c.avatar_url ? '' : `background:${color};`;
     const phone  = c.phone  ? `<a class="cl-link" href="tel:${c.phone}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.75a19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 6.18 2 2 0 014.11 4h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6z"/></svg>${c.phone}</a>` : '';
-    const tg     = c.telegram ? `<a class="cl-link" href="https://t.me/${c.telegram.replace('@','')}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>${c.telegram}</a>` : '';
+    const _tg0   = tgUsername(c.telegram); const tg = _tg0 ? `<a class="cl-link" href="https://t.me/${_tg0}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>@${_tg0}</a>` : '';
     const email  = c.email  ? `<a class="cl-link" href="mailto:${c.email}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>${c.email}</a>` : '';
     const ban    = c.is_blacklisted ? '<span class="cl-ban">БАН</span>' : '';
     const ROLE_BADGE = {owner:'#E67E22',admin:'#376FFF',manager:'#27AE60',developer:'#9B59B6'};
@@ -3585,7 +3585,7 @@ async function openClientModal(id) {
   sr.innerHTML = c.is_blacklisted ? '<span class="st-badge err">Заблокирован</span>' : '<span class="st-badge ok">Активен</span>';
   // Contacts
   const phone = c.phone  ? `<div class="cd-contact-row"><span class="cd-contact-label">Телефон</span><a class="cd-contact-val" href="tel:${c.phone}">${c.phone}</a></div>` : '';
-  const tg    = c.telegram ? `<div class="cd-contact-row"><span class="cd-contact-label">Telegram</span><a class="cd-contact-val" href="https://t.me/${c.telegram.replace('@','')}" target="_blank">${c.telegram}</a></div>` : '';
+  const _tgCd = tgUsername(c.telegram); const tg = _tgCd ? `<div class="cd-contact-row"><span class="cd-contact-label">Telegram</span><a class="cd-contact-val" href="https://t.me/${_tgCd}" target="_blank">@${_tgCd}</a></div>` : '';
   const em    = c.email   ? `<div class="cd-contact-row"><span class="cd-contact-label">Email</span><a class="cd-contact-val" href="mailto:${c.email}">${c.email}</a></div>` : '';
   const tgid  = (_me?.role==='developer'&&c.telegram_id) ? `<div class="cd-contact-row"><span class="cd-contact-label">TG ID</span><span class="cd-contact-val" style="font-family:monospace;font-size:.7rem;">${c.telegram_id}</span></div>` : '';
   document.getElementById('cd-contacts').innerHTML = phone + tg + em + tgid;
@@ -3781,7 +3781,7 @@ function renderBlacklistTab(items) {
     const ini   = (c.name||'??').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const since = (c.blacklisted_at||'').slice(0,10);
     const phone = c.phone   ? `<a class="cl-link" href="tel:${c.phone}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.75a19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 6.18 2 2 0 014.11 4h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6z"/></svg>${c.phone}</a>` : '';
-    const tg    = c.telegram ? `<a class="cl-link" href="https://t.me/${c.telegram.replace('@','')}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>${c.telegram}</a>` : '';
+    const _tgBl = tgUsername(c.telegram); const tg = _tgBl ? `<a class="cl-link" href="https://t.me/${_tgBl}" target="_blank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>@${_tgBl}</a>` : '';
     const email = c.email   ? `<a class="cl-link" href="mailto:${c.email}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>${c.email}</a>` : '';
     const reason = (c.blacklist_reason||'—') + (since ? ' · ' + since : '');
     return `<div class="cl-row" onclick="openClientModal(${c.id})">
@@ -4577,6 +4577,7 @@ async function openAddBookingModal() {
     : '<option value="">Нет залов</option>';
 
   phoneMask(document.getElementById('ab-phone'));
+  telegramMask(document.getElementById('ab-telegram'));
   document.getElementById('add-booking-modal').classList.add('open');
   setTimeout(() => document.getElementById('ab-client-q').focus(), 100);
 }
@@ -4661,7 +4662,7 @@ async function submitAddBooking() {
     format:      _abFormat,
     name, phone,
     email:       document.getElementById('ab-email').value.trim()    || null,
-    telegram:    document.getElementById('ab-telegram').value.trim() || null,
+    telegram:    tgUsername(document.getElementById('ab-telegram').value) || null,
     notes:       document.getElementById('ab-notes').value.trim()    || null,
     paid_amount: parseInt(document.getElementById('ab-paid').value) || 0,
   };
@@ -4687,6 +4688,7 @@ function openAddClientModal() {
     if (el) el.value = '';
   });
   phoneMask(document.getElementById('ac-phone'));
+  telegramMask(document.getElementById('ac-telegram'));
   document.getElementById('add-client-modal').classList.add('open');
   setTimeout(() => document.getElementById('ac-name').focus(), 100);
 }
@@ -4704,7 +4706,7 @@ async function submitAddClient() {
   const payload = {
     name, phone,
     email:    document.getElementById('ac-email').value.trim()    || null,
-    telegram: document.getElementById('ac-telegram').value.trim() || null,
+    telegram: tgUsername(document.getElementById('ac-telegram').value) || null,
     note:     document.getElementById('ac-note').value.trim()     || null,
   };
 
@@ -4737,6 +4739,26 @@ function phoneMask(el) {
     r += d.slice(6,8) + '-';
     this.value = r + d.slice(8);
   });
+}
+
+function telegramMask(el) {
+  if (!el || el._tgMasked) return;
+  el._tgMasked = true;
+  const clean = v => v.replace(/^@+/, '').replace(/[^a-zA-Z0-9_]/g, '').slice(0, 32);
+  el.addEventListener('input', function() {
+    const c = clean(this.value);
+    this.value = c ? '@' + c : '';
+  });
+  el.addEventListener('focus', function() {
+    if (!this.value) this.value = '@';
+  });
+  el.addEventListener('blur', function() {
+    if (this.value === '@') this.value = '';
+  });
+}
+
+function tgUsername(raw) {
+  return (raw || '').replace(/^@+/, '').replace(/^https?:\/\/t\.me\//i, '').trim();
 }
 let _tplEditId = null;
 
