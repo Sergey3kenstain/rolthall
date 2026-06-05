@@ -227,6 +227,9 @@ button{font-family:var(--font);}
 .prev-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-d);margin-bottom:4px;}
 .prev-inp{width:100%;font-family:var(--font);font-size:.72rem;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:8px 11px;outline:none;}
 
+/* ── Ticket editor grid ── */
+.ticket-editor-grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   :root{--sidebar-w:200px;}
@@ -235,6 +238,7 @@ button{font-family:var(--font);}
   .form-row-3{grid-template-columns:1fr 1fr;}
   .tier-row{grid-template-columns:1fr 1fr 28px;}
   .tier-row > :nth-child(3){display:none;}
+  .ticket-editor-grid{grid-template-columns:260px 1fr;}
 }
 @media(max-width:768px){
   .sidebar{display:none;}
@@ -245,6 +249,7 @@ button{font-family:var(--font);}
   .add-field-grid{grid-template-columns:repeat(3,1fr);}
   .form-row-2,.form-row-3,.form-row-4{grid-template-columns:1fr;}
   .tier-row{grid-template-columns:1fr 80px 28px;}
+  .ticket-editor-grid{grid-template-columns:1fr;}
 }
 @media(max-width:480px){
   .add-field-grid{grid-template-columns:repeat(2,1fr);}
@@ -691,7 +696,7 @@ button{font-family:var(--font);}
       </div>
 
       <div id="ticket-editor-area" style="display:none;">
-        <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;">
+        <div class="ticket-editor-grid">
 
           <!-- Zones list -->
           <div>
