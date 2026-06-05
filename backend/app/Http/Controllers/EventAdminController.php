@@ -322,6 +322,13 @@ class EventAdminController extends Controller
         return response()->json(['ok' => true, 'registration' => $this->formatRegistration($reg, true)], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function deleteRegistration(int $eventId, int $regId): JsonResponse
+    {
+        $reg = EventRegistration::where('event_id', $eventId)->findOrFail($regId);
+        $reg->delete();
+        return response()->json(['ok' => true]);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private function formatEvent(Event $event): array

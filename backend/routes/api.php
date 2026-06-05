@@ -144,8 +144,9 @@ Route::middleware('auth:sanctum')->prefix('admin/events')->group(function () {
     Route::post('/{id}/ticket-template',         [EventAdminController::class, 'uploadTicketTemplate']);
     Route::delete('/{id}/ticket-template',       [EventAdminController::class, 'deleteTicketTemplate']);
     Route::post('/{id}/ticket-preview',          [EventAdminController::class, 'ticketPreview']);
-    Route::get('/{id}/registrations',            [EventAdminController::class, 'registrations']);
-    Route::get('/{id}/registrations/{regId}',    [EventAdminController::class, 'registrationDetail']);
+    Route::get('/{id}/registrations',             [EventAdminController::class, 'registrations']);
+    Route::get('/{id}/registrations/{regId}',     [EventAdminController::class, 'registrationDetail']);
+    Route::delete('/{id}/registrations/{regId}',  [EventAdminController::class, 'deleteRegistration']);
 });
 
 // ── Events (public form) ──────────────────────────────────────────────

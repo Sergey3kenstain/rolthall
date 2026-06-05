@@ -1495,14 +1495,29 @@ function ptRender(regs) {
     return;
   }
   document.getElementById('pt-list').innerHTML = regs.map(r => `
-    <div class="pt-row">
+    <div class="pt-row" id="pt-row-${r.id}">
       <div style="flex:1;min-width:0;">
         <div class="pt-row-name">${esc(r.display_name || r.phone || '—')}</div>
         <div style="font-size:.62rem;color:var(--text-d);margin-top:2px;">${esc(r.phone||'')}${r.tg_user_id?` · @${esc(r.tg_user_id)}`:''}${r.tariff?` · ${esc(r.tariff)}`:''}</div>
       </div>
       <div class="pt-row-meta">${r.created_at}</div>
       ${paymentsOn ? `<span class="pt-badge ${r.payment_status==='paid'?'pt-badge-paid':'pt-badge-pend'}">${r.payment_status==='paid'?'Оплачено':'Ожидает'}</span>` : ''}
+      <button onclick="deleteParticipant(${r.id})" title="Удалить" style="background:none;border:none;cursor:pointer;color:var(--text-d);font-size:1rem;padding:2px 4px;line-height:1;flex-shrink:0;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-d)'">×</button>
     </div>`).join('');
+}
+
+async function deleteParticipant(regId) {
+  if (!confirm('Удалить участника #' + regId + '?')) return;
+  const res = await api(`/admin/events/${_evId}/registrations/${regId}`, { method: 'DELETE' });
+  if (res?.ok) {
+    document.getElementById('pt-row-' + regId)?.remove();
+    _ptRegs = _ptRegs.filter(r => r.id !== regId);
+    // Пересчитать статистику
+    ptRender(_ptRegs);
+    showToast('Участник удалён');
+  } else {
+    showToast('Ошибка удаления', true);
+  }
 }
 
 function ptDownloadCsv() {
