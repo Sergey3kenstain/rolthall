@@ -68,32 +68,7 @@ let   _selectedTariff = null;
 
 if (_tg) { _tg.ready(); _tg.expand(); }
 
-// ── TG Debug panel (видна только внутри Telegram WebApp) ──────────────
-const _dbgLines = [];
-function dbg(msg) {
-  _dbgLines.push('[' + new Date().toISOString().slice(11,19) + '] ' + msg);
-  const el = document.getElementById('tg-debug-log');
-  if (el) el.textContent = _dbgLines.join('\n');
-}
-const _dbgPanelH = 170; // px — высота панели для отступа снизу
-if (_tg) {
-  document.addEventListener('DOMContentLoaded', () => {
-    const panel = document.createElement('div');
-    panel.id = 'tg-debug';
-    panel.style.cssText = `position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;border-top:2px solid #376FFF;padding:8px 12px;z-index:9999;font-family:monospace;font-size:10px;color:#ccc;max-height:${_dbgPanelH}px;overflow:auto;`;
-    panel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-  <b style="color:#376FFF;">🔍 TG Debug</b>
-  <button onclick="this.closest('#tg-debug').style.display='none';document.getElementById('app').style.paddingBottom=''" style="background:none;border:none;color:#888;cursor:pointer;font-size:14px;">×</button>
-</div>
-<div>platform: <b>${_tg.platform||'?'}</b> | ver: <b>${_tg.version||'?'}</b> | initData: <b>${_tg.initData ? '✅'+_tg.initData.length+'ch' : '❌ EMPTY'}</b></div>
-<div>tgId: <b>${_tgId||'❌ null'}</b> | slug: <b>${_slug||'?'}</b></div>
-<div style="margin-top:4px;border-top:1px solid rgba(255,255,255,.1);padding-top:4px;white-space:pre-wrap;line-height:1.4;" id="tg-debug-log"></div>`;
-    document.body.appendChild(panel);
-    // Отступ снизу чтобы не перекрывать кнопку
-    document.getElementById('app').style.paddingBottom = _dbgPanelH + 'px';
-    dbg('Panel ready');
-  });
-}
+function dbg(msg) {} // stub — debug panel removed
 
 async function loadEvent() {
   try {
