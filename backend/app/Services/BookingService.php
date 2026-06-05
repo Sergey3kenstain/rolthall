@@ -243,10 +243,20 @@ class BookingService
     {
         $user = User::where('phone', $data['phone'])->first();
 
+        // Если по телефону не нашли — ищем по email (тот же человек, другой телефон)
+        if (!$user && !empty($data['email'])) {
+            $user = User::where('email', $data['email'])->first();
+        }
+
         if (!$user) {
+            // Если email занят другим пользователем — используем гостевой
+            $email = $data['email'] ?? null;
+            if ($email && User::where('email', $email)->exists()) {
+                $email = null;
+            }
             $user = User::create([
                 'name'              => $data['name'],
-                'email'             => $data['email'] ?? ($data['phone'] . '@guest.rolthall.ru'),
+                'email'             => $email ?? ($data['phone'] . '@guest.rolthall.ru'),
                 'phone'             => $data['phone'],
                 'telegram_username' => $data['telegram'] ?? null,
                 'password'          => bcrypt(Str::random(16)),
