@@ -4657,7 +4657,7 @@ function abRenderSlots() {
   wrap.innerHTML = _abSlots.map((s, i) => `
     <div class="ab-slot-row" style="display:grid;grid-template-columns:1fr auto;gap:0 8px;margin-bottom:10px;">
       <div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;">
+        <div style="display:grid;grid-template-columns:150px 100px 100px;gap:4px;align-items:end;">
           <div class="form-group" style="margin:0;">
             ${i === 0 ? '<label class="form-lbl">Дата *</label>' : ''}
             <input type="date" class="inp ab-slot-date" data-idx="${i}" min="2024-01-01" value="${s.date}" onchange="abSlotChange(${i})">
