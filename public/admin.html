@@ -4655,24 +4655,28 @@ function abRenderSlots() {
   const multi = _abSlots.length > 1;
   document.getElementById('ab-total-display').style.display = multi ? '' : 'none';
   wrap.innerHTML = _abSlots.map((s, i) => `
-    <div class="ab-slot-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 90px auto;gap:8px;align-items:end;margin-bottom:8px;">
-      <div class="form-group" style="margin:0;">
-        ${i === 0 ? '<label class="form-lbl">Дата *</label>' : ''}
-        <input type="date" class="inp ab-slot-date" data-idx="${i}" min="2024-01-01" value="${s.date}" onchange="abSlotChange(${i})">
+    <div class="ab-slot-row" style="display:grid;grid-template-columns:1fr auto;gap:0 8px;margin-bottom:10px;">
+      <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            ${i === 0 ? '<label class="form-lbl">Дата *</label>' : ''}
+            <input type="date" class="inp ab-slot-date" data-idx="${i}" min="2024-01-01" value="${s.date}" onchange="abSlotChange(${i})">
+          </div>
+          <div class="form-group" style="margin:0;">
+            ${i === 0 ? '<label class="form-lbl">Начало *</label>' : ''}
+            <input type="time" class="inp ab-slot-ts" data-idx="${i}" min="10:00" max="22:00" step="3600" value="${s.time_start}" onchange="abSlotChange(${i})">
+          </div>
+          <div class="form-group" style="margin:0;">
+            ${i === 0 ? '<label class="form-lbl">Конец *</label>' : ''}
+            <input type="time" class="inp ab-slot-te" data-idx="${i}" min="11:00" max="23:00" step="3600" value="${s.time_end}" onchange="abSlotChange(${i})">
+          </div>
+        </div>
+        <div class="form-group" style="margin:6px 0 0;">
+          ${i === 0 ? '<label class="form-lbl">Оплачено ₽</label>' : ''}
+          <input type="number" class="inp ab-slot-paid" data-idx="${i}" min="0" step="100" value="${s.paid_amount || 0}" placeholder="0" oninput="abSlotChange(${i})">
+        </div>
       </div>
-      <div class="form-group" style="margin:0;">
-        ${i === 0 ? '<label class="form-lbl">Начало *</label>' : ''}
-        <input type="time" class="inp ab-slot-ts" data-idx="${i}" min="10:00" max="22:00" step="3600" value="${s.time_start}" onchange="abSlotChange(${i})">
-      </div>
-      <div class="form-group" style="margin:0;">
-        ${i === 0 ? '<label class="form-lbl">Конец *</label>' : ''}
-        <input type="time" class="inp ab-slot-te" data-idx="${i}" min="11:00" max="23:00" step="3600" value="${s.time_end}" onchange="abSlotChange(${i})">
-      </div>
-      <div class="form-group" style="margin:0;">
-        ${i === 0 ? '<label class="form-lbl">Оплачено ₽</label>' : ''}
-        <input type="number" class="inp ab-slot-paid" data-idx="${i}" min="0" step="100" value="${s.paid_amount || 0}" placeholder="0" oninput="abSlotChange(${i})">
-      </div>
-      <div style="${i === 0 ? 'margin-top:18px;' : ''}">
+      <div style="${i === 0 ? 'padding-top:18px;' : ''}align-self:start;">
         ${i > 0 ? `<button type="button" class="btn btn-ghost btn-sm" onclick="abRemoveSlot(${i})" style="color:var(--err,#e53e3e);padding:6px 8px;">✕</button>` : '<span style="width:32px;display:block;"></span>'}
       </div>
     </div>
